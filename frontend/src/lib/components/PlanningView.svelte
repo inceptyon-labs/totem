@@ -1,33 +1,33 @@
 <script lang="ts">
-  import { beansStore } from '$lib/beans.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { ui } from '$lib/uiState.svelte';
 
   let { planningView }: { planningView: 'backlog' | 'board' } = $props();
   import { backlogDrag } from '$lib/backlogDrag.svelte';
   import { matchesFilter } from '$lib/filter';
-  import BeanItem from '$lib/components/BeanItem.svelte';
+  import TotemItem from '$lib/components/TotemItem.svelte';
   import BoardView from '$lib/components/BoardView.svelte';
-  import BeanPane from '$lib/components/BeanPane.svelte';
+  import TotemPane from '$lib/components/TotemPane.svelte';
   import SplitPane from '$lib/components/SplitPane.svelte';
   import FilterInput from '$lib/components/FilterInput.svelte';
   import ViewToolbar from '$lib/components/ViewToolbar.svelte';
 
   let filterInput = $state<FilterInput | null>(null);
 
-  const topLevelBeans = $derived(beansStore.all.filter((b) => !b.parentId));
+  const topLevelTotems = $derived(totemsStore.all.filter((b) => !b.parentId));
 
-  function filterBeans(beans: typeof topLevelBeans) {
+  function filterTotems(totems: typeof topLevelTotems) {
     const text = ui.filterText;
-    if (!text) return beans;
-    return beans.filter((bean) => {
-      if (matchesFilter(bean, text)) return true;
-      return beansStore.children(bean.id).some((child) => matchesFilter(child, text));
+    if (!text) return totems;
+    return totems.filter((totem) => {
+      if (matchesFilter(totem, text)) return true;
+      return totemsStore.children(totem.id).some((child) => matchesFilter(child, text));
     });
   }
 
-  const filteredTodoBeans = $derived(filterBeans(topLevelBeans.filter((b) => b.status === 'todo')));
-  const filteredDraftBeans = $derived(
-    filterBeans(topLevelBeans.filter((b) => b.status === 'draft'))
+  const filteredTodoTotems = $derived(filterTotems(topLevelTotems.filter((b) => b.status === 'todo')));
+  const filteredDraftTotems = $derived(
+    filterTotems(topLevelTotems.filter((b) => b.status === 'draft'))
   );
 
   function handleKeydown(e: KeyboardEvent) {
@@ -36,7 +36,7 @@
       filterInput?.focus();
       return;
     }
-    if (e.key === 'Escape' && ui.currentBean && !ui.showForm) {
+    if (e.key === 'Escape' && ui.currentTotem && !ui.showForm) {
       ui.clearSelection();
     }
   }
@@ -87,30 +87,30 @@
             <!-- svelte-ignore a11y_click_events_have_key_events -->
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="min-h-0 flex-1 overflow-auto bg-surface-alt" onclick={handlePlanningClick}>
-              {#snippet backlogSection(beans: typeof filteredTodoBeans, status: string, label: string)}
+              {#snippet backlogSection(totems: typeof filteredTodoTotems, status: string, label: string)}
                 <div
                   class="p-3"
-                  ondragover={(e) => backlogDrag.hoverList(e, null, beans.length, status)}
+                  ondragover={(e) => backlogDrag.hoverList(e, null, totems.length, status)}
                   ondragleave={(e) => backlogDrag.leaveList(e, e.currentTarget, null)}
-                  ondrop={(e) => backlogDrag.drop(e, null, beans)}
+                  ondrop={(e) => backlogDrag.drop(e, null, totems)}
                   role="list"
                 >
                   <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-text-faint">
                     {label}
-                    <span class="font-normal">{beans.length}</span>
+                    <span class="font-normal">{totems.length}</span>
                   </h3>
-                  {#each beans as bean, i (bean.id)}
-                    <BeanItem
-                      {bean}
+                  {#each totems as totem, i (totem.id)}
+                    <TotemItem
+                      {totem}
                       parentId={null}
                       index={i}
-                      selectedId={ui.currentBean?.id}
-                      onSelect={(b) => ui.selectBean(b)}
+                      selectedId={ui.currentTotem?.id}
+                      onSelect={(b) => ui.selectTotem(b)}
                       filterText={ui.filterText}
                       sectionStatus={status}
                     />
                   {:else}
-                    {#if !beansStore.loading}
+                    {#if !totemsStore.loading}
                       <p class="text-center py-4 text-sm text-text-muted">No totems</p>
                     {/if}
                   {/each}
@@ -118,7 +118,7 @@
                   <div
                     class={[
                       'mx-1 rounded-full transition-colors',
-                      backlogDrag.showEndIndicator(null, beans.length, status)
+                      backlogDrag.showEndIndicator(null, totems.length, status)
                         ? 'h-0.5 bg-accent'
                         : 'h-0'
                     ]}
@@ -126,20 +126,20 @@
                 </div>
               {/snippet}
 
-              {@render backlogSection(filteredTodoBeans, 'todo', 'Todo')}
-              {@render backlogSection(filteredDraftBeans, 'draft', 'Draft')}
+              {@render backlogSection(filteredTodoTotems, 'todo', 'Todo')}
+              {@render backlogSection(filteredDraftTotems, 'draft', 'Draft')}
             </div>
           {:else}
-            <BoardView onSelect={(b) => ui.selectBean(b)} selectedId={ui.currentBean?.id} />
+            <BoardView onSelect={(b) => ui.selectTotem(b)} selectedId={ui.currentTotem?.id} />
           {/if}
         </div>
       {/snippet}
 
       {#snippet detailPanel()}
-        {#if ui.currentBean}
-          <BeanPane
-            bean={ui.currentBean}
-            onSelect={(b) => ui.selectBean(b)}
+        {#if ui.currentTotem}
+          <TotemPane
+            totem={ui.currentTotem}
+            onSelect={(b) => ui.selectTotem(b)}
             onEdit={(b) => ui.openEditForm(b)}
             onClose={() => ui.clearSelection()}
           />
@@ -153,7 +153,7 @@
           {
             content: detailPanel,
             size: 480,
-            collapsed: !ui.currentBean,
+            collapsed: !ui.currentTotem,
             persistKey: 'detail-width'
           }
         ]}

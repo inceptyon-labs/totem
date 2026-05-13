@@ -12,14 +12,14 @@ const GIT_ENV = {
 };
 
 /**
- * Helper: commit .beans/ directory to git so worktrees inherit bean files.
+ * Helper: commit .totems/ directory to git so worktrees inherit totem files.
  */
-function commitBeansDir(projectDir: string) {
-  execFileSync('git', ['add', '.beans', '.beans.yml'], {
+function commitTotemsDir(projectDir: string) {
+  execFileSync('git', ['add', '.totems', '.totems.yml'], {
     cwd: projectDir,
     timeout: 10_000
   });
-  execFileSync('git', ['commit', '-m', 'commit beans'], {
+  execFileSync('git', ['commit', '-m', 'commit totems'], {
     cwd: projectDir,
     timeout: 10_000,
     env: GIT_ENV
@@ -27,12 +27,12 @@ function commitBeansDir(projectDir: string) {
 }
 
 /**
- * Helper: find the bean file in a .beans/ directory by bean ID prefix.
+ * Helper: find the totem file in a .totems/ directory by totem ID prefix.
  */
-function findBeanFile(beansDir: string, beanId: string): string {
-  const files = readdirSync(beansDir);
-  const match = files.find((f) => f.startsWith(beanId) && f.endsWith('.md'));
-  if (!match) throw new Error(`No bean file found for ${beanId} in ${beansDir}`);
+function findTotemFile(totemsDir: string, totemId: string): string {
+  const files = readdirSync(totemsDir);
+  const match = files.find((f) => f.startsWith(totemId) && f.endsWith('.md'));
+  if (!match) throw new Error(`No totem file found for ${totemId} in ${totemsDir}`);
   return match;
 }
 
@@ -58,77 +58,77 @@ async function createWorkspaceAndGetPath(
   return { wsName, wtPath: wt!.path };
 }
 
-test.describe('Workspace bean association', () => {
-  test('beans modified in a worktree appear under the workspace in sidebar', async ({
-    beans,
+test.describe('Workspace totem association', () => {
+  test('totems modified in a worktree appear under the workspace in sidebar', async ({
+    totems,
     page
   }) => {
-    // Create a bean and commit .beans/ to git so worktrees inherit it
-    const beanId = beans.create('WT Association Bean', { type: 'task', status: 'todo' });
-    commitBeansDir(beans.projectDir);
+    // Create a totem and commit .totems/ to git so worktrees inherit it
+    const totemId = totems.create('WT Association Totem', { type: 'task', status: 'todo' });
+    commitTotemsDir(totems.projectDir);
 
-    await page.goto(beans.baseURL + '/');
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
     // Create a workspace
-    const { wsName, wtPath } = await createWorkspaceAndGetPath(page, () => beans.getWorktrees());
+    const { wsName, wtPath } = await createWorkspaceAndGetPath(page, () => totems.getWorktrees());
 
-    // Modify the bean file in the worktree's .beans/ directory
-    const beanFile = findBeanFile(join(wtPath, '.beans'), beanId);
-    const beanPath = join(wtPath, '.beans', beanFile);
-    const content = readFileSync(beanPath, 'utf-8');
-    writeFileSync(beanPath, content.replace('status: todo', 'status: in-progress'));
+    // Modify the totem file in the worktree's .totems/ directory
+    const totemFile = findTotemFile(join(wtPath, '.totems'), totemId);
+    const totemPath = join(wtPath, '.totems', totemFile);
+    const content = readFileSync(totemPath, 'utf-8');
+    writeFileSync(totemPath, content.replace('status: todo', 'status: in-progress'));
 
-    // The bean should appear under the workspace in the sidebar
-    // (the file watcher detects the change, DetectBeanIDs picks it up via git diff)
+    // The totem should appear under the workspace in the sidebar
+    // (the file watcher detects the change, DetectTotemIDs picks it up via git diff)
     const sidebar = page.locator('nav');
     const wsCard = sidebar.locator('div.rounded-md').filter({
       has: page.locator('span.truncate', { hasText: wsName })
     });
-    await expect(wsCard.getByText('WT Association Bean')).toBeVisible({ timeout: 10_000 });
+    await expect(wsCard.getByText('WT Association Totem')).toBeVisible({ timeout: 10_000 });
   });
 
-  test('committed bean changes in worktree appear under workspace', async ({ beans, page }) => {
-    // Create a bean and commit .beans/ to git
-    const beanId = beans.create('Committed Bean Change', { type: 'bug', status: 'todo' });
-    commitBeansDir(beans.projectDir);
+  test('committed totem changes in worktree appear under workspace', async ({ totems, page }) => {
+    // Create a totem and commit .totems/ to git
+    const totemId = totems.create('Committed Totem Change', { type: 'bug', status: 'todo' });
+    commitTotemsDir(totems.projectDir);
 
-    await page.goto(beans.baseURL + '/');
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
-    const { wsName, wtPath } = await createWorkspaceAndGetPath(page, () => beans.getWorktrees());
+    const { wsName, wtPath } = await createWorkspaceAndGetPath(page, () => totems.getWorktrees());
 
-    // Modify and commit the bean in the worktree
-    const beanFile = findBeanFile(join(wtPath, '.beans'), beanId);
-    const beanPath = join(wtPath, '.beans', beanFile);
-    const content = readFileSync(beanPath, 'utf-8');
-    writeFileSync(beanPath, content.replace('status: todo', 'status: in-progress'));
-    execFileSync('git', ['add', '.beans'], { cwd: wtPath, timeout: 10_000 });
-    execFileSync('git', ['commit', '-m', 'update bean status'], {
+    // Modify and commit the totem in the worktree
+    const totemFile = findTotemFile(join(wtPath, '.totems'), totemId);
+    const totemPath = join(wtPath, '.totems', totemFile);
+    const content = readFileSync(totemPath, 'utf-8');
+    writeFileSync(totemPath, content.replace('status: todo', 'status: in-progress'));
+    execFileSync('git', ['add', '.totems'], { cwd: wtPath, timeout: 10_000 });
+    execFileSync('git', ['commit', '-m', 'update totem status'], {
       cwd: wtPath,
       timeout: 10_000,
       env: GIT_ENV
     });
 
-    // The bean should appear under the workspace
+    // The totem should appear under the workspace
     const sidebar = page.locator('nav');
     const wsCard = sidebar.locator('div.rounded-md').filter({
       has: page.locator('span.truncate', { hasText: wsName })
     });
-    await expect(wsCard.getByText('Committed Bean Change')).toBeVisible({ timeout: 10_000 });
+    await expect(wsCard.getByText('Committed Totem Change')).toBeVisible({ timeout: 10_000 });
   });
 
-  test('unmodified beans do not appear under workspace', async ({ beans, page }) => {
-    // Create a bean and commit .beans/ to git
-    beans.create('Unchanged Bean', { type: 'task', status: 'todo' });
-    commitBeansDir(beans.projectDir);
+  test('unmodified totems do not appear under workspace', async ({ totems, page }) => {
+    // Create a totem and commit .totems/ to git
+    totems.create('Unchanged Totem', { type: 'task', status: 'todo' });
+    commitTotemsDir(totems.projectDir);
 
-    await page.goto(beans.baseURL + '/');
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
-    const { wsName } = await createWorkspaceAndGetPath(page, () => beans.getWorktrees());
+    const { wsName } = await createWorkspaceAndGetPath(page, () => totems.getWorktrees());
 
-    // Don't modify the bean — it should NOT appear under the workspace
+    // Don't modify the totem — it should NOT appear under the workspace
     const sidebar = page.locator('nav');
     const wsCard = sidebar.locator('div.rounded-md').filter({
       has: page.locator('span.truncate', { hasText: wsName })
@@ -136,6 +136,6 @@ test.describe('Workspace bean association', () => {
 
     // Wait a moment to ensure the subscription has settled, then verify absence
     await page.waitForTimeout(2_000);
-    await expect(wsCard.getByText('Unchanged Bean')).not.toBeVisible();
+    await expect(wsCard.getByText('Unchanged Totem')).not.toBeVisible();
   });
 });

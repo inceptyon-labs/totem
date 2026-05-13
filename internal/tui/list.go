@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/inceptyon-labs/totem/pkg/bean"
 	"github.com/inceptyon-labs/totem/pkg/config"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/internal/ui"
 )
 
@@ -170,9 +170,9 @@ func (m listModel) Init() tea.Cmd {
 
 func (m listModel) loadBeans() tea.Msg {
 	// Build filter if tag filter is set
-	var filter *model.BeanFilter
+	var filter *model.TotemFilter
 	if m.tagFilter != "" {
-		filter = &model.BeanFilter{Tags: []string{m.tagFilter}}
+		filter = &model.TotemFilter{Tags: []string{m.tagFilter}}
 	}
 
 	// Query filtered beans

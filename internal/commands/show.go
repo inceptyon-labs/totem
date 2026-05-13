@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
 	"github.com/inceptyon-labs/totem/internal/output"
 	"github.com/inceptyon-labs/totem/internal/ui"
 	"github.com/spf13/cobra"

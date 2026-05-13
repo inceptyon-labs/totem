@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/inceptyon-labs/totem/pkg/config"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/internal/output"
 	"github.com/inceptyon-labs/totem/internal/ui"
 	"github.com/spf13/cobra"
@@ -55,7 +55,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Build GraphQL input
-		input := model.CreateBeanInput{Title: title}
+		input := model.CreateTotemInput{Title: title}
 		if createStatus != "" {
 			input.Status = &createStatus
 		} else {

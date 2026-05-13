@@ -1,18 +1,18 @@
 import { test, expect } from './fixtures';
 
 test.describe('Backlog sorting', () => {
-  test('beans are sorted by priority, then type, then title within each section', async ({
-    beans,
+  test('totems are sorted by priority, then type, then title within each section', async ({
+    totems,
     backlogPage
   }) => {
-    beans.create('Todo Normal Task', { status: 'todo', priority: 'normal', type: 'task' });
-    beans.create('Todo Normal Bug', { status: 'todo', priority: 'normal', type: 'bug' });
-    beans.create('Todo High Feature', { status: 'todo', priority: 'high', type: 'feature' });
-    beans.create('Draft Idea', { status: 'draft', priority: 'low', type: 'task' });
+    totems.create('Todo Normal Task', { status: 'todo', priority: 'normal', type: 'task' });
+    totems.create('Todo Normal Bug', { status: 'todo', priority: 'normal', type: 'bug' });
+    totems.create('Todo High Feature', { status: 'todo', priority: 'high', type: 'feature' });
+    totems.create('Draft Idea', { status: 'draft', priority: 'low', type: 'task' });
 
     await backlogPage.goto(4);
 
-    const titles = await backlogPage.getBeanTitles();
+    const titles = await backlogPage.getTotemTitles();
     // Todo section first (sorted by priority, then type, then title), then Draft section
     expect(titles).toEqual([
       'Todo High Feature',
@@ -22,155 +22,155 @@ test.describe('Backlog sorting', () => {
     ]);
   });
 
-  test('list re-sorts when a bean priority changes on disk', async ({ beans, backlogPage }) => {
-    const id1 = beans.create('Low Priority Task', {
+  test('list re-sorts when a totem priority changes on disk', async ({ totems, backlogPage }) => {
+    const id1 = totems.create('Low Priority Task', {
       status: 'todo',
       priority: 'low',
       type: 'task'
     });
-    beans.create('Normal Priority Task', { status: 'todo', priority: 'normal', type: 'task' });
+    totems.create('Normal Priority Task', { status: 'todo', priority: 'normal', type: 'task' });
 
     await backlogPage.goto(2);
 
-    let titles = await backlogPage.getBeanTitles();
+    let titles = await backlogPage.getTotemTitles();
     expect(titles).toEqual(['Normal Priority Task', 'Low Priority Task']);
 
-    // Change the low-priority bean to critical via CLI (filesystem change)
-    beans.update(id1, { priority: 'critical' });
+    // Change the low-priority totem to critical via CLI (filesystem change)
+    totems.update(id1, { priority: 'critical' });
 
-    // The bean should now appear first
+    // The totem should now appear first
     await expect(async () => {
-      titles = await backlogPage.getBeanTitles();
+      titles = await backlogPage.getTotemTitles();
       expect(titles).toEqual(['Low Priority Task', 'Normal Priority Task']);
     }).toPass({ timeout: 5_000 });
   });
 
-  test('list re-sorts when a bean status changes on disk', async ({ beans, backlogPage }) => {
-    const id1 = beans.create('A Draft Bean', { status: 'draft', type: 'task' });
-    beans.create('B Todo Bean', { status: 'todo', type: 'task' });
+  test('list re-sorts when a totem status changes on disk', async ({ totems, backlogPage }) => {
+    const id1 = totems.create('A Draft Totem', { status: 'draft', type: 'task' });
+    totems.create('B Todo Totem', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(2);
 
     // Todo section comes before Draft section
-    let titles = await backlogPage.getBeanTitles();
-    expect(titles).toEqual(['B Todo Bean', 'A Draft Bean']);
+    let titles = await backlogPage.getTotemTitles();
+    expect(titles).toEqual(['B Todo Totem', 'A Draft Totem']);
 
-    // Move the draft bean to todo
-    beans.update(id1, { status: 'todo' });
+    // Move the draft totem to todo
+    totems.update(id1, { status: 'todo' });
 
     // Both are now todo, should sort by title
     await expect(async () => {
-      titles = await backlogPage.getBeanTitles();
-      expect(titles).toEqual(['A Draft Bean', 'B Todo Bean']);
+      titles = await backlogPage.getTotemTitles();
+      expect(titles).toEqual(['A Draft Totem', 'B Todo Totem']);
     }).toPass({ timeout: 5_000 });
   });
 
-  test('new bean appears in correct sorted position', async ({ beans, backlogPage }) => {
-    beans.create('Zebra Task', { status: 'todo', type: 'task' });
-    beans.create('Alpha Task', { status: 'todo', type: 'task' });
+  test('new totem appears in correct sorted position', async ({ totems, backlogPage }) => {
+    totems.create('Zebra Task', { status: 'todo', type: 'task' });
+    totems.create('Alpha Task', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(2);
 
-    let titles = await backlogPage.getBeanTitles();
+    let titles = await backlogPage.getTotemTitles();
     expect(titles).toEqual(['Alpha Task', 'Zebra Task']);
 
-    // Create a new bean that should sort between the two
-    beans.create('Middle Task', { status: 'todo', type: 'task' });
+    // Create a new totem that should sort between the two
+    totems.create('Middle Task', { status: 'todo', type: 'task' });
 
     await expect(async () => {
-      titles = await backlogPage.getBeanTitles();
+      titles = await backlogPage.getTotemTitles();
       expect(titles).toEqual(['Alpha Task', 'Middle Task', 'Zebra Task']);
     }).toPass({ timeout: 5_000 });
   });
 
-  test('dragging a bean reorders it within the backlog', async ({ beans, backlogPage }) => {
-    // Create beans with same status/priority/type so they sort by title
-    beans.create('Alpha', { status: 'todo', type: 'task' });
-    beans.create('Bravo', { status: 'todo', type: 'task' });
-    beans.create('Charlie', { status: 'todo', type: 'task' });
+  test('dragging a totem reorders it within the backlog', async ({ totems, backlogPage }) => {
+    // Create totems with same status/priority/type so they sort by title
+    totems.create('Alpha', { status: 'todo', type: 'task' });
+    totems.create('Bravo', { status: 'todo', type: 'task' });
+    totems.create('Charlie', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(3);
 
     // Initial order: Alpha, Bravo, Charlie
-    let titles = await backlogPage.getBeanTitles();
+    let titles = await backlogPage.getTotemTitles();
     expect(titles).toEqual(['Alpha', 'Bravo', 'Charlie']);
 
     // Drag Charlie above Alpha
-    await backlogPage.dragBean('Charlie', 'Alpha', 'above');
+    await backlogPage.dragTotem('Charlie', 'Alpha', 'above');
 
     // New order: Charlie, Alpha, Bravo
     await expect(async () => {
-      titles = await backlogPage.getBeanTitles();
+      titles = await backlogPage.getTotemTitles();
       expect(titles).toEqual(['Charlie', 'Alpha', 'Bravo']);
     }).toPass({ timeout: 5_000 });
   });
 
-  test('dragging a bean onto another reparents it and persists', async ({
-    beans,
+  test('dragging a totem onto another reparents it and persists', async ({
+    totems,
     backlogPage,
     page
   }) => {
-    beans.create('Parent Bean', { status: 'todo', type: 'feature' });
-    beans.create('Child Bean', { status: 'todo', type: 'task' });
+    totems.create('Parent Totem', { status: 'todo', type: 'feature' });
+    totems.create('Child Totem', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(2);
 
     // Both are top-level initially
-    let titles = await backlogPage.getBeanTitles();
-    expect(titles).toContain('Parent Bean');
-    expect(titles).toContain('Child Bean');
+    let titles = await backlogPage.getTotemTitles();
+    expect(titles).toContain('Parent Totem');
+    expect(titles).toContain('Child Totem');
 
-    // Drag Child Bean onto Parent Bean to reparent it
-    await backlogPage.dragBean('Child Bean', 'Parent Bean', 'onto');
+    // Drag Child Totem onto Parent Totem to reparent it
+    await backlogPage.dragTotem('Child Totem', 'Parent Totem', 'onto');
 
-    // Child Bean should now be nested under Parent Bean
+    // Child Totem should now be nested under Parent Totem
     await expect(async () => {
-      const parentItem = backlogPage.beanByTitle('Parent Bean');
-      const nestedChild = parentItem.locator('.bean-item', { hasText: 'Child Bean' });
+      const parentItem = backlogPage.totemByTitle('Parent Totem');
+      const nestedChild = parentItem.locator('.totem-item', { hasText: 'Child Totem' });
       await expect(nestedChild).toBeVisible();
     }).toPass({ timeout: 5_000 });
 
     // Reload the page to verify persistence
     await page.reload();
-    await backlogPage.waitForBean('Parent Bean');
+    await backlogPage.waitForTotem('Parent Totem');
 
-    // After reload, Child Bean should still be nested under Parent Bean
+    // After reload, Child Totem should still be nested under Parent Totem
     await expect(async () => {
-      const parentItem = backlogPage.beanByTitle('Parent Bean');
-      const nestedChild = parentItem.locator('.bean-item', { hasText: 'Child Bean' });
+      const parentItem = backlogPage.totemByTitle('Parent Totem');
+      const nestedChild = parentItem.locator('.totem-item', { hasText: 'Child Totem' });
       await expect(nestedChild).toBeVisible();
     }).toPass({ timeout: 5_000 });
   });
 
-  test('dragging a bean into a specific position within another parent works', async ({
-    beans,
+  test('dragging a totem into a specific position within another parent works', async ({
+    totems,
     backlogPage,
     page
   }) => {
     // Create a feature with 3 child tasks
-    const parentId = beans.create('Parent Feature', { status: 'todo', type: 'feature' });
-    const childA = beans.create('Alpha Child', { status: 'todo', type: 'task' });
-    const childB = beans.create('Bravo Child', { status: 'todo', type: 'task' });
-    const childC = beans.create('Charlie Child', { status: 'todo', type: 'task' });
+    const parentId = totems.create('Parent Feature', { status: 'todo', type: 'feature' });
+    const childA = totems.create('Alpha Child', { status: 'todo', type: 'task' });
+    const childB = totems.create('Bravo Child', { status: 'todo', type: 'task' });
+    const childC = totems.create('Charlie Child', { status: 'todo', type: 'task' });
 
     // Set parent relationships via CLI
-    beans.run(['update', childA, '--parent', parentId]);
-    beans.run(['update', childB, '--parent', parentId]);
-    beans.run(['update', childC, '--parent', parentId]);
+    totems.run(['update', childA, '--parent', parentId]);
+    totems.run(['update', childB, '--parent', parentId]);
+    totems.run(['update', childC, '--parent', parentId]);
 
     // Create a top-level task to drag in
-    beans.create('Interloper', { status: 'todo', type: 'task' });
+    totems.create('Interloper', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(5); // Parent Feature + 3 children + Interloper
 
     // Drag Interloper above Bravo Child (between Alpha and Bravo)
-    await backlogPage.dragBean('Interloper', 'Bravo Child', 'above');
+    await backlogPage.dragTotem('Interloper', 'Bravo Child', 'above');
 
     // Verify: Interloper should be between Alpha Child and Bravo Child
     await expect(async () => {
-      const parentItem = backlogPage.beanByTitle('Parent Feature');
+      const parentItem = backlogPage.totemByTitle('Parent Feature');
       const childTitles = await parentItem
-        .locator('.bean-item [role="button"] > div > span.text-sm')
+        .locator('.totem-item [role="button"] > div > span.text-sm')
         .allTextContents();
       const trimmed = childTitles.map((t) => t.trim());
       expect(trimmed).toEqual(['Alpha Child', 'Interloper', 'Bravo Child', 'Charlie Child']);
@@ -178,28 +178,28 @@ test.describe('Backlog sorting', () => {
 
     // Verify persistence
     await page.reload();
-    await backlogPage.waitForBean('Parent Feature');
+    await backlogPage.waitForTotem('Parent Feature');
 
     await expect(async () => {
-      const parentItem = backlogPage.beanByTitle('Parent Feature');
+      const parentItem = backlogPage.totemByTitle('Parent Feature');
       const childTitles = await parentItem
-        .locator('.bean-item [role="button"] > div > span.text-sm')
+        .locator('.totem-item [role="button"] > div > span.text-sm')
         .allTextContents();
       const trimmed = childTitles.map((t) => t.trim());
       expect(trimmed).toEqual(['Alpha Child', 'Interloper', 'Bravo Child', 'Charlie Child']);
     }).toPass({ timeout: 5_000 });
   });
 
-  test('deleted bean disappears from list', async ({ beans, backlogPage }) => {
-    const id1 = beans.create('Bean To Delete', { status: 'todo', type: 'task' });
-    beans.create('Bean To Keep', { status: 'todo', type: 'task' });
+  test('deleted totem disappears from list', async ({ totems, backlogPage }) => {
+    const id1 = totems.create('Totem To Delete', { status: 'todo', type: 'task' });
+    totems.create('Totem To Keep', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(2);
 
-    // Delete the bean via CLI
-    beans.run(['delete', '--force', id1]);
+    // Delete the totem via CLI
+    totems.run(['delete', '--force', id1]);
 
-    await backlogPage.waitForBeanGone('Bean To Delete');
+    await backlogPage.waitForTotemGone('Totem To Delete');
     expect(await backlogPage.count()).toBe(1);
   });
 });

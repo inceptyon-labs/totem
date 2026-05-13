@@ -4,12 +4,12 @@
   import { preloadHighlighter } from '$lib/markdown';
   import { page } from '$app/state';
   import { onMount, onDestroy } from 'svelte';
-  import { beansStore } from '$lib/beans.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { worktreeStore, MAIN_WORKSPACE_ID } from '$lib/worktrees.svelte';
   import { agentStatusesStore } from '$lib/agentStatuses.svelte';
   import { configStore } from '$lib/config.svelte';
   import { ui } from '$lib/uiState.svelte';
-  import BeanForm from '$lib/components/BeanForm.svelte';
+  import TotemForm from '$lib/components/TotemForm.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import SplitPane from '$lib/components/SplitPane.svelte';
 
@@ -29,12 +29,12 @@
     ui.syncFromUrl(page.url.pathname);
   });
 
-  // Hydrate initial bean selection from URL ?bean= param (once, after activeView is set)
-  let initialBeanApplied = false;
+  // Hydrate initial totem selection from URL ?totem= param (once, after activeView is set)
+  let initialTotemApplied = false;
   $effect(() => {
-    if (!initialBeanApplied && data.selectedBeanId) {
-      initialBeanApplied = true;
-      ui.selectBeanById(data.selectedBeanId);
+    if (!initialTotemApplied && data.selectedTotemId) {
+      initialTotemApplied = true;
+      ui.selectTotemById(data.selectedTotemId);
     }
   });
 
@@ -53,13 +53,13 @@
 
   onMount(() => {
     configStore.load();
-    beansStore.subscribe();
+    totemsStore.subscribe();
     worktreeStore.subscribe();
     agentStatusesStore.subscribe();
   });
 
   onDestroy(() => {
-    beansStore.unsubscribe();
+    totemsStore.unsubscribe();
     worktreeStore.unsubscribe();
     agentStatusesStore.unsubscribe();
   });
@@ -71,10 +71,10 @@
 </svelte:head>
 
 <div class="flex h-screen flex-col bg-surface-alt">
-  {#if beansStore.error}
+  {#if totemsStore.error}
     <div class="m-4">
       <div class="rounded-lg border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger">
-        Error: {beansStore.error}
+        Error: {totemsStore.error}
       </div>
     </div>
   {:else}
@@ -97,9 +97,9 @@
 </div>
 
 {#if ui.showForm}
-  <BeanForm
-    bean={ui.editingBean}
+  <TotemForm
+    totem={ui.editingTotem}
     onClose={() => ui.closeForm()}
-    onSaved={(bean) => ui.selectBean(bean)}
+    onSaved={(totem) => ui.selectTotem(totem)}
   />
 {/if}

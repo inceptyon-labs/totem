@@ -27,7 +27,7 @@ import (
 	"github.com/inceptyon-labs/totem/internal/terminal"
 	"github.com/inceptyon-labs/totem/internal/web"
 	"github.com/inceptyon-labs/totem/internal/worktree"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
 	"github.com/inceptyon-labs/totem/pkg/config"
 	"github.com/inceptyon-labs/totem/pkg/forge"
 )

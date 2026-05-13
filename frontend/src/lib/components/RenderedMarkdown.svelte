@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { beansStore } from '$lib/beans.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { ui } from '$lib/uiState.svelte';
   import { renderMarkdown } from '$lib/markdown';
 
@@ -22,19 +22,19 @@
     }
   });
 
-  function handleBeanLinkClick(e: MouseEvent) {
-    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-bean-id]');
+  function handleTotemLinkClick(e: MouseEvent) {
+    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-totem-id]');
     if (!target) return;
     e.preventDefault();
-    const linkedBean = beansStore.get(target.dataset.beanId!);
-    if (linkedBean) ui.selectBean(linkedBean);
+    const linkedTotem = totemsStore.get(target.dataset.totemId!);
+    if (linkedTotem) ui.selectTotem(linkedTotem);
   }
 </script>
 
 {#if renderedHtml}
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class={className} onclick={handleBeanLinkClick}>
+  <div class={className} onclick={handleTotemLinkClick}>
     {@html renderedHtml}
   </div>
 {/if}

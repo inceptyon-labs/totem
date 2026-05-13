@@ -1,34 +1,34 @@
 <script lang="ts">
-  import type { Bean } from '$lib/beans.svelte';
-  import { beansStore } from '$lib/beans.svelte';
+  import type { Totem } from '$lib/totems.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { configStore } from '$lib/config.svelte';
   import { worktreeStore } from '$lib/worktrees.svelte';
   import { ui } from '$lib/uiState.svelte';
   import { statusColors, typeColors, priorityColors } from '$lib/styles';
   import { client } from '$lib/graphqlClient';
-  import { SendAgentMessageDocument, UpdateBeanStatusDocument, ArchiveBeanDocument } from '$lib/graphql/generated';
-  import BeanCard from './BeanCard.svelte';
+  import { SendAgentMessageDocument, UpdateTotemStatusDocument, ArchiveTotemDocument } from '$lib/graphql/generated';
+  import TotemCard from './TotemCard.svelte';
   import RenderedMarkdown from './RenderedMarkdown.svelte';
 
   interface Props {
-    bean: Bean;
-    onSelect?: (bean: Bean) => void;
-    onEdit?: (bean: Bean) => void;
+    totem: Totem;
+    onSelect?: (totem: Totem) => void;
+    onEdit?: (totem: Totem) => void;
   }
 
-  let { bean, onSelect, onEdit }: Props = $props();
+  let { totem, onSelect, onEdit }: Props = $props();
 
-  const parent = $derived(bean.parentId ? beansStore.get(bean.parentId) : null);
-  const children = $derived(beansStore.children(bean.id));
+  const parent = $derived(totem.parentId ? totemsStore.get(totem.parentId) : null);
+  const children = $derived(totemsStore.children(totem.id));
   const blocking = $derived(
-    bean.blockingIds.map((id) => beansStore.get(id)).filter((b): b is Bean => b !== undefined)
+    totem.blockingIds.map((id) => totemsStore.get(id)).filter((b): b is Totem => b !== undefined)
   );
-  const blockedBy = $derived(beansStore.blockedBy(bean.id));
+  const blockedBy = $derived(totemsStore.blockedBy(totem.id));
 
   let copied = $state(false);
 
   function copyId() {
-    navigator.clipboard.writeText(bean.id);
+    navigator.clipboard.writeText(totem.id);
     copied = true;
     setTimeout(() => (copied = false), 1500);
   }
@@ -39,12 +39,12 @@
 
   let worktreeError = $state<string | null>(null);
 
-  const isArchivable = $derived(bean.status === 'completed' || bean.status === 'scrapped');
+  const isArchivable = $derived(totem.status === 'completed' || totem.status === 'scrapped');
   let archiving = $state(false);
 
-  async function archiveBean() {
+  async function archiveTotem() {
     archiving = true;
-    const result = await client.mutation(ArchiveBeanDocument, { id: bean.id }).toPromise();
+    const result = await client.mutation(ArchiveTotemDocument, { id: totem.id }).toPromise();
     if (result.error) {
       worktreeError = result.error.message;
     }
@@ -54,7 +54,7 @@
   type WorkflowAction = { label: string; status: string; icon: string; iconColor: string };
 
   const workflowActions = $derived.by((): WorkflowAction[] => {
-    switch (bean.status) {
+    switch (totem.status) {
       case 'draft':
         return [
           { label: 'Todo', status: 'todo', icon: 'icon-[uil--clipboard-notes]', iconColor: 'text-sky-400' },
@@ -76,13 +76,13 @@
 
   async function updateStatus(newStatus: string) {
     updatingStatus = true;
-    const oldStatus = bean.status;
-    beansStore.optimisticUpdate(bean.id, { status: newStatus });
+    const oldStatus = totem.status;
+    totemsStore.optimisticUpdate(totem.id, { status: newStatus });
     const result = await client
-      .mutation(UpdateBeanStatusDocument, { id: bean.id, input: { status: newStatus } })
+      .mutation(UpdateTotemStatusDocument, { id: totem.id, input: { status: newStatus } })
       .toPromise();
     if (result.error) {
-      beansStore.optimisticUpdate(bean.id, { status: oldStatus });
+      totemsStore.optimisticUpdate(totem.id, { status: oldStatus });
     }
     updatingStatus = false;
   }
@@ -101,8 +101,8 @@
     // Send initial prompt to the agent in the new worktree
     await client
       .mutation(SendAgentMessageDocument, {
-        beanId: wt.id,
-        message: `Start working on bean ${bean.id}`
+        totemId: wt.id,
+        message: `Start working on totem ${totem.id}`
       })
       .toPromise();
 
@@ -122,7 +122,7 @@
         class="flex cursor-pointer items-center gap-1 rounded px-2 py-1 font-mono text-xs transition-colors hover:bg-surface-alt"
         title="Copy ID to clipboard"
       >
-        {bean.id}
+        {totem.id}
         {#if copied}
           <span class="text-success">&#10003;</span>
         {:else}
@@ -139,31 +139,31 @@
       <span
         class={[
           'badge',
-          typeColors[bean.type] ?? 'bg-type-task-bg text-type-task-text'
-        ]}>{bean.type}</span
+          typeColors[totem.type] ?? 'bg-type-task-bg text-type-task-text'
+        ]}>{totem.type}</span
       >
       <span
         class={[
           'badge',
-          statusColors[bean.status] ?? 'bg-status-todo-bg text-status-todo-text'
-        ]}>{bean.status}</span
+          statusColors[totem.status] ?? 'bg-status-todo-bg text-status-todo-text'
+        ]}>{totem.status}</span
       >
-      {#if bean.priority && bean.priority !== 'normal'}
+      {#if totem.priority && totem.priority !== 'normal'}
         <span
           class={[
             'badge border',
-            priorityColors[bean.priority]
+            priorityColors[totem.priority]
           ]}
         >
-          {bean.priority}
+          {totem.priority}
         </span>
       {/if}
     </div>
-    <h1 class="text-2xl font-bold text-text">{bean.title}</h1>
+    <h1 class="text-2xl font-bold text-text">{totem.title}</h1>
 
     <!-- Action buttons -->
     <div class="mt-2 flex flex-wrap items-center gap-2">
-      {#if canStartWork && bean.status === 'todo'}
+      {#if canStartWork && totem.status === 'todo'}
         <button
           class="btn-toggle btn-toggle-inactive"
           onclick={startWork}
@@ -193,7 +193,7 @@
       {#if isArchivable}
         <button
           class="btn-toggle btn-toggle-inactive"
-          onclick={archiveBean}
+          onclick={archiveTotem}
           disabled={archiving}
           title="Archive this totem"
         >
@@ -204,7 +204,7 @@
       {#if onEdit}
         <button
           class="btn-toggle btn-toggle-inactive"
-          onclick={() => onEdit(bean)}
+          onclick={() => onEdit(totem)}
         >
           <span class="icon-[uil--edit] size-4 text-sky-400"></span>
           Edit
@@ -232,11 +232,11 @@
   {/if}
 
   <!-- Tags -->
-  {#if bean.tags.length > 0}
+  {#if totem.tags.length > 0}
     <div class="mb-6">
       <h2 class="mb-2 text-xs font-semibold text-text-muted uppercase">Tags</h2>
       <div class="flex flex-wrap gap-1">
-        {#each bean.tags as tag}
+        {#each totem.tags as tag}
           <span class="badge border border-border text-text-muted"
             >{tag}</span
           >
@@ -251,7 +251,7 @@
       {#if parent}
         <div>
           <h2 class="mb-1 text-xs font-semibold text-text-muted uppercase">Parent</h2>
-          <BeanCard bean={parent} variant="compact" onclick={() => onSelect?.(parent)} />
+          <TotemCard totem={parent} variant="compact" onclick={() => onSelect?.(parent)} />
         </div>
       {/if}
 
@@ -262,7 +262,7 @@
           </h2>
           <div class="space-y-0.5">
             {#each children as child}
-              <BeanCard bean={child} variant="compact" onclick={() => onSelect?.(child)} />
+              <TotemCard totem={child} variant="compact" onclick={() => onSelect?.(child)} />
             {/each}
           </div>
         </div>
@@ -275,7 +275,7 @@
           </h2>
           <div class="space-y-0.5">
             {#each blocking as b}
-              <BeanCard bean={b} variant="compact" onclick={() => onSelect?.(b)} />
+              <TotemCard totem={b} variant="compact" onclick={() => onSelect?.(b)} />
             {/each}
           </div>
         </div>
@@ -288,7 +288,7 @@
           </h2>
           <div class="space-y-0.5">
             {#each blockedBy as b}
-              <BeanCard bean={b} variant="compact" onclick={() => onSelect?.(b)} />
+              <TotemCard totem={b} variant="compact" onclick={() => onSelect?.(b)} />
             {/each}
           </div>
         </div>
@@ -297,24 +297,24 @@
   {/if}
 
   <!-- Body -->
-  {#if bean.body}
+  {#if totem.body}
     <div class="mb-6">
       <h2 class="mb-2 text-xs font-semibold text-text-muted uppercase">Description</h2>
-      <RenderedMarkdown content={bean.body} class="bean-body prose max-w-none" />
+      <RenderedMarkdown content={totem.body} class="totem-body prose max-w-none" />
     </div>
   {/if}
 
   <!-- Metadata -->
   <div class="my-4 border-t border-border"></div>
   <div class="space-y-1 text-xs text-text-faint">
-    <div>Created: {new Date(bean.createdAt).toLocaleString()}</div>
-    <div>Updated: {new Date(bean.updatedAt).toLocaleString()}</div>
-    <div>Path: {bean.path}</div>
+    <div>Created: {new Date(totem.createdAt).toLocaleString()}</div>
+    <div>Updated: {new Date(totem.updatedAt).toLocaleString()}</div>
+    <div>Path: {totem.path}</div>
   </div>
 </div>
 
 <style>
-  .bean-body :global(h1) {
+  .totem-body :global(h1) {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--th-md-h1);
@@ -323,51 +323,51 @@
     margin-top: 1.5rem;
   }
 
-  .bean-body :global(h2) {
+  .totem-body :global(h2) {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--th-md-h2);
     margin-top: 1.25rem;
   }
 
-  .bean-body :global(h3) {
+  .totem-body :global(h3) {
     font-size: 1rem;
     font-weight: 600;
     color: var(--th-md-h3);
     margin-top: 1rem;
   }
 
-  .bean-body :global(h4),
-  .bean-body :global(h5),
-  .bean-body :global(h6) {
+  .totem-body :global(h4),
+  .totem-body :global(h5),
+  .totem-body :global(h6) {
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--th-md-h456);
     margin-top: 0.75rem;
   }
 
-  .bean-body :global(ul:has(input[type='checkbox'])) {
+  .totem-body :global(ul:has(input[type='checkbox'])) {
     list-style: none;
     padding-left: 0;
   }
 
-  .bean-body :global(li:has(> input[type='checkbox'])) {
+  .totem-body :global(li:has(> input[type='checkbox'])) {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
     padding-left: 0;
   }
 
-  .bean-body :global(li:has(> input[type='checkbox'])::before) {
+  .totem-body :global(li:has(> input[type='checkbox'])::before) {
     content: none;
   }
 
-  .bean-body :global(input[type='checkbox']) {
+  .totem-body :global(input[type='checkbox']) {
     margin-top: 0.25rem;
     accent-color: #22c55e;
   }
 
-  .bean-body :global(pre.shiki) {
+  .totem-body :global(pre.shiki) {
     padding: 1rem;
     border-radius: 0.5rem;
     overflow-x: auto;
@@ -376,13 +376,13 @@
     margin: 1rem 0;
   }
 
-  .bean-body :global(pre.shiki code) {
+  .totem-body :global(pre.shiki code) {
     font-family:
       ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, 'Cascadia Code', Consolas,
       'Liberation Mono', 'Courier New', monospace;
   }
 
-  .bean-body :global(code:not(pre code)) {
+  .totem-body :global(code:not(pre code)) {
     color: var(--th-text);
     background-color: var(--th-md-code-bg);
     padding: 0.125rem 0.375rem;

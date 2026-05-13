@@ -16,7 +16,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -41,10 +41,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Bean() BeanResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Subscription() SubscriptionResolver
+	Totem() TotemResolver
 }
 
 type DirectiveRoot struct {
@@ -52,8 +52,8 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	ActiveAgentStatus struct {
-		BeanID func(childComplexity int) int
-		Status func(childComplexity int) int
+		Status  func(childComplexity int) int
+		TotemID func(childComplexity int) int
 	}
 
 	AgentAction struct {
@@ -80,7 +80,6 @@ type ComplexityRoot struct {
 	AgentSession struct {
 		ActMode            func(childComplexity int) int
 		AgentType          func(childComplexity int) int
-		BeanID             func(childComplexity int) int
 		Effort             func(childComplexity int) int
 		Error              func(childComplexity int) int
 		Messages           func(childComplexity int) int
@@ -90,6 +89,7 @@ type ComplexityRoot struct {
 		Status             func(childComplexity int) int
 		SubagentActivities func(childComplexity int) int
 		SystemStatus       func(childComplexity int) int
+		TotemID            func(childComplexity int) int
 		WorkDir            func(childComplexity int) int
 	}
 
@@ -103,40 +103,6 @@ type ComplexityRoot struct {
 		MultiSelect func(childComplexity int) int
 		Options     func(childComplexity int) int
 		Question    func(childComplexity int) int
-	}
-
-	Bean struct {
-		BlockedBy          func(childComplexity int, filter *model.BeanFilter) int
-		BlockedByIds       func(childComplexity int) int
-		Blocking           func(childComplexity int, filter *model.BeanFilter) int
-		BlockingIds        func(childComplexity int) int
-		Body               func(childComplexity int) int
-		Children           func(childComplexity int, filter *model.BeanFilter) int
-		CreatedAt          func(childComplexity int) int
-		ETag               func(childComplexity int) int
-		ID                 func(childComplexity int) int
-		ImplicitStatus     func(childComplexity int) int
-		ImplicitStatusFrom func(childComplexity int) int
-		IsDirty            func(childComplexity int) int
-		Order              func(childComplexity int) int
-		Parent             func(childComplexity int) int
-		ParentID           func(childComplexity int) int
-		Path               func(childComplexity int) int
-		Priority           func(childComplexity int) int
-		Slug               func(childComplexity int) int
-		Status             func(childComplexity int) int
-		Tags               func(childComplexity int) int
-		Title              func(childComplexity int) int
-		Type               func(childComplexity int) int
-		UpdatedAt          func(childComplexity int) int
-		WorktreeID         func(childComplexity int) int
-	}
-
-	BeanChangeEvent struct {
-		Bean   func(childComplexity int) int
-		BeanID func(childComplexity int) int
-		Beans  func(childComplexity int) int
-		Type   func(childComplexity int) int
 	}
 
 	BranchStatus struct {
@@ -159,29 +125,29 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddBlockedBy               func(childComplexity int, id string, targetID string, ifMatch *string) int
 		AddBlocking                func(childComplexity int, id string, targetID string, ifMatch *string) int
-		ArchiveBean                func(childComplexity int, id string) int
-		ClearAgentSession          func(childComplexity int, beanID string) int
-		CreateBean                 func(childComplexity int, input model.CreateBeanInput) int
+		ArchiveTotem               func(childComplexity int, id string) int
+		ClearAgentSession          func(childComplexity int, totemID string) int
+		CreateTotem                func(childComplexity int, input model.CreateTotemInput) int
 		CreateWorktree             func(childComplexity int, name string) int
-		DeleteBean                 func(childComplexity int, id string) int
+		DeleteTotem                func(childComplexity int, id string) int
 		DiscardFileChange          func(childComplexity int, filePath string, staged bool, path *string) int
-		ExecuteAgentAction         func(childComplexity int, beanID string, actionID string) int
+		ExecuteAgentAction         func(childComplexity int, totemID string, actionID string) int
 		OpenInEditor               func(childComplexity int, workspaceID string) int
 		RemoveBlockedBy            func(childComplexity int, id string, targetID string, ifMatch *string) int
 		RemoveBlocking             func(childComplexity int, id string, targetID string, ifMatch *string) int
 		RemoveWorktree             func(childComplexity int, id string) int
-		SaveBean                   func(childComplexity int, id string) int
-		SaveDirtyBeans             func(childComplexity int) int
-		SendAgentMessage           func(childComplexity int, beanID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) int
-		SetAgentActMode            func(childComplexity int, beanID string, actMode bool) int
-		SetAgentEffort             func(childComplexity int, beanID string, effort string) int
-		SetAgentPendingInteraction func(childComplexity int, beanID string, typeArg model.InteractionType, planContent *string) int
-		SetAgentPlanMode           func(childComplexity int, beanID string, planMode bool) int
+		SaveDirtyTotems            func(childComplexity int) int
+		SaveTotem                  func(childComplexity int, id string) int
+		SendAgentMessage           func(childComplexity int, totemID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) int
+		SetAgentActMode            func(childComplexity int, totemID string, actMode bool) int
+		SetAgentEffort             func(childComplexity int, totemID string, effort string) int
+		SetAgentPendingInteraction func(childComplexity int, totemID string, typeArg model.InteractionType, planContent *string) int
+		SetAgentPlanMode           func(childComplexity int, totemID string, planMode bool) int
 		SetParent                  func(childComplexity int, id string, parentID *string, ifMatch *string) int
 		StartRun                   func(childComplexity int, workspaceID string) int
-		StopAgent                  func(childComplexity int, beanID string) int
+		StopAgent                  func(childComplexity int, totemID string) int
 		StopRun                    func(childComplexity int, workspaceID string) int
-		UpdateBean                 func(childComplexity int, id string, input model.UpdateBeanInput) int
+		UpdateTotem                func(childComplexity int, id string, input model.UpdateTotemInput) int
 		WriteTerminalInput         func(childComplexity int, sessionID string, data string) int
 	}
 
@@ -203,21 +169,21 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AgentActions          func(childComplexity int, beanID string, skipForge *bool) int
+		AgentActions          func(childComplexity int, totemID string, skipForge *bool) int
 		AgentEnabled          func(childComplexity int) int
-		AgentSession          func(childComplexity int, beanID string) int
+		AgentSession          func(childComplexity int, totemID string) int
 		AllFileChanges        func(childComplexity int, path *string) int
 		AllFileDiff           func(childComplexity int, filePath string, path *string) int
-		Bean                  func(childComplexity int, id string) int
-		Beans                 func(childComplexity int, filter *model.BeanFilter) int
 		BranchStatus          func(childComplexity int, path *string) int
 		FileChanges           func(childComplexity int, path *string) int
 		FileDiff              func(childComplexity int, filePath string, staged bool, path *string) int
-		HasDirtyBeans         func(childComplexity int) int
+		HasDirtyTotems        func(childComplexity int) int
 		IsRunning             func(childComplexity int, workspaceID string) int
 		ListFiles             func(childComplexity int, workspaceID *string, prefix string, limit *int) int
 		MainBranch            func(childComplexity int) int
 		ProjectName           func(childComplexity int) int
+		Totem                 func(childComplexity int, id string) int
+		Totems                func(childComplexity int, filter *model.TotemFilter) int
 		WorkspacePort         func(childComplexity int, workspaceID string) int
 		WorktreeBaseRef       func(childComplexity int) int
 		WorktreeIntegrateMode func(childComplexity int) int
@@ -234,10 +200,44 @@ type ComplexityRoot struct {
 
 	Subscription struct {
 		ActiveAgentStatuses func(childComplexity int) int
-		AgentSessionChanged func(childComplexity int, beanID string) int
-		BeanChanged         func(childComplexity int, includeInitial *bool) int
+		AgentSessionChanged func(childComplexity int, totemID string) int
+		TotemChanged        func(childComplexity int, includeInitial *bool) int
 		WorkspaceStatuses   func(childComplexity int) int
 		WorktreesChanged    func(childComplexity int) int
+	}
+
+	Totem struct {
+		BlockedBy          func(childComplexity int, filter *model.TotemFilter) int
+		BlockedByIds       func(childComplexity int) int
+		Blocking           func(childComplexity int, filter *model.TotemFilter) int
+		BlockingIds        func(childComplexity int) int
+		Body               func(childComplexity int) int
+		Children           func(childComplexity int, filter *model.TotemFilter) int
+		CreatedAt          func(childComplexity int) int
+		ETag               func(childComplexity int) int
+		ID                 func(childComplexity int) int
+		ImplicitStatus     func(childComplexity int) int
+		ImplicitStatusFrom func(childComplexity int) int
+		IsDirty            func(childComplexity int) int
+		Order              func(childComplexity int) int
+		Parent             func(childComplexity int) int
+		ParentID           func(childComplexity int) int
+		Path               func(childComplexity int) int
+		Priority           func(childComplexity int) int
+		Slug               func(childComplexity int) int
+		Status             func(childComplexity int) int
+		Tags               func(childComplexity int) int
+		Title              func(childComplexity int) int
+		Type               func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		WorktreeID         func(childComplexity int) int
+	}
+
+	TotemChangeEvent struct {
+		Totem   func(childComplexity int) int
+		TotemID func(childComplexity int) int
+		Totems  func(childComplexity int) int
+		Type    func(childComplexity int) int
 	}
 
 	WorkspaceStatus struct {
@@ -247,7 +247,6 @@ type ComplexityRoot struct {
 	}
 
 	Worktree struct {
-		Beans              func(childComplexity int) int
 		Branch             func(childComplexity int) int
 		CommitsBehind      func(childComplexity int) int
 		Description        func(childComplexity int) int
@@ -260,26 +259,14 @@ type ComplexityRoot struct {
 		PullRequest        func(childComplexity int) int
 		SetupError         func(childComplexity int) int
 		SetupStatus        func(childComplexity int) int
+		Totems             func(childComplexity int) int
 	}
 }
 
-type BeanResolver interface {
-	IsDirty(ctx context.Context, obj *bean.Bean) (bool, error)
-	WorktreeID(ctx context.Context, obj *bean.Bean) (*string, error)
-	ParentID(ctx context.Context, obj *bean.Bean) (*string, error)
-	BlockingIds(ctx context.Context, obj *bean.Bean) ([]string, error)
-	BlockedByIds(ctx context.Context, obj *bean.Bean) ([]string, error)
-	BlockedBy(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error)
-	Blocking(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error)
-	Parent(ctx context.Context, obj *bean.Bean) (*bean.Bean, error)
-	Children(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error)
-	ImplicitStatus(ctx context.Context, obj *bean.Bean) (*string, error)
-	ImplicitStatusFrom(ctx context.Context, obj *bean.Bean) (*string, error)
-}
 type MutationResolver interface {
-	CreateBean(ctx context.Context, input model.CreateBeanInput) (*bean.Bean, error)
-	UpdateBean(ctx context.Context, id string, input model.UpdateBeanInput) (*bean.Bean, error)
-	DeleteBean(ctx context.Context, id string) (bool, error)
+	CreateTotem(ctx context.Context, input model.CreateTotemInput) (*bean.Bean, error)
+	UpdateTotem(ctx context.Context, id string, input model.UpdateTotemInput) (*bean.Bean, error)
+	DeleteTotem(ctx context.Context, id string) (bool, error)
 	SetParent(ctx context.Context, id string, parentID *string, ifMatch *string) (*bean.Bean, error)
 	AddBlocking(ctx context.Context, id string, targetID string, ifMatch *string) (*bean.Bean, error)
 	RemoveBlocking(ctx context.Context, id string, targetID string, ifMatch *string) (*bean.Bean, error)
@@ -290,32 +277,32 @@ type MutationResolver interface {
 	StopRun(ctx context.Context, workspaceID string) (bool, error)
 	CreateWorktree(ctx context.Context, name string) (*model.Worktree, error)
 	RemoveWorktree(ctx context.Context, id string) (bool, error)
-	SendAgentMessage(ctx context.Context, beanID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) (bool, error)
-	StopAgent(ctx context.Context, beanID string) (bool, error)
-	SetAgentPlanMode(ctx context.Context, beanID string, planMode bool) (bool, error)
-	SetAgentActMode(ctx context.Context, beanID string, actMode bool) (bool, error)
-	SetAgentEffort(ctx context.Context, beanID string, effort string) (bool, error)
-	SetAgentPendingInteraction(ctx context.Context, beanID string, typeArg model.InteractionType, planContent *string) (bool, error)
-	ClearAgentSession(ctx context.Context, beanID string) (bool, error)
-	ArchiveBean(ctx context.Context, id string) (bool, error)
-	SaveDirtyBeans(ctx context.Context) (int, error)
-	SaveBean(ctx context.Context, id string) (bool, error)
-	ExecuteAgentAction(ctx context.Context, beanID string, actionID string) (bool, error)
+	SendAgentMessage(ctx context.Context, totemID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) (bool, error)
+	StopAgent(ctx context.Context, totemID string) (bool, error)
+	SetAgentPlanMode(ctx context.Context, totemID string, planMode bool) (bool, error)
+	SetAgentActMode(ctx context.Context, totemID string, actMode bool) (bool, error)
+	SetAgentEffort(ctx context.Context, totemID string, effort string) (bool, error)
+	SetAgentPendingInteraction(ctx context.Context, totemID string, typeArg model.InteractionType, planContent *string) (bool, error)
+	ClearAgentSession(ctx context.Context, totemID string) (bool, error)
+	ArchiveTotem(ctx context.Context, id string) (bool, error)
+	SaveDirtyTotems(ctx context.Context) (int, error)
+	SaveTotem(ctx context.Context, id string) (bool, error)
+	ExecuteAgentAction(ctx context.Context, totemID string, actionID string) (bool, error)
 	DiscardFileChange(ctx context.Context, filePath string, staged bool, path *string) (bool, error)
 	OpenInEditor(ctx context.Context, workspaceID string) (bool, error)
 }
 type QueryResolver interface {
-	Bean(ctx context.Context, id string) (*bean.Bean, error)
-	Beans(ctx context.Context, filter *model.BeanFilter) ([]*bean.Bean, error)
+	Totem(ctx context.Context, id string) (*bean.Bean, error)
+	Totems(ctx context.Context, filter *model.TotemFilter) ([]*bean.Bean, error)
 	Worktrees(ctx context.Context) ([]*model.Worktree, error)
-	AgentSession(ctx context.Context, beanID string) (*model.AgentSession, error)
+	AgentSession(ctx context.Context, totemID string) (*model.AgentSession, error)
 	FileChanges(ctx context.Context, path *string) ([]*model.FileChange, error)
 	AllFileChanges(ctx context.Context, path *string) ([]*model.FileChange, error)
 	FileDiff(ctx context.Context, filePath string, staged bool, path *string) (string, error)
 	AllFileDiff(ctx context.Context, filePath string, path *string) (string, error)
 	BranchStatus(ctx context.Context, path *string) (*model.BranchStatus, error)
-	HasDirtyBeans(ctx context.Context) (bool, error)
-	AgentActions(ctx context.Context, beanID string, skipForge *bool) ([]*model.AgentAction, error)
+	HasDirtyTotems(ctx context.Context) (bool, error)
+	AgentActions(ctx context.Context, totemID string, skipForge *bool) ([]*model.AgentAction, error)
 	ProjectName(ctx context.Context) (string, error)
 	MainBranch(ctx context.Context) (string, error)
 	AgentEnabled(ctx context.Context) (bool, error)
@@ -327,11 +314,24 @@ type QueryResolver interface {
 	ListFiles(ctx context.Context, workspaceID *string, prefix string, limit *int) ([]*model.FileEntry, error)
 }
 type SubscriptionResolver interface {
-	BeanChanged(ctx context.Context, includeInitial *bool) (<-chan *model.BeanChangeEvent, error)
+	TotemChanged(ctx context.Context, includeInitial *bool) (<-chan *model.TotemChangeEvent, error)
 	WorktreesChanged(ctx context.Context) (<-chan []*model.Worktree, error)
-	AgentSessionChanged(ctx context.Context, beanID string) (<-chan *model.AgentSession, error)
+	AgentSessionChanged(ctx context.Context, totemID string) (<-chan *model.AgentSession, error)
 	ActiveAgentStatuses(ctx context.Context) (<-chan []*model.ActiveAgentStatus, error)
 	WorkspaceStatuses(ctx context.Context) (<-chan []*model.WorkspaceStatus, error)
+}
+type TotemResolver interface {
+	IsDirty(ctx context.Context, obj *bean.Bean) (bool, error)
+	WorktreeID(ctx context.Context, obj *bean.Bean) (*string, error)
+	ParentID(ctx context.Context, obj *bean.Bean) (*string, error)
+	BlockingIds(ctx context.Context, obj *bean.Bean) ([]string, error)
+	BlockedByIds(ctx context.Context, obj *bean.Bean) ([]string, error)
+	BlockedBy(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error)
+	Blocking(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error)
+	Parent(ctx context.Context, obj *bean.Bean) (*bean.Bean, error)
+	Children(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error)
+	ImplicitStatus(ctx context.Context, obj *bean.Bean) (*string, error)
+	ImplicitStatusFrom(ctx context.Context, obj *bean.Bean) (*string, error)
 }
 
 type executableSchema struct {
@@ -353,18 +353,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
-	case "ActiveAgentStatus.beanId":
-		if e.complexity.ActiveAgentStatus.BeanID == nil {
-			break
-		}
-
-		return e.complexity.ActiveAgentStatus.BeanID(childComplexity), true
 	case "ActiveAgentStatus.status":
 		if e.complexity.ActiveAgentStatus.Status == nil {
 			break
 		}
 
 		return e.complexity.ActiveAgentStatus.Status(childComplexity), true
+	case "ActiveAgentStatus.totemId":
+		if e.complexity.ActiveAgentStatus.TotemID == nil {
+			break
+		}
+
+		return e.complexity.ActiveAgentStatus.TotemID(childComplexity), true
 
 	case "AgentAction.description":
 		if e.complexity.AgentAction.Description == nil {
@@ -453,12 +453,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AgentSession.AgentType(childComplexity), true
-	case "AgentSession.beanId":
-		if e.complexity.AgentSession.BeanID == nil {
-			break
-		}
-
-		return e.complexity.AgentSession.BeanID(childComplexity), true
 	case "AgentSession.effort":
 		if e.complexity.AgentSession.Effort == nil {
 			break
@@ -513,6 +507,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AgentSession.SystemStatus(childComplexity), true
+	case "AgentSession.totemId":
+		if e.complexity.AgentSession.TotemID == nil {
+			break
+		}
+
+		return e.complexity.AgentSession.TotemID(childComplexity), true
 	case "AgentSession.workDir":
 		if e.complexity.AgentSession.WorkDir == nil {
 			break
@@ -557,191 +557,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.AskUserQuestion.Question(childComplexity), true
-
-	case "Bean.blockedBy":
-		if e.complexity.Bean.BlockedBy == nil {
-			break
-		}
-
-		args, err := ec.field_Bean_blockedBy_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Bean.BlockedBy(childComplexity, args["filter"].(*model.BeanFilter)), true
-	case "Bean.blockedByIds":
-		if e.complexity.Bean.BlockedByIds == nil {
-			break
-		}
-
-		return e.complexity.Bean.BlockedByIds(childComplexity), true
-	case "Bean.blocking":
-		if e.complexity.Bean.Blocking == nil {
-			break
-		}
-
-		args, err := ec.field_Bean_blocking_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Bean.Blocking(childComplexity, args["filter"].(*model.BeanFilter)), true
-	case "Bean.blockingIds":
-		if e.complexity.Bean.BlockingIds == nil {
-			break
-		}
-
-		return e.complexity.Bean.BlockingIds(childComplexity), true
-	case "Bean.body":
-		if e.complexity.Bean.Body == nil {
-			break
-		}
-
-		return e.complexity.Bean.Body(childComplexity), true
-	case "Bean.children":
-		if e.complexity.Bean.Children == nil {
-			break
-		}
-
-		args, err := ec.field_Bean_children_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Bean.Children(childComplexity, args["filter"].(*model.BeanFilter)), true
-	case "Bean.createdAt":
-		if e.complexity.Bean.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.Bean.CreatedAt(childComplexity), true
-	case "Bean.etag":
-		if e.complexity.Bean.ETag == nil {
-			break
-		}
-
-		return e.complexity.Bean.ETag(childComplexity), true
-	case "Bean.id":
-		if e.complexity.Bean.ID == nil {
-			break
-		}
-
-		return e.complexity.Bean.ID(childComplexity), true
-	case "Bean.implicitStatus":
-		if e.complexity.Bean.ImplicitStatus == nil {
-			break
-		}
-
-		return e.complexity.Bean.ImplicitStatus(childComplexity), true
-	case "Bean.implicitStatusFrom":
-		if e.complexity.Bean.ImplicitStatusFrom == nil {
-			break
-		}
-
-		return e.complexity.Bean.ImplicitStatusFrom(childComplexity), true
-	case "Bean.isDirty":
-		if e.complexity.Bean.IsDirty == nil {
-			break
-		}
-
-		return e.complexity.Bean.IsDirty(childComplexity), true
-	case "Bean.order":
-		if e.complexity.Bean.Order == nil {
-			break
-		}
-
-		return e.complexity.Bean.Order(childComplexity), true
-	case "Bean.parent":
-		if e.complexity.Bean.Parent == nil {
-			break
-		}
-
-		return e.complexity.Bean.Parent(childComplexity), true
-	case "Bean.parentId":
-		if e.complexity.Bean.ParentID == nil {
-			break
-		}
-
-		return e.complexity.Bean.ParentID(childComplexity), true
-	case "Bean.path":
-		if e.complexity.Bean.Path == nil {
-			break
-		}
-
-		return e.complexity.Bean.Path(childComplexity), true
-	case "Bean.priority":
-		if e.complexity.Bean.Priority == nil {
-			break
-		}
-
-		return e.complexity.Bean.Priority(childComplexity), true
-	case "Bean.slug":
-		if e.complexity.Bean.Slug == nil {
-			break
-		}
-
-		return e.complexity.Bean.Slug(childComplexity), true
-	case "Bean.status":
-		if e.complexity.Bean.Status == nil {
-			break
-		}
-
-		return e.complexity.Bean.Status(childComplexity), true
-	case "Bean.tags":
-		if e.complexity.Bean.Tags == nil {
-			break
-		}
-
-		return e.complexity.Bean.Tags(childComplexity), true
-	case "Bean.title":
-		if e.complexity.Bean.Title == nil {
-			break
-		}
-
-		return e.complexity.Bean.Title(childComplexity), true
-	case "Bean.type":
-		if e.complexity.Bean.Type == nil {
-			break
-		}
-
-		return e.complexity.Bean.Type(childComplexity), true
-	case "Bean.updatedAt":
-		if e.complexity.Bean.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.Bean.UpdatedAt(childComplexity), true
-	case "Bean.worktreeId":
-		if e.complexity.Bean.WorktreeID == nil {
-			break
-		}
-
-		return e.complexity.Bean.WorktreeID(childComplexity), true
-
-	case "BeanChangeEvent.bean":
-		if e.complexity.BeanChangeEvent.Bean == nil {
-			break
-		}
-
-		return e.complexity.BeanChangeEvent.Bean(childComplexity), true
-	case "BeanChangeEvent.beanId":
-		if e.complexity.BeanChangeEvent.BeanID == nil {
-			break
-		}
-
-		return e.complexity.BeanChangeEvent.BeanID(childComplexity), true
-	case "BeanChangeEvent.beans":
-		if e.complexity.BeanChangeEvent.Beans == nil {
-			break
-		}
-
-		return e.complexity.BeanChangeEvent.Beans(childComplexity), true
-	case "BeanChangeEvent.type":
-		if e.complexity.BeanChangeEvent.Type == nil {
-			break
-		}
-
-		return e.complexity.BeanChangeEvent.Type(childComplexity), true
 
 	case "BranchStatus.commitsBehind":
 		if e.complexity.BranchStatus.CommitsBehind == nil {
@@ -816,17 +631,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.AddBlocking(childComplexity, args["id"].(string), args["targetId"].(string), args["ifMatch"].(*string)), true
-	case "Mutation.archiveBean":
-		if e.complexity.Mutation.ArchiveBean == nil {
+	case "Mutation.archiveTotem":
+		if e.complexity.Mutation.ArchiveTotem == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_archiveBean_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_archiveTotem_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ArchiveBean(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.ArchiveTotem(childComplexity, args["id"].(string)), true
 	case "Mutation.clearAgentSession":
 		if e.complexity.Mutation.ClearAgentSession == nil {
 			break
@@ -837,18 +652,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ClearAgentSession(childComplexity, args["beanId"].(string)), true
-	case "Mutation.createBean":
-		if e.complexity.Mutation.CreateBean == nil {
+		return e.complexity.Mutation.ClearAgentSession(childComplexity, args["totemId"].(string)), true
+	case "Mutation.createTotem":
+		if e.complexity.Mutation.CreateTotem == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createBean_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_createTotem_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateBean(childComplexity, args["input"].(model.CreateBeanInput)), true
+		return e.complexity.Mutation.CreateTotem(childComplexity, args["input"].(model.CreateTotemInput)), true
 	case "Mutation.createWorktree":
 		if e.complexity.Mutation.CreateWorktree == nil {
 			break
@@ -860,17 +675,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.CreateWorktree(childComplexity, args["name"].(string)), true
-	case "Mutation.deleteBean":
-		if e.complexity.Mutation.DeleteBean == nil {
+	case "Mutation.deleteTotem":
+		if e.complexity.Mutation.DeleteTotem == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteBean_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_deleteTotem_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteBean(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTotem(childComplexity, args["id"].(string)), true
 	case "Mutation.discardFileChange":
 		if e.complexity.Mutation.DiscardFileChange == nil {
 			break
@@ -892,7 +707,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ExecuteAgentAction(childComplexity, args["beanId"].(string), args["actionId"].(string)), true
+		return e.complexity.Mutation.ExecuteAgentAction(childComplexity, args["totemId"].(string), args["actionId"].(string)), true
 	case "Mutation.openInEditor":
 		if e.complexity.Mutation.OpenInEditor == nil {
 			break
@@ -937,23 +752,23 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.RemoveWorktree(childComplexity, args["id"].(string)), true
-	case "Mutation.saveBean":
-		if e.complexity.Mutation.SaveBean == nil {
+	case "Mutation.saveDirtyTotems":
+		if e.complexity.Mutation.SaveDirtyTotems == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_saveBean_args(ctx, rawArgs)
+		return e.complexity.Mutation.SaveDirtyTotems(childComplexity), true
+	case "Mutation.saveTotem":
+		if e.complexity.Mutation.SaveTotem == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveTotem_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SaveBean(childComplexity, args["id"].(string)), true
-	case "Mutation.saveDirtyBeans":
-		if e.complexity.Mutation.SaveDirtyBeans == nil {
-			break
-		}
-
-		return e.complexity.Mutation.SaveDirtyBeans(childComplexity), true
+		return e.complexity.Mutation.SaveTotem(childComplexity, args["id"].(string)), true
 	case "Mutation.sendAgentMessage":
 		if e.complexity.Mutation.SendAgentMessage == nil {
 			break
@@ -964,7 +779,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAgentMessage(childComplexity, args["beanId"].(string), args["message"].(string), args["images"].([]*model.ImageInput), args["attachments"].([]*model.FileAttachmentInput)), true
+		return e.complexity.Mutation.SendAgentMessage(childComplexity, args["totemId"].(string), args["message"].(string), args["images"].([]*model.ImageInput), args["attachments"].([]*model.FileAttachmentInput)), true
 	case "Mutation.setAgentActMode":
 		if e.complexity.Mutation.SetAgentActMode == nil {
 			break
@@ -975,7 +790,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetAgentActMode(childComplexity, args["beanId"].(string), args["actMode"].(bool)), true
+		return e.complexity.Mutation.SetAgentActMode(childComplexity, args["totemId"].(string), args["actMode"].(bool)), true
 	case "Mutation.setAgentEffort":
 		if e.complexity.Mutation.SetAgentEffort == nil {
 			break
@@ -986,7 +801,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetAgentEffort(childComplexity, args["beanId"].(string), args["effort"].(string)), true
+		return e.complexity.Mutation.SetAgentEffort(childComplexity, args["totemId"].(string), args["effort"].(string)), true
 	case "Mutation.setAgentPendingInteraction":
 		if e.complexity.Mutation.SetAgentPendingInteraction == nil {
 			break
@@ -997,7 +812,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetAgentPendingInteraction(childComplexity, args["beanId"].(string), args["type"].(model.InteractionType), args["planContent"].(*string)), true
+		return e.complexity.Mutation.SetAgentPendingInteraction(childComplexity, args["totemId"].(string), args["type"].(model.InteractionType), args["planContent"].(*string)), true
 	case "Mutation.setAgentPlanMode":
 		if e.complexity.Mutation.SetAgentPlanMode == nil {
 			break
@@ -1008,7 +823,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SetAgentPlanMode(childComplexity, args["beanId"].(string), args["planMode"].(bool)), true
+		return e.complexity.Mutation.SetAgentPlanMode(childComplexity, args["totemId"].(string), args["planMode"].(bool)), true
 	case "Mutation.setParent":
 		if e.complexity.Mutation.SetParent == nil {
 			break
@@ -1041,7 +856,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.StopAgent(childComplexity, args["beanId"].(string)), true
+		return e.complexity.Mutation.StopAgent(childComplexity, args["totemId"].(string)), true
 	case "Mutation.stopRun":
 		if e.complexity.Mutation.StopRun == nil {
 			break
@@ -1053,17 +868,17 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.StopRun(childComplexity, args["workspaceId"].(string)), true
-	case "Mutation.updateBean":
-		if e.complexity.Mutation.UpdateBean == nil {
+	case "Mutation.updateTotem":
+		if e.complexity.Mutation.UpdateTotem == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_updateBean_args(ctx, rawArgs)
+		args, err := ec.field_Mutation_updateTotem_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateBean(childComplexity, args["id"].(string), args["input"].(model.UpdateBeanInput)), true
+		return e.complexity.Mutation.UpdateTotem(childComplexity, args["id"].(string), args["input"].(model.UpdateTotemInput)), true
 	case "Mutation.writeTerminalInput":
 		if e.complexity.Mutation.WriteTerminalInput == nil {
 			break
@@ -1154,7 +969,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.AgentActions(childComplexity, args["beanId"].(string), args["skipForge"].(*bool)), true
+		return e.complexity.Query.AgentActions(childComplexity, args["totemId"].(string), args["skipForge"].(*bool)), true
 	case "Query.agentEnabled":
 		if e.complexity.Query.AgentEnabled == nil {
 			break
@@ -1171,7 +986,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.AgentSession(childComplexity, args["beanId"].(string)), true
+		return e.complexity.Query.AgentSession(childComplexity, args["totemId"].(string)), true
 	case "Query.allFileChanges":
 		if e.complexity.Query.AllFileChanges == nil {
 			break
@@ -1194,28 +1009,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.AllFileDiff(childComplexity, args["filePath"].(string), args["path"].(*string)), true
-	case "Query.bean":
-		if e.complexity.Query.Bean == nil {
-			break
-		}
-
-		args, err := ec.field_Query_bean_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Bean(childComplexity, args["id"].(string)), true
-	case "Query.beans":
-		if e.complexity.Query.Beans == nil {
-			break
-		}
-
-		args, err := ec.field_Query_beans_args(ctx, rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Beans(childComplexity, args["filter"].(*model.BeanFilter)), true
 	case "Query.branchStatus":
 		if e.complexity.Query.BranchStatus == nil {
 			break
@@ -1249,12 +1042,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.FileDiff(childComplexity, args["filePath"].(string), args["staged"].(bool), args["path"].(*string)), true
-	case "Query.hasDirtyBeans":
-		if e.complexity.Query.HasDirtyBeans == nil {
+	case "Query.hasDirtyTotems":
+		if e.complexity.Query.HasDirtyTotems == nil {
 			break
 		}
 
-		return e.complexity.Query.HasDirtyBeans(childComplexity), true
+		return e.complexity.Query.HasDirtyTotems(childComplexity), true
 	case "Query.isRunning":
 		if e.complexity.Query.IsRunning == nil {
 			break
@@ -1289,6 +1082,28 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.ProjectName(childComplexity), true
+	case "Query.totem":
+		if e.complexity.Query.Totem == nil {
+			break
+		}
+
+		args, err := ec.field_Query_totem_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Totem(childComplexity, args["id"].(string)), true
+	case "Query.totems":
+		if e.complexity.Query.Totems == nil {
+			break
+		}
+
+		args, err := ec.field_Query_totems_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Totems(childComplexity, args["filter"].(*model.TotemFilter)), true
 	case "Query.workspacePort":
 		if e.complexity.Query.WorkspacePort == nil {
 			break
@@ -1366,18 +1181,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Subscription.AgentSessionChanged(childComplexity, args["beanId"].(string)), true
-	case "Subscription.beanChanged":
-		if e.complexity.Subscription.BeanChanged == nil {
+		return e.complexity.Subscription.AgentSessionChanged(childComplexity, args["totemId"].(string)), true
+	case "Subscription.totemChanged":
+		if e.complexity.Subscription.TotemChanged == nil {
 			break
 		}
 
-		args, err := ec.field_Subscription_beanChanged_args(ctx, rawArgs)
+		args, err := ec.field_Subscription_totemChanged_args(ctx, rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Subscription.BeanChanged(childComplexity, args["includeInitial"].(*bool)), true
+		return e.complexity.Subscription.TotemChanged(childComplexity, args["includeInitial"].(*bool)), true
 	case "Subscription.workspaceStatuses":
 		if e.complexity.Subscription.WorkspaceStatuses == nil {
 			break
@@ -1390,6 +1205,191 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Subscription.WorktreesChanged(childComplexity), true
+
+	case "Totem.blockedBy":
+		if e.complexity.Totem.BlockedBy == nil {
+			break
+		}
+
+		args, err := ec.field_Totem_blockedBy_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Totem.BlockedBy(childComplexity, args["filter"].(*model.TotemFilter)), true
+	case "Totem.blockedByIds":
+		if e.complexity.Totem.BlockedByIds == nil {
+			break
+		}
+
+		return e.complexity.Totem.BlockedByIds(childComplexity), true
+	case "Totem.blocking":
+		if e.complexity.Totem.Blocking == nil {
+			break
+		}
+
+		args, err := ec.field_Totem_blocking_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Totem.Blocking(childComplexity, args["filter"].(*model.TotemFilter)), true
+	case "Totem.blockingIds":
+		if e.complexity.Totem.BlockingIds == nil {
+			break
+		}
+
+		return e.complexity.Totem.BlockingIds(childComplexity), true
+	case "Totem.body":
+		if e.complexity.Totem.Body == nil {
+			break
+		}
+
+		return e.complexity.Totem.Body(childComplexity), true
+	case "Totem.children":
+		if e.complexity.Totem.Children == nil {
+			break
+		}
+
+		args, err := ec.field_Totem_children_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Totem.Children(childComplexity, args["filter"].(*model.TotemFilter)), true
+	case "Totem.createdAt":
+		if e.complexity.Totem.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Totem.CreatedAt(childComplexity), true
+	case "Totem.etag":
+		if e.complexity.Totem.ETag == nil {
+			break
+		}
+
+		return e.complexity.Totem.ETag(childComplexity), true
+	case "Totem.id":
+		if e.complexity.Totem.ID == nil {
+			break
+		}
+
+		return e.complexity.Totem.ID(childComplexity), true
+	case "Totem.implicitStatus":
+		if e.complexity.Totem.ImplicitStatus == nil {
+			break
+		}
+
+		return e.complexity.Totem.ImplicitStatus(childComplexity), true
+	case "Totem.implicitStatusFrom":
+		if e.complexity.Totem.ImplicitStatusFrom == nil {
+			break
+		}
+
+		return e.complexity.Totem.ImplicitStatusFrom(childComplexity), true
+	case "Totem.isDirty":
+		if e.complexity.Totem.IsDirty == nil {
+			break
+		}
+
+		return e.complexity.Totem.IsDirty(childComplexity), true
+	case "Totem.order":
+		if e.complexity.Totem.Order == nil {
+			break
+		}
+
+		return e.complexity.Totem.Order(childComplexity), true
+	case "Totem.parent":
+		if e.complexity.Totem.Parent == nil {
+			break
+		}
+
+		return e.complexity.Totem.Parent(childComplexity), true
+	case "Totem.parentId":
+		if e.complexity.Totem.ParentID == nil {
+			break
+		}
+
+		return e.complexity.Totem.ParentID(childComplexity), true
+	case "Totem.path":
+		if e.complexity.Totem.Path == nil {
+			break
+		}
+
+		return e.complexity.Totem.Path(childComplexity), true
+	case "Totem.priority":
+		if e.complexity.Totem.Priority == nil {
+			break
+		}
+
+		return e.complexity.Totem.Priority(childComplexity), true
+	case "Totem.slug":
+		if e.complexity.Totem.Slug == nil {
+			break
+		}
+
+		return e.complexity.Totem.Slug(childComplexity), true
+	case "Totem.status":
+		if e.complexity.Totem.Status == nil {
+			break
+		}
+
+		return e.complexity.Totem.Status(childComplexity), true
+	case "Totem.tags":
+		if e.complexity.Totem.Tags == nil {
+			break
+		}
+
+		return e.complexity.Totem.Tags(childComplexity), true
+	case "Totem.title":
+		if e.complexity.Totem.Title == nil {
+			break
+		}
+
+		return e.complexity.Totem.Title(childComplexity), true
+	case "Totem.type":
+		if e.complexity.Totem.Type == nil {
+			break
+		}
+
+		return e.complexity.Totem.Type(childComplexity), true
+	case "Totem.updatedAt":
+		if e.complexity.Totem.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Totem.UpdatedAt(childComplexity), true
+	case "Totem.worktreeId":
+		if e.complexity.Totem.WorktreeID == nil {
+			break
+		}
+
+		return e.complexity.Totem.WorktreeID(childComplexity), true
+
+	case "TotemChangeEvent.totem":
+		if e.complexity.TotemChangeEvent.Totem == nil {
+			break
+		}
+
+		return e.complexity.TotemChangeEvent.Totem(childComplexity), true
+	case "TotemChangeEvent.totemId":
+		if e.complexity.TotemChangeEvent.TotemID == nil {
+			break
+		}
+
+		return e.complexity.TotemChangeEvent.TotemID(childComplexity), true
+	case "TotemChangeEvent.totems":
+		if e.complexity.TotemChangeEvent.Totems == nil {
+			break
+		}
+
+		return e.complexity.TotemChangeEvent.Totems(childComplexity), true
+	case "TotemChangeEvent.type":
+		if e.complexity.TotemChangeEvent.Type == nil {
+			break
+		}
+
+		return e.complexity.TotemChangeEvent.Type(childComplexity), true
 
 	case "WorkspaceStatus.hasChanges":
 		if e.complexity.WorkspaceStatus.HasChanges == nil {
@@ -1410,12 +1410,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.WorkspaceStatus.ID(childComplexity), true
 
-	case "Worktree.beans":
-		if e.complexity.Worktree.Beans == nil {
-			break
-		}
-
-		return e.complexity.Worktree.Beans(childComplexity), true
 	case "Worktree.branch":
 		if e.complexity.Worktree.Branch == nil {
 			break
@@ -1488,6 +1482,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Worktree.SetupStatus(childComplexity), true
+	case "Worktree.totems":
+		if e.complexity.Worktree.Totems == nil {
+			break
+		}
+
+		return e.complexity.Worktree.Totems(childComplexity), true
 
 	}
 	return 0, false
@@ -1497,13 +1497,13 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
-		ec.unmarshalInputBeanFilter,
 		ec.unmarshalInputBodyModification,
-		ec.unmarshalInputCreateBeanInput,
+		ec.unmarshalInputCreateTotemInput,
 		ec.unmarshalInputFileAttachmentInput,
 		ec.unmarshalInputImageInput,
 		ec.unmarshalInputReplaceOperation,
-		ec.unmarshalInputUpdateBeanInput,
+		ec.unmarshalInputTotemFilter,
+		ec.unmarshalInputUpdateTotemInput,
 	)
 	first := true
 
@@ -1637,39 +1637,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Bean_blockedBy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOBeanFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanFilter)
-	if err != nil {
-		return nil, err
-	}
-	args["filter"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Bean_blocking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOBeanFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanFilter)
-	if err != nil {
-		return nil, err
-	}
-	args["filter"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Bean_children_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOBeanFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanFilter)
-	if err != nil {
-		return nil, err
-	}
-	args["filter"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_addBlockedBy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1712,7 +1679,7 @@ func (ec *executionContext) field_Mutation_addBlocking_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_archiveBean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_archiveTotem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -1726,18 +1693,18 @@ func (ec *executionContext) field_Mutation_archiveBean_args(ctx context.Context,
 func (ec *executionContext) field_Mutation_clearAgentSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createBean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_createTotem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateBeanInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐCreateBeanInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateTotemInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐCreateTotemInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1756,7 +1723,7 @@ func (ec *executionContext) field_Mutation_createWorktree_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteBean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_deleteTotem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -1791,11 +1758,11 @@ func (ec *executionContext) field_Mutation_discardFileChange_args(ctx context.Co
 func (ec *executionContext) field_Mutation_executeAgentAction_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "actionId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
@@ -1868,7 +1835,7 @@ func (ec *executionContext) field_Mutation_removeWorktree_args(ctx context.Conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_saveBean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_saveTotem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -1882,22 +1849,22 @@ func (ec *executionContext) field_Mutation_saveBean_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_sendAgentMessage_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "message", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
 	}
 	args["message"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "images", ec.unmarshalOImageInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐImageInputᚄ)
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "images", ec.unmarshalOImageInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐImageInputᚄ)
 	if err != nil {
 		return nil, err
 	}
 	args["images"] = arg2
-	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "attachments", ec.unmarshalOFileAttachmentInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileAttachmentInputᚄ)
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "attachments", ec.unmarshalOFileAttachmentInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileAttachmentInputᚄ)
 	if err != nil {
 		return nil, err
 	}
@@ -1908,11 +1875,11 @@ func (ec *executionContext) field_Mutation_sendAgentMessage_args(ctx context.Con
 func (ec *executionContext) field_Mutation_setAgentActMode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "actMode", ec.unmarshalNBoolean2bool)
 	if err != nil {
 		return nil, err
@@ -1924,11 +1891,11 @@ func (ec *executionContext) field_Mutation_setAgentActMode_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_setAgentEffort_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "effort", ec.unmarshalNString2string)
 	if err != nil {
 		return nil, err
@@ -1940,12 +1907,12 @@ func (ec *executionContext) field_Mutation_setAgentEffort_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_setAgentPendingInteraction_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "type", ec.unmarshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐInteractionType)
+	args["totemId"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "type", ec.unmarshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐInteractionType)
 	if err != nil {
 		return nil, err
 	}
@@ -1961,11 +1928,11 @@ func (ec *executionContext) field_Mutation_setAgentPendingInteraction_args(ctx c
 func (ec *executionContext) field_Mutation_setAgentPlanMode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "planMode", ec.unmarshalNBoolean2bool)
 	if err != nil {
 		return nil, err
@@ -2009,11 +1976,11 @@ func (ec *executionContext) field_Mutation_startRun_args(ctx context.Context, ra
 func (ec *executionContext) field_Mutation_stopAgent_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	return args, nil
 }
 
@@ -2028,7 +1995,7 @@ func (ec *executionContext) field_Mutation_stopRun_args(ctx context.Context, raw
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateBean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Mutation_updateTotem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
@@ -2036,7 +2003,7 @@ func (ec *executionContext) field_Mutation_updateBean_args(ctx context.Context, 
 		return nil, err
 	}
 	args["id"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateBeanInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐUpdateBeanInput)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateTotemInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐUpdateTotemInput)
 	if err != nil {
 		return nil, err
 	}
@@ -2074,11 +2041,11 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_agentActions_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "skipForge", ec.unmarshalOBoolean2ᚖbool)
 	if err != nil {
 		return nil, err
@@ -2090,11 +2057,11 @@ func (ec *executionContext) field_Query_agentActions_args(ctx context.Context, r
 func (ec *executionContext) field_Query_agentSession_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	return args, nil
 }
 
@@ -2122,28 +2089,6 @@ func (ec *executionContext) field_Query_allFileDiff_args(ctx context.Context, ra
 		return nil, err
 	}
 	args["path"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_bean_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
-	if err != nil {
-		return nil, err
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_beans_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOBeanFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanFilter)
-	if err != nil {
-		return nil, err
-	}
-	args["filter"] = arg0
 	return args, nil
 }
 
@@ -2222,6 +2167,28 @@ func (ec *executionContext) field_Query_listFiles_args(ctx context.Context, rawA
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_totem_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2string)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_totems_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTotemFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_workspacePort_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -2236,15 +2203,15 @@ func (ec *executionContext) field_Query_workspacePort_args(ctx context.Context, 
 func (ec *executionContext) field_Subscription_agentSessionChanged_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "beanId", ec.unmarshalNID2string)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "totemId", ec.unmarshalNID2string)
 	if err != nil {
 		return nil, err
 	}
-	args["beanId"] = arg0
+	args["totemId"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_Subscription_beanChanged_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+func (ec *executionContext) field_Subscription_totemChanged_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "includeInitial", ec.unmarshalOBoolean2ᚖbool)
@@ -2252,6 +2219,39 @@ func (ec *executionContext) field_Subscription_beanChanged_args(ctx context.Cont
 		return nil, err
 	}
 	args["includeInitial"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Totem_blockedBy_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTotemFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Totem_blocking_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTotemFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Totem_children_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "filter", ec.unmarshalOTotemFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemFilter)
+	if err != nil {
+		return nil, err
+	}
+	args["filter"] = arg0
 	return args, nil
 }
 
@@ -2307,14 +2307,14 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _ActiveAgentStatus_beanId(ctx context.Context, field graphql.CollectedField, obj *model.ActiveAgentStatus) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActiveAgentStatus_totemId(ctx context.Context, field graphql.CollectedField, obj *model.ActiveAgentStatus) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_ActiveAgentStatus_beanId,
+		ec.fieldContext_ActiveAgentStatus_totemId,
 		func(ctx context.Context) (any, error) {
-			return obj.BeanID, nil
+			return obj.TotemID, nil
 		},
 		nil,
 		ec.marshalNID2string,
@@ -2323,7 +2323,7 @@ func (ec *executionContext) _ActiveAgentStatus_beanId(ctx context.Context, field
 	)
 }
 
-func (ec *executionContext) fieldContext_ActiveAgentStatus_beanId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ActiveAgentStatus_totemId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ActiveAgentStatus",
 		Field:      field,
@@ -2346,7 +2346,7 @@ func (ec *executionContext) _ActiveAgentStatus_status(ctx context.Context, field
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSessionStatus,
+		ec.marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSessionStatus,
 		true,
 		true,
 	)
@@ -2520,7 +2520,7 @@ func (ec *executionContext) _AgentMessage_role(ctx context.Context, field graphq
 			return obj.Role, nil
 		},
 		nil,
-		ec.marshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageRole,
+		ec.marshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageRole,
 		true,
 		true,
 	)
@@ -2578,7 +2578,7 @@ func (ec *executionContext) _AgentMessage_images(ctx context.Context, field grap
 			return obj.Images, nil
 		},
 		nil,
-		ec.marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageImageᚄ,
+		ec.marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageImageᚄ,
 		true,
 		true,
 	)
@@ -2719,14 +2719,14 @@ func (ec *executionContext) fieldContext_AgentMessageImage_mediaType(_ context.C
 	return fc, nil
 }
 
-func (ec *executionContext) _AgentSession_beanId(ctx context.Context, field graphql.CollectedField, obj *model.AgentSession) (ret graphql.Marshaler) {
+func (ec *executionContext) _AgentSession_totemId(ctx context.Context, field graphql.CollectedField, obj *model.AgentSession) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_AgentSession_beanId,
+		ec.fieldContext_AgentSession_totemId,
 		func(ctx context.Context) (any, error) {
-			return obj.BeanID, nil
+			return obj.TotemID, nil
 		},
 		nil,
 		ec.marshalNID2string,
@@ -2735,7 +2735,7 @@ func (ec *executionContext) _AgentSession_beanId(ctx context.Context, field grap
 	)
 }
 
-func (ec *executionContext) fieldContext_AgentSession_beanId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_AgentSession_totemId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AgentSession",
 		Field:      field,
@@ -2787,7 +2787,7 @@ func (ec *executionContext) _AgentSession_status(ctx context.Context, field grap
 			return obj.Status, nil
 		},
 		nil,
-		ec.marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSessionStatus,
+		ec.marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSessionStatus,
 		true,
 		true,
 	)
@@ -2816,7 +2816,7 @@ func (ec *executionContext) _AgentSession_messages(ctx context.Context, field gr
 			return obj.Messages, nil
 		},
 		nil,
-		ec.marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageᚄ,
+		ec.marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageᚄ,
 		true,
 		true,
 	)
@@ -3002,7 +3002,7 @@ func (ec *executionContext) _AgentSession_pendingInteraction(ctx context.Context
 			return obj.PendingInteraction, nil
 		},
 		nil,
-		ec.marshalOPendingInteraction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐPendingInteraction,
+		ec.marshalOPendingInteraction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐPendingInteraction,
 		true,
 		false,
 	)
@@ -3068,7 +3068,7 @@ func (ec *executionContext) _AgentSession_subagentActivities(ctx context.Context
 			return obj.SubagentActivities, nil
 		},
 		nil,
-		ec.marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐSubagentActivityᚄ,
+		ec.marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐSubagentActivityᚄ,
 		true,
 		true,
 	)
@@ -3281,7 +3281,7 @@ func (ec *executionContext) _AskUserQuestion_options(ctx context.Context, field 
 			return obj.Options, nil
 		},
 		nil,
-		ec.marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserOptionᚄ,
+		ec.marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserOptionᚄ,
 		true,
 		true,
 	)
@@ -3301,1154 +3301,6 @@ func (ec *executionContext) fieldContext_AskUserQuestion_options(_ context.Conte
 				return ec.fieldContext_AskUserOption_description(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AskUserOption", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_id(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_id,
-		func(ctx context.Context) (any, error) {
-			return obj.ID, nil
-		},
-		nil,
-		ec.marshalNID2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_slug(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_slug,
-		func(ctx context.Context) (any, error) {
-			return obj.Slug, nil
-		},
-		nil,
-		ec.marshalOString2string,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_slug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_path(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_path,
-		func(ctx context.Context) (any, error) {
-			return obj.Path, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_path(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_title(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_title,
-		func(ctx context.Context) (any, error) {
-			return obj.Title, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_status(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_status,
-		func(ctx context.Context) (any, error) {
-			return obj.Status, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_type(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_type,
-		func(ctx context.Context) (any, error) {
-			return obj.Type, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_priority(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_priority,
-		func(ctx context.Context) (any, error) {
-			return obj.Priority, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_priority(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_tags(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_tags,
-		func(ctx context.Context) (any, error) {
-			return obj.Tags, nil
-		},
-		nil,
-		ec.marshalNString2ᚕstringᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_tags(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_createdAt(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_createdAt,
-		func(ctx context.Context) (any, error) {
-			return obj.CreatedAt, nil
-		},
-		nil,
-		ec.marshalNTime2ᚖtimeᚐTime,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_updatedAt(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_updatedAt,
-		func(ctx context.Context) (any, error) {
-			return obj.UpdatedAt, nil
-		},
-		nil,
-		ec.marshalNTime2ᚖtimeᚐTime,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Time does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_body(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_body,
-		func(ctx context.Context) (any, error) {
-			return obj.Body, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_body(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_order(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_order,
-		func(ctx context.Context) (any, error) {
-			return obj.Order, nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_etag(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_etag,
-		func(ctx context.Context) (any, error) {
-			return obj.ETag(), nil
-		},
-		nil,
-		ec.marshalNString2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_etag(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_isDirty(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_isDirty,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().IsDirty(ctx, obj)
-		},
-		nil,
-		ec.marshalNBoolean2bool,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_isDirty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_worktreeId(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_worktreeId,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().WorktreeID(ctx, obj)
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_worktreeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_parentId(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_parentId,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().ParentID(ctx, obj)
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_parentId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_blockingIds(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_blockingIds,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().BlockingIds(ctx, obj)
-		},
-		nil,
-		ec.marshalNString2ᚕstringᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_blockingIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_blockedByIds(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_blockedByIds,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().BlockedByIds(ctx, obj)
-		},
-		nil,
-		ec.marshalNString2ᚕstringᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_blockedByIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_blockedBy(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_blockedBy,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Bean().BlockedBy(ctx, obj, fc.Args["filter"].(*model.BeanFilter))
-		},
-		nil,
-		ec.marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_blockedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Bean_blockedBy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_blocking(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_blocking,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Bean().Blocking(ctx, obj, fc.Args["filter"].(*model.BeanFilter))
-		},
-		nil,
-		ec.marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_blocking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Bean_blocking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_parent(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_parent,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().Parent(ctx, obj)
-		},
-		nil,
-		ec.marshalOBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_parent(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_children(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_children,
-		func(ctx context.Context) (any, error) {
-			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Bean().Children(ctx, obj, fc.Args["filter"].(*model.BeanFilter))
-		},
-		nil,
-		ec.marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Bean_children_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_implicitStatus(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_implicitStatus,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().ImplicitStatus(ctx, obj)
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_implicitStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Bean_implicitStatusFrom(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_Bean_implicitStatusFrom,
-		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Bean().ImplicitStatusFrom(ctx, obj)
-		},
-		nil,
-		ec.marshalOString2ᚖstring,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_Bean_implicitStatusFrom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Bean",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BeanChangeEvent_type(ctx context.Context, field graphql.CollectedField, obj *model.BeanChangeEvent) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_BeanChangeEvent_type,
-		func(ctx context.Context) (any, error) {
-			return obj.Type, nil
-		},
-		nil,
-		ec.marshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐChangeType,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_BeanChangeEvent_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BeanChangeEvent",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ChangeType does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BeanChangeEvent_bean(ctx context.Context, field graphql.CollectedField, obj *model.BeanChangeEvent) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_BeanChangeEvent_bean,
-		func(ctx context.Context) (any, error) {
-			return obj.Bean, nil
-		},
-		nil,
-		ec.marshalOBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_BeanChangeEvent_bean(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BeanChangeEvent",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BeanChangeEvent_beans(ctx context.Context, field graphql.CollectedField, obj *model.BeanChangeEvent) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_BeanChangeEvent_beans,
-		func(ctx context.Context) (any, error) {
-			return obj.Beans, nil
-		},
-		nil,
-		ec.marshalOBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_BeanChangeEvent_beans(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BeanChangeEvent",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
-			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
-			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
-			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
-			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
-			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
-			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
-			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
-			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
-			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
-			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
-			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
-			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
-			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
-			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
-			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
-			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
-			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
-			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
-			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
-			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
-			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _BeanChangeEvent_beanId(ctx context.Context, field graphql.CollectedField, obj *model.BeanChangeEvent) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_BeanChangeEvent_beanId,
-		func(ctx context.Context) (any, error) {
-			return obj.BeanID, nil
-		},
-		nil,
-		ec.marshalNID2string,
-		true,
-		true,
-	)
-}
-
-func (ec *executionContext) fieldContext_BeanChangeEvent_beanId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "BeanChangeEvent",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4686,24 +3538,24 @@ func (ec *executionContext) fieldContext_FileEntry_path(_ context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_createBean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createTotem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_createBean,
+		ec.fieldContext_Mutation_createTotem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().CreateBean(ctx, fc.Args["input"].(model.CreateBeanInput))
+			return ec.resolvers.Mutation().CreateTotem(ctx, fc.Args["input"].(model.CreateTotemInput))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_createBean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_createTotem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -4712,55 +3564,55 @@ func (ec *executionContext) fieldContext_Mutation_createBean(ctx context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -4770,31 +3622,31 @@ func (ec *executionContext) fieldContext_Mutation_createBean(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createBean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_createTotem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_updateBean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_updateTotem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_updateBean,
+		ec.fieldContext_Mutation_updateTotem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().UpdateBean(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateBeanInput))
+			return ec.resolvers.Mutation().UpdateTotem(ctx, fc.Args["id"].(string), fc.Args["input"].(model.UpdateTotemInput))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_updateBean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_updateTotem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -4803,55 +3655,55 @@ func (ec *executionContext) fieldContext_Mutation_updateBean(ctx context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -4861,22 +3713,22 @@ func (ec *executionContext) fieldContext_Mutation_updateBean(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_updateBean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_updateTotem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_deleteBean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTotem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_deleteBean,
+		ec.fieldContext_Mutation_deleteTotem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().DeleteBean(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Mutation().DeleteTotem(ctx, fc.Args["id"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -4885,7 +3737,7 @@ func (ec *executionContext) _Mutation_deleteBean(ctx context.Context, field grap
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_deleteBean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_deleteTotem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -4902,7 +3754,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteBean(ctx context.Context
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_deleteBean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_deleteTotem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4920,7 +3772,7 @@ func (ec *executionContext) _Mutation_setParent(ctx context.Context, field graph
 			return ec.resolvers.Mutation().SetParent(ctx, fc.Args["id"].(string), fc.Args["parentId"].(*string), fc.Args["ifMatch"].(*string))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
@@ -4935,55 +3787,55 @@ func (ec *executionContext) fieldContext_Mutation_setParent(ctx context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -5011,7 +3863,7 @@ func (ec *executionContext) _Mutation_addBlocking(ctx context.Context, field gra
 			return ec.resolvers.Mutation().AddBlocking(ctx, fc.Args["id"].(string), fc.Args["targetId"].(string), fc.Args["ifMatch"].(*string))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
@@ -5026,55 +3878,55 @@ func (ec *executionContext) fieldContext_Mutation_addBlocking(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -5102,7 +3954,7 @@ func (ec *executionContext) _Mutation_removeBlocking(ctx context.Context, field 
 			return ec.resolvers.Mutation().RemoveBlocking(ctx, fc.Args["id"].(string), fc.Args["targetId"].(string), fc.Args["ifMatch"].(*string))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
@@ -5117,55 +3969,55 @@ func (ec *executionContext) fieldContext_Mutation_removeBlocking(ctx context.Con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -5193,7 +4045,7 @@ func (ec *executionContext) _Mutation_addBlockedBy(ctx context.Context, field gr
 			return ec.resolvers.Mutation().AddBlockedBy(ctx, fc.Args["id"].(string), fc.Args["targetId"].(string), fc.Args["ifMatch"].(*string))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
@@ -5208,55 +4060,55 @@ func (ec *executionContext) fieldContext_Mutation_addBlockedBy(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -5284,7 +4136,7 @@ func (ec *executionContext) _Mutation_removeBlockedBy(ctx context.Context, field
 			return ec.resolvers.Mutation().RemoveBlockedBy(ctx, fc.Args["id"].(string), fc.Args["targetId"].(string), fc.Args["ifMatch"].(*string))
 		},
 		nil,
-		ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		true,
 	)
@@ -5299,55 +4151,55 @@ func (ec *executionContext) fieldContext_Mutation_removeBlockedBy(ctx context.Co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -5498,7 +4350,7 @@ func (ec *executionContext) _Mutation_createWorktree(ctx context.Context, field 
 			return ec.resolvers.Mutation().CreateWorktree(ctx, fc.Args["name"].(string))
 		},
 		nil,
-		ec.marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktree,
+		ec.marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktree,
 		true,
 		true,
 	)
@@ -5522,8 +4374,8 @@ func (ec *executionContext) fieldContext_Mutation_createWorktree(ctx context.Con
 				return ec.fieldContext_Worktree_branch(ctx, field)
 			case "path":
 				return ec.fieldContext_Worktree_path(ctx, field)
-			case "beans":
-				return ec.fieldContext_Worktree_beans(ctx, field)
+			case "totems":
+				return ec.fieldContext_Worktree_totems(ctx, field)
 			case "hasChanges":
 				return ec.fieldContext_Worktree_hasChanges(ctx, field)
 			case "hasUnmergedCommits":
@@ -5605,7 +4457,7 @@ func (ec *executionContext) _Mutation_sendAgentMessage(ctx context.Context, fiel
 		ec.fieldContext_Mutation_sendAgentMessage,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SendAgentMessage(ctx, fc.Args["beanId"].(string), fc.Args["message"].(string), fc.Args["images"].([]*model.ImageInput), fc.Args["attachments"].([]*model.FileAttachmentInput))
+			return ec.resolvers.Mutation().SendAgentMessage(ctx, fc.Args["totemId"].(string), fc.Args["message"].(string), fc.Args["images"].([]*model.ImageInput), fc.Args["attachments"].([]*model.FileAttachmentInput))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5646,7 +4498,7 @@ func (ec *executionContext) _Mutation_stopAgent(ctx context.Context, field graph
 		ec.fieldContext_Mutation_stopAgent,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().StopAgent(ctx, fc.Args["beanId"].(string))
+			return ec.resolvers.Mutation().StopAgent(ctx, fc.Args["totemId"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5687,7 +4539,7 @@ func (ec *executionContext) _Mutation_setAgentPlanMode(ctx context.Context, fiel
 		ec.fieldContext_Mutation_setAgentPlanMode,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SetAgentPlanMode(ctx, fc.Args["beanId"].(string), fc.Args["planMode"].(bool))
+			return ec.resolvers.Mutation().SetAgentPlanMode(ctx, fc.Args["totemId"].(string), fc.Args["planMode"].(bool))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5728,7 +4580,7 @@ func (ec *executionContext) _Mutation_setAgentActMode(ctx context.Context, field
 		ec.fieldContext_Mutation_setAgentActMode,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SetAgentActMode(ctx, fc.Args["beanId"].(string), fc.Args["actMode"].(bool))
+			return ec.resolvers.Mutation().SetAgentActMode(ctx, fc.Args["totemId"].(string), fc.Args["actMode"].(bool))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5769,7 +4621,7 @@ func (ec *executionContext) _Mutation_setAgentEffort(ctx context.Context, field 
 		ec.fieldContext_Mutation_setAgentEffort,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SetAgentEffort(ctx, fc.Args["beanId"].(string), fc.Args["effort"].(string))
+			return ec.resolvers.Mutation().SetAgentEffort(ctx, fc.Args["totemId"].(string), fc.Args["effort"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5810,7 +4662,7 @@ func (ec *executionContext) _Mutation_setAgentPendingInteraction(ctx context.Con
 		ec.fieldContext_Mutation_setAgentPendingInteraction,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SetAgentPendingInteraction(ctx, fc.Args["beanId"].(string), fc.Args["type"].(model.InteractionType), fc.Args["planContent"].(*string))
+			return ec.resolvers.Mutation().SetAgentPendingInteraction(ctx, fc.Args["totemId"].(string), fc.Args["type"].(model.InteractionType), fc.Args["planContent"].(*string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5851,7 +4703,7 @@ func (ec *executionContext) _Mutation_clearAgentSession(ctx context.Context, fie
 		ec.fieldContext_Mutation_clearAgentSession,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().ClearAgentSession(ctx, fc.Args["beanId"].(string))
+			return ec.resolvers.Mutation().ClearAgentSession(ctx, fc.Args["totemId"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5884,15 +4736,15 @@ func (ec *executionContext) fieldContext_Mutation_clearAgentSession(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_archiveBean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_archiveTotem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_archiveBean,
+		ec.fieldContext_Mutation_archiveTotem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().ArchiveBean(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Mutation().ArchiveTotem(ctx, fc.Args["id"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5901,7 +4753,7 @@ func (ec *executionContext) _Mutation_archiveBean(ctx context.Context, field gra
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_archiveBean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_archiveTotem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -5918,21 +4770,21 @@ func (ec *executionContext) fieldContext_Mutation_archiveBean(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_archiveBean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_archiveTotem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_saveDirtyBeans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_saveDirtyTotems(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_saveDirtyBeans,
+		ec.fieldContext_Mutation_saveDirtyTotems,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Mutation().SaveDirtyBeans(ctx)
+			return ec.resolvers.Mutation().SaveDirtyTotems(ctx)
 		},
 		nil,
 		ec.marshalNInt2int,
@@ -5941,7 +4793,7 @@ func (ec *executionContext) _Mutation_saveDirtyBeans(ctx context.Context, field 
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_saveDirtyBeans(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_saveDirtyTotems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -5954,15 +4806,15 @@ func (ec *executionContext) fieldContext_Mutation_saveDirtyBeans(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_saveBean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_saveTotem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Mutation_saveBean,
+		ec.fieldContext_Mutation_saveTotem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().SaveBean(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Mutation().SaveTotem(ctx, fc.Args["id"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -5971,7 +4823,7 @@ func (ec *executionContext) _Mutation_saveBean(ctx context.Context, field graphq
 	)
 }
 
-func (ec *executionContext) fieldContext_Mutation_saveBean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_saveTotem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -5988,7 +4840,7 @@ func (ec *executionContext) fieldContext_Mutation_saveBean(ctx context.Context, 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_saveBean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_saveTotem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6003,7 +4855,7 @@ func (ec *executionContext) _Mutation_executeAgentAction(ctx context.Context, fi
 		ec.fieldContext_Mutation_executeAgentAction,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().ExecuteAgentAction(ctx, fc.Args["beanId"].(string), fc.Args["actionId"].(string))
+			return ec.resolvers.Mutation().ExecuteAgentAction(ctx, fc.Args["totemId"].(string), fc.Args["actionId"].(string))
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -6128,7 +4980,7 @@ func (ec *executionContext) _PendingInteraction_type(ctx context.Context, field 
 			return obj.Type, nil
 		},
 		nil,
-		ec.marshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐInteractionType,
+		ec.marshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐInteractionType,
 		true,
 		true,
 	)
@@ -6186,7 +5038,7 @@ func (ec *executionContext) _PendingInteraction_questions(ctx context.Context, f
 			return obj.Questions, nil
 		},
 		nil,
-		ec.marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserQuestionᚄ,
+		ec.marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserQuestionᚄ,
 		true,
 		false,
 	)
@@ -6447,24 +5299,24 @@ func (ec *executionContext) fieldContext_PullRequest_mergeable(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_bean(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_totem(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_bean,
+		ec.fieldContext_Query_totem,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Bean(ctx, fc.Args["id"].(string))
+			return ec.resolvers.Query().Totem(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalOBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		ec.marshalOTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
 		true,
 		false,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_bean(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_totem(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -6473,55 +5325,55 @@ func (ec *executionContext) fieldContext_Query_bean(ctx context.Context, field g
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -6531,31 +5383,31 @@ func (ec *executionContext) fieldContext_Query_bean(ctx context.Context, field g
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_bean_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_totem_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_beans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_totems(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_beans,
+		ec.fieldContext_Query_totems,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Beans(ctx, fc.Args["filter"].(*model.BeanFilter))
+			return ec.resolvers.Query().Totems(ctx, fc.Args["filter"].(*model.TotemFilter))
 		},
 		nil,
-		ec.marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		ec.marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_beans(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_totems(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -6564,55 +5416,55 @@ func (ec *executionContext) fieldContext_Query_beans(ctx context.Context, field 
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	defer func() {
@@ -6622,7 +5474,7 @@ func (ec *executionContext) fieldContext_Query_beans(ctx context.Context, field 
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_beans_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_totems_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -6639,7 +5491,7 @@ func (ec *executionContext) _Query_worktrees(ctx context.Context, field graphql.
 			return ec.resolvers.Query().Worktrees(ctx)
 		},
 		nil,
-		ec.marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeᚄ,
+		ec.marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeᚄ,
 		true,
 		true,
 	)
@@ -6663,8 +5515,8 @@ func (ec *executionContext) fieldContext_Query_worktrees(_ context.Context, fiel
 				return ec.fieldContext_Worktree_branch(ctx, field)
 			case "path":
 				return ec.fieldContext_Worktree_path(ctx, field)
-			case "beans":
-				return ec.fieldContext_Worktree_beans(ctx, field)
+			case "totems":
+				return ec.fieldContext_Worktree_totems(ctx, field)
 			case "hasChanges":
 				return ec.fieldContext_Worktree_hasChanges(ctx, field)
 			case "hasUnmergedCommits":
@@ -6694,10 +5546,10 @@ func (ec *executionContext) _Query_agentSession(ctx context.Context, field graph
 		ec.fieldContext_Query_agentSession,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().AgentSession(ctx, fc.Args["beanId"].(string))
+			return ec.resolvers.Query().AgentSession(ctx, fc.Args["totemId"].(string))
 		},
 		nil,
-		ec.marshalOAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSession,
+		ec.marshalOAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSession,
 		true,
 		false,
 	)
@@ -6711,8 +5563,8 @@ func (ec *executionContext) fieldContext_Query_agentSession(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "beanId":
-				return ec.fieldContext_AgentSession_beanId(ctx, field)
+			case "totemId":
+				return ec.fieldContext_AgentSession_totemId(ctx, field)
 			case "agentType":
 				return ec.fieldContext_AgentSession_agentType(ctx, field)
 			case "status":
@@ -6766,7 +5618,7 @@ func (ec *executionContext) _Query_fileChanges(ctx context.Context, field graphq
 			return ec.resolvers.Query().FileChanges(ctx, fc.Args["path"].(*string))
 		},
 		nil,
-		ec.marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileChangeᚄ,
+		ec.marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileChangeᚄ,
 		true,
 		true,
 	)
@@ -6819,7 +5671,7 @@ func (ec *executionContext) _Query_allFileChanges(ctx context.Context, field gra
 			return ec.resolvers.Query().AllFileChanges(ctx, fc.Args["path"].(*string))
 		},
 		nil,
-		ec.marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileChangeᚄ,
+		ec.marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileChangeᚄ,
 		true,
 		true,
 	)
@@ -6954,7 +5806,7 @@ func (ec *executionContext) _Query_branchStatus(ctx context.Context, field graph
 			return ec.resolvers.Query().BranchStatus(ctx, fc.Args["path"].(*string))
 		},
 		nil,
-		ec.marshalNBranchStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBranchStatus,
+		ec.marshalNBranchStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐBranchStatus,
 		true,
 		true,
 	)
@@ -6990,14 +5842,14 @@ func (ec *executionContext) fieldContext_Query_branchStatus(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_hasDirtyBeans(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_hasDirtyTotems(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Query_hasDirtyBeans,
+		ec.fieldContext_Query_hasDirtyTotems,
 		func(ctx context.Context) (any, error) {
-			return ec.resolvers.Query().HasDirtyBeans(ctx)
+			return ec.resolvers.Query().HasDirtyTotems(ctx)
 		},
 		nil,
 		ec.marshalNBoolean2bool,
@@ -7006,7 +5858,7 @@ func (ec *executionContext) _Query_hasDirtyBeans(ctx context.Context, field grap
 	)
 }
 
-func (ec *executionContext) fieldContext_Query_hasDirtyBeans(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_hasDirtyTotems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -7027,10 +5879,10 @@ func (ec *executionContext) _Query_agentActions(ctx context.Context, field graph
 		ec.fieldContext_Query_agentActions,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().AgentActions(ctx, fc.Args["beanId"].(string), fc.Args["skipForge"].(*bool))
+			return ec.resolvers.Query().AgentActions(ctx, fc.Args["totemId"].(string), fc.Args["skipForge"].(*bool))
 		},
 		nil,
-		ec.marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentActionᚄ,
+		ec.marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentActionᚄ,
 		true,
 		true,
 	)
@@ -7339,7 +6191,7 @@ func (ec *executionContext) _Query_listFiles(ctx context.Context, field graphql.
 			return ec.resolvers.Query().ListFiles(ctx, fc.Args["workspaceId"].(*string), fc.Args["prefix"].(string), fc.Args["limit"].(*int))
 		},
 		nil,
-		ec.marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileEntryᚄ,
+		ec.marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileEntryᚄ,
 		true,
 		true,
 	)
@@ -7597,24 +6449,24 @@ func (ec *executionContext) fieldContext_SubagentActivity_currentTool(_ context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Subscription_beanChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
+func (ec *executionContext) _Subscription_totemChanged(ctx context.Context, field graphql.CollectedField) (ret func(ctx context.Context) graphql.Marshaler) {
 	return graphql.ResolveFieldStream(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Subscription_beanChanged,
+		ec.fieldContext_Subscription_totemChanged,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Subscription().BeanChanged(ctx, fc.Args["includeInitial"].(*bool))
+			return ec.resolvers.Subscription().TotemChanged(ctx, fc.Args["includeInitial"].(*bool))
 		},
 		nil,
-		ec.marshalNBeanChangeEvent2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanChangeEvent,
+		ec.marshalNTotemChangeEvent2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemChangeEvent,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Subscription_beanChanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Subscription_totemChanged(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Subscription",
 		Field:      field,
@@ -7623,15 +6475,15 @@ func (ec *executionContext) fieldContext_Subscription_beanChanged(ctx context.Co
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "type":
-				return ec.fieldContext_BeanChangeEvent_type(ctx, field)
-			case "bean":
-				return ec.fieldContext_BeanChangeEvent_bean(ctx, field)
-			case "beans":
-				return ec.fieldContext_BeanChangeEvent_beans(ctx, field)
-			case "beanId":
-				return ec.fieldContext_BeanChangeEvent_beanId(ctx, field)
+				return ec.fieldContext_TotemChangeEvent_type(ctx, field)
+			case "totem":
+				return ec.fieldContext_TotemChangeEvent_totem(ctx, field)
+			case "totems":
+				return ec.fieldContext_TotemChangeEvent_totems(ctx, field)
+			case "totemId":
+				return ec.fieldContext_TotemChangeEvent_totemId(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type BeanChangeEvent", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type TotemChangeEvent", field.Name)
 		},
 	}
 	defer func() {
@@ -7641,7 +6493,7 @@ func (ec *executionContext) fieldContext_Subscription_beanChanged(ctx context.Co
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Subscription_beanChanged_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Subscription_totemChanged_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7658,7 +6510,7 @@ func (ec *executionContext) _Subscription_worktreesChanged(ctx context.Context, 
 			return ec.resolvers.Subscription().WorktreesChanged(ctx)
 		},
 		nil,
-		ec.marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeᚄ,
+		ec.marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeᚄ,
 		true,
 		true,
 	)
@@ -7682,8 +6534,8 @@ func (ec *executionContext) fieldContext_Subscription_worktreesChanged(_ context
 				return ec.fieldContext_Worktree_branch(ctx, field)
 			case "path":
 				return ec.fieldContext_Worktree_path(ctx, field)
-			case "beans":
-				return ec.fieldContext_Worktree_beans(ctx, field)
+			case "totems":
+				return ec.fieldContext_Worktree_totems(ctx, field)
 			case "hasChanges":
 				return ec.fieldContext_Worktree_hasChanges(ctx, field)
 			case "hasUnmergedCommits":
@@ -7713,10 +6565,10 @@ func (ec *executionContext) _Subscription_agentSessionChanged(ctx context.Contex
 		ec.fieldContext_Subscription_agentSessionChanged,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Subscription().AgentSessionChanged(ctx, fc.Args["beanId"].(string))
+			return ec.resolvers.Subscription().AgentSessionChanged(ctx, fc.Args["totemId"].(string))
 		},
 		nil,
-		ec.marshalNAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSession,
+		ec.marshalNAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSession,
 		true,
 		true,
 	)
@@ -7730,8 +6582,8 @@ func (ec *executionContext) fieldContext_Subscription_agentSessionChanged(ctx co
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "beanId":
-				return ec.fieldContext_AgentSession_beanId(ctx, field)
+			case "totemId":
+				return ec.fieldContext_AgentSession_totemId(ctx, field)
 			case "agentType":
 				return ec.fieldContext_AgentSession_agentType(ctx, field)
 			case "status":
@@ -7784,7 +6636,7 @@ func (ec *executionContext) _Subscription_activeAgentStatuses(ctx context.Contex
 			return ec.resolvers.Subscription().ActiveAgentStatuses(ctx)
 		},
 		nil,
-		ec.marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐActiveAgentStatusᚄ,
+		ec.marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐActiveAgentStatusᚄ,
 		true,
 		true,
 	)
@@ -7798,8 +6650,8 @@ func (ec *executionContext) fieldContext_Subscription_activeAgentStatuses(_ cont
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "beanId":
-				return ec.fieldContext_ActiveAgentStatus_beanId(ctx, field)
+			case "totemId":
+				return ec.fieldContext_ActiveAgentStatus_totemId(ctx, field)
 			case "status":
 				return ec.fieldContext_ActiveAgentStatus_status(ctx, field)
 			}
@@ -7819,7 +6671,7 @@ func (ec *executionContext) _Subscription_workspaceStatuses(ctx context.Context,
 			return ec.resolvers.Subscription().WorkspaceStatuses(ctx)
 		},
 		nil,
-		ec.marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorkspaceStatusᚄ,
+		ec.marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorkspaceStatusᚄ,
 		true,
 		true,
 	)
@@ -7841,6 +6693,1154 @@ func (ec *executionContext) fieldContext_Subscription_workspaceStatuses(_ contex
 				return ec.fieldContext_WorkspaceStatus_hasUnmergedCommits(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceStatus", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_id(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_slug(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_slug,
+		func(ctx context.Context) (any, error) {
+			return obj.Slug, nil
+		},
+		nil,
+		ec.marshalOString2string,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_slug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_path(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_path,
+		func(ctx context.Context) (any, error) {
+			return obj.Path, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_path(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_title(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_title,
+		func(ctx context.Context) (any, error) {
+			return obj.Title, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_title(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_status(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_type(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_priority(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_priority,
+		func(ctx context.Context) (any, error) {
+			return obj.Priority, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_priority(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_tags(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_tags,
+		func(ctx context.Context) (any, error) {
+			return obj.Tags, nil
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_tags(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_createdAt(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNTime2ᚖtimeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_updatedAt(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNTime2ᚖtimeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_body(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_body,
+		func(ctx context.Context) (any, error) {
+			return obj.Body, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_body(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_order(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_order,
+		func(ctx context.Context) (any, error) {
+			return obj.Order, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_order(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_etag(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_etag,
+		func(ctx context.Context) (any, error) {
+			return obj.ETag(), nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_etag(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_isDirty(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_isDirty,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().IsDirty(ctx, obj)
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_isDirty(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_worktreeId(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_worktreeId,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().WorktreeID(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_worktreeId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_parentId(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_parentId,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().ParentID(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_parentId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_blockingIds(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_blockingIds,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().BlockingIds(ctx, obj)
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_blockingIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_blockedByIds(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_blockedByIds,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().BlockedByIds(ctx, obj)
+		},
+		nil,
+		ec.marshalNString2ᚕstringᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_blockedByIds(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_blockedBy(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_blockedBy,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Totem().BlockedBy(ctx, obj, fc.Args["filter"].(*model.TotemFilter))
+		},
+		nil,
+		ec.marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_blockedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Totem_blockedBy_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_blocking(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_blocking,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Totem().Blocking(ctx, obj, fc.Args["filter"].(*model.TotemFilter))
+		},
+		nil,
+		ec.marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_blocking(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Totem_blocking_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_parent(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_parent,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().Parent(ctx, obj)
+		},
+		nil,
+		ec.marshalOTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_parent(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_children(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_children,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Totem().Children(ctx, obj, fc.Args["filter"].(*model.TotemFilter))
+		},
+		nil,
+		ec.marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_children(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Totem_children_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_implicitStatus(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_implicitStatus,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().ImplicitStatus(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_implicitStatus(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Totem_implicitStatusFrom(ctx context.Context, field graphql.CollectedField, obj *bean.Bean) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Totem_implicitStatusFrom,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Totem().ImplicitStatusFrom(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Totem_implicitStatusFrom(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Totem",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotemChangeEvent_type(ctx context.Context, field graphql.CollectedField, obj *model.TotemChangeEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TotemChangeEvent_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐChangeType,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TotemChangeEvent_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotemChangeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ChangeType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotemChangeEvent_totem(ctx context.Context, field graphql.CollectedField, obj *model.TotemChangeEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TotemChangeEvent_totem,
+		func(ctx context.Context) (any, error) {
+			return obj.Totem, nil
+		},
+		nil,
+		ec.marshalOTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TotemChangeEvent_totem(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotemChangeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotemChangeEvent_totems(ctx context.Context, field graphql.CollectedField, obj *model.TotemChangeEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TotemChangeEvent_totems,
+		func(ctx context.Context) (any, error) {
+			return obj.Totems, nil
+		},
+		nil,
+		ec.marshalOTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TotemChangeEvent_totems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotemChangeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Totem_id(ctx, field)
+			case "slug":
+				return ec.fieldContext_Totem_slug(ctx, field)
+			case "path":
+				return ec.fieldContext_Totem_path(ctx, field)
+			case "title":
+				return ec.fieldContext_Totem_title(ctx, field)
+			case "status":
+				return ec.fieldContext_Totem_status(ctx, field)
+			case "type":
+				return ec.fieldContext_Totem_type(ctx, field)
+			case "priority":
+				return ec.fieldContext_Totem_priority(ctx, field)
+			case "tags":
+				return ec.fieldContext_Totem_tags(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Totem_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
+			case "body":
+				return ec.fieldContext_Totem_body(ctx, field)
+			case "order":
+				return ec.fieldContext_Totem_order(ctx, field)
+			case "etag":
+				return ec.fieldContext_Totem_etag(ctx, field)
+			case "isDirty":
+				return ec.fieldContext_Totem_isDirty(ctx, field)
+			case "worktreeId":
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
+			case "parentId":
+				return ec.fieldContext_Totem_parentId(ctx, field)
+			case "blockingIds":
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
+			case "blockedByIds":
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
+			case "blockedBy":
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
+			case "blocking":
+				return ec.fieldContext_Totem_blocking(ctx, field)
+			case "parent":
+				return ec.fieldContext_Totem_parent(ctx, field)
+			case "children":
+				return ec.fieldContext_Totem_children(ctx, field)
+			case "implicitStatus":
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
+			case "implicitStatusFrom":
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotemChangeEvent_totemId(ctx context.Context, field graphql.CollectedField, obj *model.TotemChangeEvent) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TotemChangeEvent_totemId,
+		func(ctx context.Context) (any, error) {
+			return obj.TotemID, nil
+		},
+		nil,
+		ec.marshalNID2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TotemChangeEvent_totemId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotemChangeEvent",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
 		},
 	}
 	return fc, nil
@@ -8078,23 +8078,23 @@ func (ec *executionContext) fieldContext_Worktree_path(_ context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Worktree_beans(ctx context.Context, field graphql.CollectedField, obj *model.Worktree) (ret graphql.Marshaler) {
+func (ec *executionContext) _Worktree_totems(ctx context.Context, field graphql.CollectedField, obj *model.Worktree) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
 		ec.OperationContext,
 		field,
-		ec.fieldContext_Worktree_beans,
+		ec.fieldContext_Worktree_totems,
 		func(ctx context.Context) (any, error) {
-			return obj.Beans, nil
+			return obj.Totems, nil
 		},
 		nil,
-		ec.marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
+		ec.marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ,
 		true,
 		true,
 	)
 }
 
-func (ec *executionContext) fieldContext_Worktree_beans(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Worktree_totems(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Worktree",
 		Field:      field,
@@ -8103,55 +8103,55 @@ func (ec *executionContext) fieldContext_Worktree_beans(_ context.Context, field
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Bean_id(ctx, field)
+				return ec.fieldContext_Totem_id(ctx, field)
 			case "slug":
-				return ec.fieldContext_Bean_slug(ctx, field)
+				return ec.fieldContext_Totem_slug(ctx, field)
 			case "path":
-				return ec.fieldContext_Bean_path(ctx, field)
+				return ec.fieldContext_Totem_path(ctx, field)
 			case "title":
-				return ec.fieldContext_Bean_title(ctx, field)
+				return ec.fieldContext_Totem_title(ctx, field)
 			case "status":
-				return ec.fieldContext_Bean_status(ctx, field)
+				return ec.fieldContext_Totem_status(ctx, field)
 			case "type":
-				return ec.fieldContext_Bean_type(ctx, field)
+				return ec.fieldContext_Totem_type(ctx, field)
 			case "priority":
-				return ec.fieldContext_Bean_priority(ctx, field)
+				return ec.fieldContext_Totem_priority(ctx, field)
 			case "tags":
-				return ec.fieldContext_Bean_tags(ctx, field)
+				return ec.fieldContext_Totem_tags(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Bean_createdAt(ctx, field)
+				return ec.fieldContext_Totem_createdAt(ctx, field)
 			case "updatedAt":
-				return ec.fieldContext_Bean_updatedAt(ctx, field)
+				return ec.fieldContext_Totem_updatedAt(ctx, field)
 			case "body":
-				return ec.fieldContext_Bean_body(ctx, field)
+				return ec.fieldContext_Totem_body(ctx, field)
 			case "order":
-				return ec.fieldContext_Bean_order(ctx, field)
+				return ec.fieldContext_Totem_order(ctx, field)
 			case "etag":
-				return ec.fieldContext_Bean_etag(ctx, field)
+				return ec.fieldContext_Totem_etag(ctx, field)
 			case "isDirty":
-				return ec.fieldContext_Bean_isDirty(ctx, field)
+				return ec.fieldContext_Totem_isDirty(ctx, field)
 			case "worktreeId":
-				return ec.fieldContext_Bean_worktreeId(ctx, field)
+				return ec.fieldContext_Totem_worktreeId(ctx, field)
 			case "parentId":
-				return ec.fieldContext_Bean_parentId(ctx, field)
+				return ec.fieldContext_Totem_parentId(ctx, field)
 			case "blockingIds":
-				return ec.fieldContext_Bean_blockingIds(ctx, field)
+				return ec.fieldContext_Totem_blockingIds(ctx, field)
 			case "blockedByIds":
-				return ec.fieldContext_Bean_blockedByIds(ctx, field)
+				return ec.fieldContext_Totem_blockedByIds(ctx, field)
 			case "blockedBy":
-				return ec.fieldContext_Bean_blockedBy(ctx, field)
+				return ec.fieldContext_Totem_blockedBy(ctx, field)
 			case "blocking":
-				return ec.fieldContext_Bean_blocking(ctx, field)
+				return ec.fieldContext_Totem_blocking(ctx, field)
 			case "parent":
-				return ec.fieldContext_Bean_parent(ctx, field)
+				return ec.fieldContext_Totem_parent(ctx, field)
 			case "children":
-				return ec.fieldContext_Bean_children(ctx, field)
+				return ec.fieldContext_Totem_children(ctx, field)
 			case "implicitStatus":
-				return ec.fieldContext_Bean_implicitStatus(ctx, field)
+				return ec.fieldContext_Totem_implicitStatus(ctx, field)
 			case "implicitStatusFrom":
-				return ec.fieldContext_Bean_implicitStatusFrom(ctx, field)
+				return ec.fieldContext_Totem_implicitStatusFrom(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Bean", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Totem", field.Name)
 		},
 	}
 	return fc, nil
@@ -8283,7 +8283,7 @@ func (ec *executionContext) _Worktree_setupStatus(ctx context.Context, field gra
 			return obj.SetupStatus, nil
 		},
 		nil,
-		ec.marshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeSetupStatus,
+		ec.marshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeSetupStatus,
 		true,
 		false,
 	)
@@ -8341,7 +8341,7 @@ func (ec *executionContext) _Worktree_pullRequest(ctx context.Context, field gra
 			return obj.PullRequest, nil
 		},
 		nil,
-		ec.marshalOPullRequest2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐPullRequest,
+		ec.marshalOPullRequest2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐPullRequest,
 		true,
 		false,
 	)
@@ -9824,180 +9824,6 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputBeanFilter(ctx context.Context, obj any) (model.BeanFilter, error) {
-	var it model.BeanFilter
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"search", "status", "excludeStatus", "type", "excludeType", "priority", "excludePriority", "tags", "excludeTags", "hasParent", "parentId", "hasBlocking", "blockingId", "isBlocked", "isExplicitlyBlocked", "isImplicitlyBlocked", "hasBlockedBy", "blockedById", "noParent", "noBlocking", "noBlockedBy", "excludeImplicitTerminal"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "search":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Search = data
-		case "status":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Status = data
-		case "excludeStatus":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeStatus"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ExcludeStatus = data
-		case "type":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Type = data
-		case "excludeType":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeType"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ExcludeType = data
-		case "priority":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Priority = data
-		case "excludePriority":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludePriority"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ExcludePriority = data
-		case "tags":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Tags = data
-		case "excludeTags":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeTags"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ExcludeTags = data
-		case "hasParent":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HasParent = data
-		case "parentId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ParentID = data
-		case "hasBlocking":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasBlocking"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HasBlocking = data
-		case "blockingId":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockingId"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BlockingID = data
-		case "isBlocked":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isBlocked"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.IsBlocked = data
-		case "isExplicitlyBlocked":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isExplicitlyBlocked"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.IsExplicitlyBlocked = data
-		case "isImplicitlyBlocked":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isImplicitlyBlocked"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.IsImplicitlyBlocked = data
-		case "hasBlockedBy":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasBlockedBy"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.HasBlockedBy = data
-		case "blockedById":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockedById"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BlockedByID = data
-		case "noParent":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noParent"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NoParent = data
-		case "noBlocking":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noBlocking"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NoBlocking = data
-		case "noBlockedBy":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noBlockedBy"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NoBlockedBy = data
-		case "excludeImplicitTerminal":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeImplicitTerminal"))
-			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.ExcludeImplicitTerminal = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputBodyModification(ctx context.Context, obj any) (model.BodyModification, error) {
 	var it model.BodyModification
 	asMap := map[string]any{}
@@ -10014,7 +9840,7 @@ func (ec *executionContext) unmarshalInputBodyModification(ctx context.Context, 
 		switch k {
 		case "replace":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replace"))
-			data, err := ec.unmarshalOReplaceOperation2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐReplaceOperationᚄ(ctx, v)
+			data, err := ec.unmarshalOReplaceOperation2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐReplaceOperationᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10032,8 +9858,8 @@ func (ec *executionContext) unmarshalInputBodyModification(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputCreateBeanInput(ctx context.Context, obj any) (model.CreateBeanInput, error) {
-	var it model.CreateBeanInput
+func (ec *executionContext) unmarshalInputCreateTotemInput(ctx context.Context, obj any) (model.CreateTotemInput, error) {
+	var it model.CreateTotemInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -10217,8 +10043,182 @@ func (ec *executionContext) unmarshalInputReplaceOperation(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUpdateBeanInput(ctx context.Context, obj any) (model.UpdateBeanInput, error) {
-	var it model.UpdateBeanInput
+func (ec *executionContext) unmarshalInputTotemFilter(ctx context.Context, obj any) (model.TotemFilter, error) {
+	var it model.TotemFilter
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"search", "status", "excludeStatus", "type", "excludeType", "priority", "excludePriority", "tags", "excludeTags", "hasParent", "parentId", "hasBlocking", "blockingId", "isBlocked", "isExplicitlyBlocked", "isImplicitlyBlocked", "hasBlockedBy", "blockedById", "noParent", "noBlocking", "noBlockedBy", "excludeImplicitTerminal"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "excludeStatus":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeStatus"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeStatus = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "excludeType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeType"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeType = data
+		case "priority":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("priority"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Priority = data
+		case "excludePriority":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludePriority"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludePriority = data
+		case "tags":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Tags = data
+		case "excludeTags":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeTags"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeTags = data
+		case "hasParent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasParent"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasParent = data
+		case "parentId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("parentId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ParentID = data
+		case "hasBlocking":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasBlocking"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasBlocking = data
+		case "blockingId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockingId"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BlockingID = data
+		case "isBlocked":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isBlocked"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsBlocked = data
+		case "isExplicitlyBlocked":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isExplicitlyBlocked"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsExplicitlyBlocked = data
+		case "isImplicitlyBlocked":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isImplicitlyBlocked"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsImplicitlyBlocked = data
+		case "hasBlockedBy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasBlockedBy"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasBlockedBy = data
+		case "blockedById":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("blockedById"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BlockedByID = data
+		case "noParent":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noParent"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoParent = data
+		case "noBlocking":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noBlocking"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoBlocking = data
+		case "noBlockedBy":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("noBlockedBy"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.NoBlockedBy = data
+		case "excludeImplicitTerminal":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excludeImplicitTerminal"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ExcludeImplicitTerminal = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTotemInput(ctx context.Context, obj any) (model.UpdateTotemInput, error) {
+	var it model.UpdateTotemInput
 	asMap := map[string]any{}
 	for k, v := range obj.(map[string]any) {
 		asMap[k] = v
@@ -10289,7 +10289,7 @@ func (ec *executionContext) unmarshalInputUpdateBeanInput(ctx context.Context, o
 			it.Body = data
 		case "bodyMod":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("bodyMod"))
-			data, err := ec.unmarshalOBodyModification2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBodyModification(ctx, v)
+			data, err := ec.unmarshalOBodyModification2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐBodyModification(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10368,8 +10368,8 @@ func (ec *executionContext) _ActiveAgentStatus(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ActiveAgentStatus")
-		case "beanId":
-			out.Values[i] = ec._ActiveAgentStatus_beanId(ctx, field, obj)
+		case "totemId":
+			out.Values[i] = ec._ActiveAgentStatus_totemId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -10565,8 +10565,8 @@ func (ec *executionContext) _AgentSession(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AgentSession")
-		case "beanId":
-			out.Values[i] = ec._AgentSession_beanId(ctx, field, obj)
+		case "totemId":
+			out.Values[i] = ec._AgentSession_totemId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -10710,531 +10710,6 @@ func (ec *executionContext) _AskUserQuestion(ctx context.Context, sel ast.Select
 			}
 		case "options":
 			out.Values[i] = ec._AskUserQuestion_options(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var beanImplementors = []string{"Bean"}
-
-func (ec *executionContext) _Bean(ctx context.Context, sel ast.SelectionSet, obj *bean.Bean) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, beanImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Bean")
-		case "id":
-			out.Values[i] = ec._Bean_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "slug":
-			out.Values[i] = ec._Bean_slug(ctx, field, obj)
-		case "path":
-			out.Values[i] = ec._Bean_path(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "title":
-			out.Values[i] = ec._Bean_title(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "status":
-			out.Values[i] = ec._Bean_status(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "type":
-			out.Values[i] = ec._Bean_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "priority":
-			out.Values[i] = ec._Bean_priority(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "tags":
-			out.Values[i] = ec._Bean_tags(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "createdAt":
-			out.Values[i] = ec._Bean_createdAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "updatedAt":
-			out.Values[i] = ec._Bean_updatedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "body":
-			out.Values[i] = ec._Bean_body(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "order":
-			out.Values[i] = ec._Bean_order(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "etag":
-			out.Values[i] = ec._Bean_etag(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
-		case "isDirty":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_isDirty(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "worktreeId":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_worktreeId(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "parentId":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_parentId(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "blockingIds":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_blockingIds(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "blockedByIds":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_blockedByIds(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "blockedBy":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_blockedBy(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "blocking":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_blocking(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "parent":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_parent(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "children":
-			field := field
-
-			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_children(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&fs.Invalids, 1)
-				}
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "implicitStatus":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_implicitStatus(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		case "implicitStatusFrom":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Bean_implicitStatusFrom(ctx, field, obj)
-				return res
-			}
-
-			if field.Deferrable != nil {
-				dfs, ok := deferred[field.Deferrable.Label]
-				di := 0
-				if ok {
-					dfs.AddField(field)
-					di = len(dfs.Values) - 1
-				} else {
-					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
-					deferred[field.Deferrable.Label] = dfs
-				}
-				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
-					return innerFunc(ctx, dfs)
-				})
-
-				// don't run the out.Concurrently() call below
-				out.Values[i] = graphql.Null
-				continue
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var beanChangeEventImplementors = []string{"BeanChangeEvent"}
-
-func (ec *executionContext) _BeanChangeEvent(ctx context.Context, sel ast.SelectionSet, obj *model.BeanChangeEvent) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, beanChangeEventImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("BeanChangeEvent")
-		case "type":
-			out.Values[i] = ec._BeanChangeEvent_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
-		case "bean":
-			out.Values[i] = ec._BeanChangeEvent_bean(ctx, field, obj)
-		case "beans":
-			out.Values[i] = ec._BeanChangeEvent_beans(ctx, field, obj)
-		case "beanId":
-			out.Values[i] = ec._BeanChangeEvent_beanId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -11422,23 +10897,23 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "createBean":
+		case "createTotem":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_createBean(ctx, field)
+				return ec._Mutation_createTotem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "updateBean":
+		case "updateTotem":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateBean(ctx, field)
+				return ec._Mutation_updateTotem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "deleteBean":
+		case "deleteTotem":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_deleteBean(ctx, field)
+				return ec._Mutation_deleteTotem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11562,23 +11037,23 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "archiveBean":
+		case "archiveTotem":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_archiveBean(ctx, field)
+				return ec._Mutation_archiveTotem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "saveDirtyBeans":
+		case "saveDirtyTotems":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_saveDirtyBeans(ctx, field)
+				return ec._Mutation_saveDirtyTotems(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "saveBean":
+		case "saveTotem":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_saveBean(ctx, field)
+				return ec._Mutation_saveTotem(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -11763,7 +11238,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "bean":
+		case "totem":
 			field := field
 
 			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
@@ -11772,7 +11247,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_bean(ctx, field)
+				res = ec._Query_totem(ctx, field)
 				return res
 			}
 
@@ -11782,7 +11257,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "beans":
+		case "totems":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -11791,7 +11266,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_beans(ctx, field)
+				res = ec._Query_totems(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -11955,7 +11430,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "hasDirtyBeans":
+		case "hasDirtyTotems":
 			field := field
 
 			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
@@ -11964,7 +11439,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_hasDirtyBeans(ctx, field)
+				res = ec._Query_hasDirtyTotems(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -12295,8 +11770,8 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	}
 
 	switch fields[0].Name {
-	case "beanChanged":
-		return ec._Subscription_beanChanged(ctx, fields[0])
+	case "totemChanged":
+		return ec._Subscription_totemChanged(ctx, fields[0])
 	case "worktreesChanged":
 		return ec._Subscription_worktreesChanged(ctx, fields[0])
 	case "agentSessionChanged":
@@ -12308,6 +11783,531 @@ func (ec *executionContext) _Subscription(ctx context.Context, sel ast.Selection
 	default:
 		panic("unknown field " + strconv.Quote(fields[0].Name))
 	}
+}
+
+var totemImplementors = []string{"Totem"}
+
+func (ec *executionContext) _Totem(ctx context.Context, sel ast.SelectionSet, obj *bean.Bean) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, totemImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Totem")
+		case "id":
+			out.Values[i] = ec._Totem_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "slug":
+			out.Values[i] = ec._Totem_slug(ctx, field, obj)
+		case "path":
+			out.Values[i] = ec._Totem_path(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "title":
+			out.Values[i] = ec._Totem_title(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "status":
+			out.Values[i] = ec._Totem_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "type":
+			out.Values[i] = ec._Totem_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "priority":
+			out.Values[i] = ec._Totem_priority(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "tags":
+			out.Values[i] = ec._Totem_tags(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "createdAt":
+			out.Values[i] = ec._Totem_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "updatedAt":
+			out.Values[i] = ec._Totem_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "body":
+			out.Values[i] = ec._Totem_body(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "order":
+			out.Values[i] = ec._Totem_order(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "etag":
+			out.Values[i] = ec._Totem_etag(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&out.Invalids, 1)
+			}
+		case "isDirty":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_isDirty(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "worktreeId":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_worktreeId(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "parentId":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_parentId(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "blockingIds":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_blockingIds(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "blockedByIds":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_blockedByIds(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "blockedBy":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_blockedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "blocking":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_blocking(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "parent":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_parent(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "children":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_children(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "implicitStatus":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_implicitStatus(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "implicitStatusFrom":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Totem_implicitStatusFrom(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var totemChangeEventImplementors = []string{"TotemChangeEvent"}
+
+func (ec *executionContext) _TotemChangeEvent(ctx context.Context, sel ast.SelectionSet, obj *model.TotemChangeEvent) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, totemChangeEventImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TotemChangeEvent")
+		case "type":
+			out.Values[i] = ec._TotemChangeEvent_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totem":
+			out.Values[i] = ec._TotemChangeEvent_totem(ctx, field, obj)
+		case "totems":
+			out.Values[i] = ec._TotemChangeEvent_totems(ctx, field, obj)
+		case "totemId":
+			out.Values[i] = ec._TotemChangeEvent_totemId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
 }
 
 var workspaceStatusImplementors = []string{"WorkspaceStatus"}
@@ -12389,8 +12389,8 @@ func (ec *executionContext) _Worktree(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "beans":
-			out.Values[i] = ec._Worktree_beans(ctx, field, obj)
+		case "totems":
+			out.Values[i] = ec._Worktree_totems(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -12778,7 +12778,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐActiveAgentStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ActiveAgentStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐActiveAgentStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ActiveAgentStatus) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12802,7 +12802,7 @@ func (ec *executionContext) marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋincep
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNActiveAgentStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐActiveAgentStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNActiveAgentStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐActiveAgentStatus(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12822,7 +12822,7 @@ func (ec *executionContext) marshalNActiveAgentStatus2ᚕᚖgithubᚗcomᚋincep
 	return ret
 }
 
-func (ec *executionContext) marshalNActiveAgentStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐActiveAgentStatus(ctx context.Context, sel ast.SelectionSet, v *model.ActiveAgentStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNActiveAgentStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐActiveAgentStatus(ctx context.Context, sel ast.SelectionSet, v *model.ActiveAgentStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -12832,7 +12832,7 @@ func (ec *executionContext) marshalNActiveAgentStatus2ᚖgithubᚗcomᚋinceptyo
 	return ec._ActiveAgentStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentActionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentAction) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentActionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentAction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12856,7 +12856,7 @@ func (ec *executionContext) marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyon�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAgentAction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentAction(ctx, sel, v[i])
+			ret[i] = ec.marshalNAgentAction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentAction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12876,7 +12876,7 @@ func (ec *executionContext) marshalNAgentAction2ᚕᚖgithubᚗcomᚋinceptyon�
 	return ret
 }
 
-func (ec *executionContext) marshalNAgentAction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentAction(ctx context.Context, sel ast.SelectionSet, v *model.AgentAction) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentAction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentAction(ctx context.Context, sel ast.SelectionSet, v *model.AgentAction) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -12886,7 +12886,7 @@ func (ec *executionContext) marshalNAgentAction2ᚖgithubᚗcomᚋinceptyonᚑla
 	return ec._AgentAction(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentMessage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12910,7 +12910,7 @@ func (ec *executionContext) marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyon�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAgentMessage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessage(ctx, sel, v[i])
+			ret[i] = ec.marshalNAgentMessage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12930,7 +12930,7 @@ func (ec *executionContext) marshalNAgentMessage2ᚕᚖgithubᚗcomᚋinceptyon�
 	return ret
 }
 
-func (ec *executionContext) marshalNAgentMessage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessage(ctx context.Context, sel ast.SelectionSet, v *model.AgentMessage) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentMessage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessage(ctx context.Context, sel ast.SelectionSet, v *model.AgentMessage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -12940,7 +12940,7 @@ func (ec *executionContext) marshalNAgentMessage2ᚖgithubᚗcomᚋinceptyonᚑl
 	return ec._AgentMessage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentMessageImage) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageImageᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AgentMessageImage) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12964,7 +12964,7 @@ func (ec *executionContext) marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋincep
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAgentMessageImage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageImage(ctx, sel, v[i])
+			ret[i] = ec.marshalNAgentMessageImage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageImage(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12984,7 +12984,7 @@ func (ec *executionContext) marshalNAgentMessageImage2ᚕᚖgithubᚗcomᚋincep
 	return ret
 }
 
-func (ec *executionContext) marshalNAgentMessageImage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageImage(ctx context.Context, sel ast.SelectionSet, v *model.AgentMessageImage) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentMessageImage2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageImage(ctx context.Context, sel ast.SelectionSet, v *model.AgentMessageImage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -12994,21 +12994,21 @@ func (ec *executionContext) marshalNAgentMessageImage2ᚖgithubᚗcomᚋinceptyo
 	return ec._AgentMessageImage(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageRole(ctx context.Context, v any) (model.AgentMessageRole, error) {
+func (ec *executionContext) unmarshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageRole(ctx context.Context, v any) (model.AgentMessageRole, error) {
 	var res model.AgentMessageRole
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentMessageRole(ctx context.Context, sel ast.SelectionSet, v model.AgentMessageRole) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentMessageRole2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentMessageRole(ctx context.Context, sel ast.SelectionSet, v model.AgentMessageRole) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAgentSession2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v model.AgentSession) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentSession2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v model.AgentSession) graphql.Marshaler {
 	return ec._AgentSession(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v *model.AgentSession) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v *model.AgentSession) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13018,17 +13018,17 @@ func (ec *executionContext) marshalNAgentSession2ᚖgithubᚗcomᚋinceptyonᚑl
 	return ec._AgentSession(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSessionStatus(ctx context.Context, v any) (model.AgentSessionStatus, error) {
+func (ec *executionContext) unmarshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSessionStatus(ctx context.Context, v any) (model.AgentSessionStatus, error) {
 	var res model.AgentSessionStatus
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSessionStatus(ctx context.Context, sel ast.SelectionSet, v model.AgentSessionStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNAgentSessionStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSessionStatus(ctx context.Context, sel ast.SelectionSet, v model.AgentSessionStatus) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserOptionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AskUserOption) graphql.Marshaler {
+func (ec *executionContext) marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserOptionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AskUserOption) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13052,7 +13052,7 @@ func (ec *executionContext) marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyon
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAskUserOption2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserOption(ctx, sel, v[i])
+			ret[i] = ec.marshalNAskUserOption2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserOption(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13072,7 +13072,7 @@ func (ec *executionContext) marshalNAskUserOption2ᚕᚖgithubᚗcomᚋinceptyon
 	return ret
 }
 
-func (ec *executionContext) marshalNAskUserOption2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserOption(ctx context.Context, sel ast.SelectionSet, v *model.AskUserOption) graphql.Marshaler {
+func (ec *executionContext) marshalNAskUserOption2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserOption(ctx context.Context, sel ast.SelectionSet, v *model.AskUserOption) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13082,7 +13082,7 @@ func (ec *executionContext) marshalNAskUserOption2ᚖgithubᚗcomᚋinceptyonᚑ
 	return ec._AskUserOption(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNAskUserQuestion2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserQuestion(ctx context.Context, sel ast.SelectionSet, v *model.AskUserQuestion) graphql.Marshaler {
+func (ec *executionContext) marshalNAskUserQuestion2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserQuestion(ctx context.Context, sel ast.SelectionSet, v *model.AskUserQuestion) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13090,78 +13090,6 @@ func (ec *executionContext) marshalNAskUserQuestion2ᚖgithubᚗcomᚋinceptyon�
 		return graphql.Null
 	}
 	return ec._AskUserQuestion(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNBean2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v bean.Bean) graphql.Marshaler {
-	return ec._Bean(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ(ctx context.Context, sel ast.SelectionSet, v []*bean.Bean) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v *bean.Bean) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Bean(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNBeanChangeEvent2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanChangeEvent(ctx context.Context, sel ast.SelectionSet, v model.BeanChangeEvent) graphql.Marshaler {
-	return ec._BeanChangeEvent(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNBeanChangeEvent2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanChangeEvent(ctx context.Context, sel ast.SelectionSet, v *model.BeanChangeEvent) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._BeanChangeEvent(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
@@ -13180,11 +13108,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNBranchStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBranchStatus(ctx context.Context, sel ast.SelectionSet, v model.BranchStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchStatus2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐBranchStatus(ctx context.Context, sel ast.SelectionSet, v model.BranchStatus) graphql.Marshaler {
 	return ec._BranchStatus(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBranchStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBranchStatus(ctx context.Context, sel ast.SelectionSet, v *model.BranchStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNBranchStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐBranchStatus(ctx context.Context, sel ast.SelectionSet, v *model.BranchStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13194,27 +13122,27 @@ func (ec *executionContext) marshalNBranchStatus2ᚖgithubᚗcomᚋinceptyonᚑl
 	return ec._BranchStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐChangeType(ctx context.Context, v any) (model.ChangeType, error) {
+func (ec *executionContext) unmarshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐChangeType(ctx context.Context, v any) (model.ChangeType, error) {
 	var res model.ChangeType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐChangeType(ctx context.Context, sel ast.SelectionSet, v model.ChangeType) graphql.Marshaler {
+func (ec *executionContext) marshalNChangeType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐChangeType(ctx context.Context, sel ast.SelectionSet, v model.ChangeType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNCreateBeanInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐCreateBeanInput(ctx context.Context, v any) (model.CreateBeanInput, error) {
-	res, err := ec.unmarshalInputCreateBeanInput(ctx, v)
+func (ec *executionContext) unmarshalNCreateTotemInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐCreateTotemInput(ctx context.Context, v any) (model.CreateTotemInput, error) {
+	res, err := ec.unmarshalInputCreateTotemInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNFileAttachmentInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileAttachmentInput(ctx context.Context, v any) (*model.FileAttachmentInput, error) {
+func (ec *executionContext) unmarshalNFileAttachmentInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileAttachmentInput(ctx context.Context, v any) (*model.FileAttachmentInput, error) {
 	res, err := ec.unmarshalInputFileAttachmentInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FileChange) graphql.Marshaler {
+func (ec *executionContext) marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileChangeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FileChange) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13238,7 +13166,7 @@ func (ec *executionContext) marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFileChange2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileChange(ctx, sel, v[i])
+			ret[i] = ec.marshalNFileChange2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileChange(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13258,7 +13186,7 @@ func (ec *executionContext) marshalNFileChange2ᚕᚖgithubᚗcomᚋinceptyonᚑ
 	return ret
 }
 
-func (ec *executionContext) marshalNFileChange2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileChange(ctx context.Context, sel ast.SelectionSet, v *model.FileChange) graphql.Marshaler {
+func (ec *executionContext) marshalNFileChange2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileChange(ctx context.Context, sel ast.SelectionSet, v *model.FileChange) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13268,7 +13196,7 @@ func (ec *executionContext) marshalNFileChange2ᚖgithubᚗcomᚋinceptyonᚑlab
 	return ec._FileChange(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FileEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.FileEntry) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13292,7 +13220,7 @@ func (ec *executionContext) marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑl
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNFileEntry2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileEntry(ctx, sel, v[i])
+			ret[i] = ec.marshalNFileEntry2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileEntry(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13312,7 +13240,7 @@ func (ec *executionContext) marshalNFileEntry2ᚕᚖgithubᚗcomᚋinceptyonᚑl
 	return ret
 }
 
-func (ec *executionContext) marshalNFileEntry2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileEntry(ctx context.Context, sel ast.SelectionSet, v *model.FileEntry) graphql.Marshaler {
+func (ec *executionContext) marshalNFileEntry2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileEntry(ctx context.Context, sel ast.SelectionSet, v *model.FileEntry) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13338,7 +13266,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNImageInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐImageInput(ctx context.Context, v any) (*model.ImageInput, error) {
+func (ec *executionContext) unmarshalNImageInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐImageInput(ctx context.Context, v any) (*model.ImageInput, error) {
 	res, err := ec.unmarshalInputImageInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -13359,17 +13287,17 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐInteractionType(ctx context.Context, v any) (model.InteractionType, error) {
+func (ec *executionContext) unmarshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐInteractionType(ctx context.Context, v any) (model.InteractionType, error) {
 	var res model.InteractionType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐInteractionType(ctx context.Context, sel ast.SelectionSet, v model.InteractionType) graphql.Marshaler {
+func (ec *executionContext) marshalNInteractionType2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐInteractionType(ctx context.Context, sel ast.SelectionSet, v model.InteractionType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalNReplaceOperation2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐReplaceOperation(ctx context.Context, v any) (*model.ReplaceOperation, error) {
+func (ec *executionContext) unmarshalNReplaceOperation2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐReplaceOperation(ctx context.Context, v any) (*model.ReplaceOperation, error) {
 	res, err := ec.unmarshalInputReplaceOperation(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
@@ -13420,7 +13348,7 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	return ret
 }
 
-func (ec *executionContext) marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐSubagentActivityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubagentActivity) graphql.Marshaler {
+func (ec *executionContext) marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐSubagentActivityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SubagentActivity) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13444,7 +13372,7 @@ func (ec *executionContext) marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋincept
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSubagentActivity2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐSubagentActivity(ctx, sel, v[i])
+			ret[i] = ec.marshalNSubagentActivity2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐSubagentActivity(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13464,7 +13392,7 @@ func (ec *executionContext) marshalNSubagentActivity2ᚕᚖgithubᚗcomᚋincept
 	return ret
 }
 
-func (ec *executionContext) marshalNSubagentActivity2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐSubagentActivity(ctx context.Context, sel ast.SelectionSet, v *model.SubagentActivity) graphql.Marshaler {
+func (ec *executionContext) marshalNSubagentActivity2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐSubagentActivity(ctx context.Context, sel ast.SelectionSet, v *model.SubagentActivity) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13496,12 +13424,11 @@ func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return res
 }
 
-func (ec *executionContext) unmarshalNUpdateBeanInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐUpdateBeanInput(ctx context.Context, v any) (model.UpdateBeanInput, error) {
-	res, err := ec.unmarshalInputUpdateBeanInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) marshalNTotem2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v bean.Bean) graphql.Marshaler {
+	return ec._Totem(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorkspaceStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WorkspaceStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ(ctx context.Context, sel ast.SelectionSet, v []*bean.Bean) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13525,7 +13452,7 @@ func (ec *executionContext) marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋincepty
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorkspaceStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorkspaceStatus(ctx, sel, v[i])
+			ret[i] = ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13545,7 +13472,80 @@ func (ec *executionContext) marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋincepty
 	return ret
 }
 
-func (ec *executionContext) marshalNWorkspaceStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorkspaceStatus(ctx context.Context, sel ast.SelectionSet, v *model.WorkspaceStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v *bean.Bean) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Totem(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTotemChangeEvent2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemChangeEvent(ctx context.Context, sel ast.SelectionSet, v model.TotemChangeEvent) graphql.Marshaler {
+	return ec._TotemChangeEvent(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTotemChangeEvent2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemChangeEvent(ctx context.Context, sel ast.SelectionSet, v *model.TotemChangeEvent) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TotemChangeEvent(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUpdateTotemInput2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐUpdateTotemInput(ctx context.Context, v any) (model.UpdateTotemInput, error) {
+	res, err := ec.unmarshalInputUpdateTotemInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNWorkspaceStatus2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorkspaceStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WorkspaceStatus) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkspaceStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorkspaceStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkspaceStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorkspaceStatus(ctx context.Context, sel ast.SelectionSet, v *model.WorkspaceStatus) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13555,11 +13555,11 @@ func (ec *executionContext) marshalNWorkspaceStatus2ᚖgithubᚗcomᚋinceptyon�
 	return ec._WorkspaceStatus(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWorktree2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktree(ctx context.Context, sel ast.SelectionSet, v model.Worktree) graphql.Marshaler {
+func (ec *executionContext) marshalNWorktree2githubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktree(ctx context.Context, sel ast.SelectionSet, v model.Worktree) graphql.Marshaler {
 	return ec._Worktree(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Worktree) graphql.Marshaler {
+func (ec *executionContext) marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Worktree) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -13583,7 +13583,7 @@ func (ec *executionContext) marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑla
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktree(ctx, sel, v[i])
+			ret[i] = ec.marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktree(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13603,7 +13603,7 @@ func (ec *executionContext) marshalNWorktree2ᚕᚖgithubᚗcomᚋinceptyonᚑla
 	return ret
 }
 
-func (ec *executionContext) marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktree(ctx context.Context, sel ast.SelectionSet, v *model.Worktree) graphql.Marshaler {
+func (ec *executionContext) marshalNWorktree2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktree(ctx context.Context, sel ast.SelectionSet, v *model.Worktree) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
@@ -13866,14 +13866,14 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v *model.AgentSession) graphql.Marshaler {
+func (ec *executionContext) marshalOAgentSession2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAgentSession(ctx context.Context, sel ast.SelectionSet, v *model.AgentSession) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._AgentSession(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AskUserQuestion) graphql.Marshaler {
+func (ec *executionContext) marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserQuestionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.AskUserQuestion) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13900,7 +13900,7 @@ func (ec *executionContext) marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋincepty
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAskUserQuestion2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐAskUserQuestion(ctx, sel, v[i])
+			ret[i] = ec.marshalNAskUserQuestion2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐAskUserQuestion(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13920,69 +13920,7 @@ func (ec *executionContext) marshalOAskUserQuestion2ᚕᚖgithubᚗcomᚋincepty
 	return ret
 }
 
-func (ec *executionContext) marshalOBean2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ(ctx context.Context, sel ast.SelectionSet, v []*bean.Bean) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalOBean2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v *bean.Bean) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Bean(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOBeanFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBeanFilter(ctx context.Context, v any) (*model.BeanFilter, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputBeanFilter(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalOBodyModification2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐBodyModification(ctx context.Context, v any) (*model.BodyModification, error) {
+func (ec *executionContext) unmarshalOBodyModification2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐBodyModification(ctx context.Context, v any) (*model.BodyModification, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -14020,7 +13958,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) unmarshalOFileAttachmentInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileAttachmentInputᚄ(ctx context.Context, v any) ([]*model.FileAttachmentInput, error) {
+func (ec *executionContext) unmarshalOFileAttachmentInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileAttachmentInputᚄ(ctx context.Context, v any) ([]*model.FileAttachmentInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -14030,7 +13968,7 @@ func (ec *executionContext) unmarshalOFileAttachmentInput2ᚕᚖgithubᚗcomᚋi
 	res := make([]*model.FileAttachmentInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNFileAttachmentInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐFileAttachmentInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNFileAttachmentInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐFileAttachmentInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14056,7 +13994,7 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalOImageInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐImageInputᚄ(ctx context.Context, v any) ([]*model.ImageInput, error) {
+func (ec *executionContext) unmarshalOImageInput2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐImageInputᚄ(ctx context.Context, v any) ([]*model.ImageInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -14066,7 +14004,7 @@ func (ec *executionContext) unmarshalOImageInput2ᚕᚖgithubᚗcomᚋinceptyon�
 	res := make([]*model.ImageInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNImageInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐImageInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNImageInput2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐImageInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14092,21 +14030,21 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPendingInteraction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐPendingInteraction(ctx context.Context, sel ast.SelectionSet, v *model.PendingInteraction) graphql.Marshaler {
+func (ec *executionContext) marshalOPendingInteraction2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐPendingInteraction(ctx context.Context, sel ast.SelectionSet, v *model.PendingInteraction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PendingInteraction(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPullRequest2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐPullRequest(ctx context.Context, sel ast.SelectionSet, v *model.PullRequest) graphql.Marshaler {
+func (ec *executionContext) marshalOPullRequest2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐPullRequest(ctx context.Context, sel ast.SelectionSet, v *model.PullRequest) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PullRequest(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOReplaceOperation2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐReplaceOperationᚄ(ctx context.Context, v any) ([]*model.ReplaceOperation, error) {
+func (ec *executionContext) unmarshalOReplaceOperation2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐReplaceOperationᚄ(ctx context.Context, v any) ([]*model.ReplaceOperation, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -14116,7 +14054,7 @@ func (ec *executionContext) unmarshalOReplaceOperation2ᚕᚖgithubᚗcomᚋince
 	res := make([]*model.ReplaceOperation, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNReplaceOperation2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐReplaceOperation(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNReplaceOperation2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐReplaceOperation(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -14190,7 +14128,69 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeSetupStatus(ctx context.Context, v any) (*model.WorktreeSetupStatus, error) {
+func (ec *executionContext) marshalOTotem2ᚕᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBeanᚄ(ctx context.Context, sel ast.SelectionSet, v []*bean.Bean) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOTotem2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeanᚐBean(ctx context.Context, sel ast.SelectionSet, v *bean.Bean) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Totem(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTotemFilter2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐTotemFilter(ctx context.Context, v any) (*model.TotemFilter, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTotemFilter(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeSetupStatus(ctx context.Context, v any) (*model.WorktreeSetupStatus, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -14199,7 +14199,7 @@ func (ec *executionContext) unmarshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋince
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋbeangraphᚋmodelᚐWorktreeSetupStatus(ctx context.Context, sel ast.SelectionSet, v *model.WorktreeSetupStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOWorktreeSetupStatus2ᚖgithubᚗcomᚋinceptyonᚑlabsᚋtotemᚋpkgᚋtotemgraphᚋmodelᚐWorktreeSetupStatus(ctx context.Context, sel ast.SelectionSet, v *model.WorktreeSetupStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

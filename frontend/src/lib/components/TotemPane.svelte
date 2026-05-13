@@ -1,15 +1,15 @@
 <script lang="ts">
-  import type { Bean } from '$lib/beans.svelte';
-  import BeanDetail from './BeanDetail.svelte';
+  import type { Totem } from '$lib/totems.svelte';
+  import TotemDetail from './TotemDetail.svelte';
 
   interface Props {
-    bean: Bean;
-    onSelect?: (bean: Bean) => void;
-    onEdit?: (bean: Bean) => void;
+    totem: Totem;
+    onSelect?: (totem: Totem) => void;
+    onEdit?: (totem: Totem) => void;
     onClose?: () => void;
   }
 
-  let { bean, onSelect, onEdit, onClose }: Props = $props();
+  let { totem, onSelect, onEdit, onClose }: Props = $props();
 </script>
 
 <div class="flex h-full flex-col bg-surface">
@@ -22,6 +22,6 @@
   </div>
 
   <div class="min-h-0 flex-1">
-    <BeanDetail {bean} {onSelect} {onEdit} />
+    <TotemDetail {totem} {onSelect} {onEdit} />
   </div>
 </div>

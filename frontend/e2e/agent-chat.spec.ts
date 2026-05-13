@@ -4,31 +4,31 @@ import { test, expect } from './fixtures';
 import { agentSession } from './agent-session';
 
 test.describe('Agent chat', () => {
-  test('Bean IDs are autolinked in tool and info messages', async ({ page, beans }) => {
-    await agentSession('__central__', beans)
+  test('Totem IDs are autolinked in tool and info messages', async ({ page, totems }) => {
+    await agentSession('__central__', totems)
       .withMessages([
-        { role: 'user', content: 'update the bean' },
-        { role: 'tool', content: 'Bash: beans update beans-ab12 -s in-progress' },
-        { role: 'info', content: 'Working on beans-cd34' },
-        { role: 'assistant', content: 'Done updating beans-ab12.' }
+        { role: 'user', content: 'update the totem' },
+        { role: 'tool', content: 'Bash: totems update totems-ab12 -s in-progress' },
+        { role: 'info', content: 'Working on totems-cd34' },
+        { role: 'assistant', content: 'Done updating totems-ab12.' }
       ])
       .open(page);
 
-    // Tool message should have an autolinked bean ID
-    const toolBeanLink = page.locator('.bean-link[data-bean-id="beans-ab12"]').first();
-    await expect(toolBeanLink).toBeVisible({ timeout: 5000 });
+    // Tool message should have an autolinked totem ID
+    const toolTotemLink = page.locator('.totem-link[data-totem-id="totems-ab12"]').first();
+    await expect(toolTotemLink).toBeVisible({ timeout: 5000 });
 
-    // Info message should have an autolinked bean ID
-    const infoBeanLink = page.locator('.bean-link[data-bean-id="beans-cd34"]');
-    await expect(infoBeanLink).toBeVisible({ timeout: 5000 });
+    // Info message should have an autolinked totem ID
+    const infoTotemLink = page.locator('.totem-link[data-totem-id="totems-cd34"]');
+    await expect(infoTotemLink).toBeVisible({ timeout: 5000 });
 
-    // Assistant message should also have an autolinked bean ID (via renderMarkdown)
-    const assistantBeanLink = page.locator('.bean-link[data-bean-id="beans-ab12"]').last();
-    await expect(assistantBeanLink).toBeVisible({ timeout: 5000 });
+    // Assistant message should also have an autolinked totem ID (via renderMarkdown)
+    const assistantTotemLink = page.locator('.totem-link[data-totem-id="totems-ab12"]').last();
+    await expect(assistantTotemLink).toBeVisible({ timeout: 5000 });
   });
 
-  test('Clear button resets the conversation in the UI', async ({ page, beans }) => {
-    await agentSession('__central__', beans)
+  test('Clear button resets the conversation in the UI', async ({ page, totems }) => {
+    await agentSession('__central__', totems)
       .withMessages([
         { role: 'user', content: 'hello agent' },
         { role: 'assistant', content: 'Hi! How can I help?' }
@@ -59,7 +59,7 @@ test.describe('Agent chat', () => {
     await expect(clearBtn).toBeDisabled();
   });
 
-  test('Image attachments are displayed inline in user messages', async ({ page, beans }) => {
+  test('Image attachments are displayed inline in user messages', async ({ page, totems }) => {
     // Create a tiny 1x1 red PNG for testing
     const pngData = Buffer.from(
       'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
@@ -68,12 +68,12 @@ test.describe('Agent chat', () => {
     const imageId = 'test-image.png';
 
     // Write the image file to the attachments directory
-    const attachDir = join(beans.beansPath, '.conversations', 'attachments', '__central__');
+    const attachDir = join(totems.totemsPath, '.conversations', 'attachments', '__central__');
     mkdirSync(attachDir, { recursive: true });
     writeFileSync(join(attachDir, imageId), pngData);
 
     // Seed a conversation with an image reference
-    await agentSession('__central__', beans)
+    await agentSession('__central__', totems)
       .withMessages([
         {
           role: 'user',

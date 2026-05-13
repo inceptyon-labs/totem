@@ -1,28 +1,28 @@
 import { test, expect } from './fixtures';
 
 test.describe('Board sorting', () => {
-  test('beans appear in the correct column by status', async ({ beans, boardPage }) => {
-    beans.create('Todo Bean', { status: 'todo', type: 'task' });
-    beans.create('Active Bean', { status: 'in-progress', type: 'task' });
-    beans.create('Done Bean', { status: 'completed', type: 'task' });
+  test('totems appear in the correct column by status', async ({ totems, boardPage }) => {
+    totems.create('Todo Totem', { status: 'todo', type: 'task' });
+    totems.create('Active Totem', { status: 'in-progress', type: 'task' });
+    totems.create('Done Totem', { status: 'completed', type: 'task' });
 
     await boardPage.goto();
 
-    // Wait for all beans to appear in their columns
-    await boardPage.waitForBeanInColumn('Todo Bean', 'todo');
-    await boardPage.waitForBeanInColumn('Active Bean', 'in-progress');
-    await boardPage.waitForBeanInColumn('Done Bean', 'completed');
+    // Wait for all totems to appear in their columns
+    await boardPage.waitForTotemInColumn('Todo Totem', 'todo');
+    await boardPage.waitForTotemInColumn('Active Totem', 'in-progress');
+    await boardPage.waitForTotemInColumn('Done Totem', 'completed');
 
-    expect(await boardPage.getColumnTitles('todo')).toEqual(['Todo Bean']);
-    expect(await boardPage.getColumnTitles('in-progress')).toEqual(['Active Bean']);
-    expect(await boardPage.getColumnTitles('completed')).toEqual(['Done Bean']);
+    expect(await boardPage.getColumnTitles('todo')).toEqual(['Todo Totem']);
+    expect(await boardPage.getColumnTitles('in-progress')).toEqual(['Active Totem']);
+    expect(await boardPage.getColumnTitles('completed')).toEqual(['Done Totem']);
   });
 
-  test('beans within a column are sorted by priority', async ({ beans, boardPage }) => {
-    beans.create('Low Task', { status: 'todo', priority: 'low', type: 'task' });
-    beans.create('Critical Task', { status: 'todo', priority: 'critical', type: 'task' });
-    beans.create('Normal Task', { status: 'todo', priority: 'normal', type: 'task' });
-    beans.create('High Task', { status: 'todo', priority: 'high', type: 'task' });
+  test('totems within a column are sorted by priority', async ({ totems, boardPage }) => {
+    totems.create('Low Task', { status: 'todo', priority: 'low', type: 'task' });
+    totems.create('Critical Task', { status: 'todo', priority: 'critical', type: 'task' });
+    totems.create('Normal Task', { status: 'todo', priority: 'normal', type: 'task' });
+    totems.create('High Task', { status: 'todo', priority: 'high', type: 'task' });
 
     await boardPage.goto();
     await boardPage.waitForColumnCount('todo', 4);
@@ -31,27 +31,27 @@ test.describe('Board sorting', () => {
     expect(titles).toEqual(['Critical Task', 'High Task', 'Normal Task', 'Low Task']);
   });
 
-  test('bean moves to new column when status changes on disk', async ({ beans, boardPage }) => {
-    const id = beans.create('Moving Bean', { status: 'todo', type: 'task' });
+  test('totem moves to new column when status changes on disk', async ({ totems, boardPage }) => {
+    const id = totems.create('Moving Totem', { status: 'todo', type: 'task' });
 
     await boardPage.goto();
-    await boardPage.waitForBeanInColumn('Moving Bean', 'todo');
+    await boardPage.waitForTotemInColumn('Moving Totem', 'todo');
 
     // Change status via CLI
-    beans.update(id, { status: 'in-progress' });
+    totems.update(id, { status: 'in-progress' });
 
     // Wait for it to appear in the new column
-    await boardPage.waitForBeanInColumn('Moving Bean', 'in-progress');
-    await boardPage.waitForBeanNotInColumn('Moving Bean', 'todo');
+    await boardPage.waitForTotemInColumn('Moving Totem', 'in-progress');
+    await boardPage.waitForTotemNotInColumn('Moving Totem', 'todo');
   });
 
-  test('column re-sorts when bean priority changes on disk', async ({ beans, boardPage }) => {
-    const id = beans.create('Will Be Critical', {
+  test('column re-sorts when totem priority changes on disk', async ({ totems, boardPage }) => {
+    const id = totems.create('Will Be Critical', {
       status: 'todo',
       priority: 'low',
       type: 'task'
     });
-    beans.create('Normal Priority', { status: 'todo', priority: 'normal', type: 'task' });
+    totems.create('Normal Priority', { status: 'todo', priority: 'normal', type: 'task' });
 
     await boardPage.goto();
     await boardPage.waitForColumnCount('todo', 2);
@@ -61,7 +61,7 @@ test.describe('Board sorting', () => {
     expect(titles).toEqual(['Normal Priority', 'Will Be Critical']);
 
     // Promote to critical
-    beans.update(id, { priority: 'critical' });
+    totems.update(id, { priority: 'critical' });
 
     // Should re-sort: critical before normal
     await expect(async () => {

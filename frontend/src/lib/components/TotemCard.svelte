@@ -1,23 +1,23 @@
 <script lang="ts">
-  import type { Bean } from '$lib/beans.svelte';
-  import { beansStore } from '$lib/beans.svelte';
+  import type { Totem } from '$lib/totems.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { worktreeStore } from '$lib/worktrees.svelte';
   import { agentStatusesStore } from '$lib/agentStatuses.svelte';
   import { ui } from '$lib/uiState.svelte';
   import { statusColors, typeColors, typeBorders, priorityIndicators } from '$lib/styles';
   import { client } from '$lib/graphqlClient';
-  import { ArchiveBeanDocument } from '$lib/graphql/generated';
+  import { ArchiveTotemDocument } from '$lib/graphql/generated';
 
   interface Props {
-    bean: Bean;
+    totem: Totem;
     variant?: 'list' | 'board' | 'compact';
     selected?: boolean;
     onclick?: () => void;
   }
 
-  let { bean, variant = 'list', selected = false, onclick }: Props = $props();
+  let { totem, variant = 'list', selected = false, onclick }: Props = $props();
 
-  const linkedWorktreeId = $derived(worktreeStore.worktreeForBean(bean.id));
+  const linkedWorktreeId = $derived(worktreeStore.worktreeForTotem(totem.id));
   const hasWorktree = $derived(variant !== 'compact' && !!linkedWorktreeId);
   const agentRunning = $derived(hasWorktree && linkedWorktreeId != null && agentStatusesStore.isRunning(linkedWorktreeId));
 
@@ -33,14 +33,14 @@
       ui.navigateTo(linkedWorktreeId);
     }
   }
-  const isArchivable = $derived(bean.status === 'completed' || bean.status === 'scrapped');
+  const isArchivable = $derived(totem.status === 'completed' || totem.status === 'scrapped');
 
   let archiving = $state(false);
 
   async function handleArchive(e: MouseEvent) {
     e.stopPropagation();
     archiving = true;
-    await client.mutation(ArchiveBeanDocument, { id: bean.id }).toPromise();
+    await client.mutation(ArchiveTotemDocument, { id: totem.id }).toPromise();
     archiving = false;
   }
 
@@ -65,7 +65,7 @@
       : [
           'rounded-xs p-2',
           variant === 'compact' ? 'border-l-2' : 'border-l-3',
-          typeBorders[bean.type] ?? 'border-l-type-task-border',
+          typeBorders[totem.type] ?? 'border-l-type-task-border',
           selected ? 'bg-accent/10 ring-1 ring-accent' : 'bg-surface hover:bg-surface-alt'
         ]
   ]}
@@ -73,24 +73,24 @@
   {#if variant === 'board'}
     <!-- Board: two-row layout -->
     <div class="flex min-w-0 items-start gap-2">
-      <span class="flex-1 text-sm leading-snug text-text">{bean.title}</span>
-      {#if bean.priority && bean.priority !== 'normal' && priorityIndicators[bean.priority]}
-        <span class={['shrink-0 text-xs', priorityIndicators[bean.priority]]}>
-          {bean.priority}
+      <span class="flex-1 text-sm leading-snug text-text">{totem.title}</span>
+      {#if totem.priority && totem.priority !== 'normal' && priorityIndicators[totem.priority]}
+        <span class={['shrink-0 text-xs', priorityIndicators[totem.priority]]}>
+          {totem.priority}
         </span>
       {/if}
     </div>
     <div class="mt-1 flex items-center gap-2">
-      <code class="text-[10px] text-text-faint">{bean.id.slice(-4)}</code>
+      <code class="text-[10px] text-text-faint">{totem.id.slice(-4)}</code>
       <span
         class={[
           'badge-sm',
-          typeColors[bean.type] ?? 'bg-type-task-bg text-type-task-text'
+          typeColors[totem.type] ?? 'bg-type-task-bg text-type-task-text'
         ]}
       >
-        {bean.type}
+        {totem.type}
       </span>
-      {#each bean.tags as tag}
+      {#each totem.tags as tag}
         <span class="badge-sm bg-surface-alt text-text-muted">{tag}</span>
       {/each}
       {#if hasWorktree}
@@ -119,12 +119,12 @@
     <div class="flex min-w-0 items-center gap-2">
       <code
         class={['shrink-0 text-text-faint', variant === 'compact' ? 'text-[9px]' : 'text-[10px]']}
-        >{bean.id.slice(-4)}</code
+        >{totem.id.slice(-4)}</code
       >
       <span class={['flex-1 truncate text-text', variant === 'compact' ? 'text-xs' : 'text-sm']}
-        >{bean.title}</span
+        >{totem.title}</span
       >
-      {#each bean.tags as tag}
+      {#each totem.tags as tag}
         <span class="shrink-0 badge-sm bg-surface-alt text-text-muted">{tag}</span>
       {/each}
       {#if hasWorktree}
@@ -142,10 +142,10 @@
       <span
         class={[
           'shrink-0 badge-sm',
-          statusColors[bean.status] ?? 'bg-status-todo-bg text-status-todo-text'
+          statusColors[totem.status] ?? 'bg-status-todo-bg text-status-todo-text'
         ]}
       >
-        {bean.status}
+        {totem.status}
       </span>
       {#if isArchivable}
         <button

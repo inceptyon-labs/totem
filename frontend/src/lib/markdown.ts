@@ -199,32 +199,32 @@ function shikiExtension(hl: HighlighterCore): MarkedExtension {
 }
 
 /**
- * Marked extension that auto-links bean IDs (e.g. beans-s1m0) in inline text.
- * Renders as <a data-bean-id="beans-xxxx"> so click handlers can navigate.
+ * Marked extension that auto-links totem IDs (e.g. totems-s1m0) in inline text.
+ * Renders as <a data-totem-id="totems-xxxx"> so click handlers can navigate.
  */
-function beanLinkExtension(): MarkedExtension {
+function totemLinkExtension(): MarkedExtension {
   return {
     extensions: [
       {
-        name: 'beanLink',
+        name: 'totemLink',
         level: 'inline',
         start(src: string) {
-          return src.match(/beans-/)?.index;
+          return src.match(/totems-/)?.index;
         },
         tokenizer(src: string) {
-          const match = src.match(/^beans-[a-z0-9]{4}\b/);
+          const match = src.match(/^totems-[a-z0-9]{4}\b/);
           if (match) {
             return {
-              type: 'beanLink',
+              type: 'totemLink',
               raw: match[0],
-              beanId: match[0]
+              totemId: match[0]
             };
           }
           return undefined;
         },
         renderer(token) {
-          const beanId = (token as Record<string, unknown>).beanId as string;
-          return `<a data-bean-id="${beanId}" class="bean-link">${beanId}</a>`;
+          const totemId = (token as Record<string, unknown>).totemId as string;
+          return `<a data-totem-id="${totemId}" class="totem-link">${totemId}</a>`;
         }
       }
     ]
@@ -240,7 +240,7 @@ export async function renderMarkdown(content: string): Promise<string> {
 
   const md = new Marked();
   md.use({ gfm: true, breaks: true });
-  md.use(beanLinkExtension());
+  md.use(totemLinkExtension());
   md.use({
     renderer: {
       link({ href, title, tokens }) {
@@ -263,7 +263,7 @@ export async function renderMarkdown(content: string): Promise<string> {
   if (browser) {
     return DOMPurify.sanitize(html, {
       ADD_TAGS: ['input'],
-      ADD_ATTR: ['data-bean-id', 'target', 'rel', 'checked', 'disabled', 'type']
+      ADD_ATTR: ['data-totem-id', 'target', 'rel', 'checked', 'disabled', 'type']
     });
   }
 
@@ -296,16 +296,16 @@ export function escapeHtml(text: string): string {
 }
 
 /**
- * Replace bean IDs (e.g. beans-s1m0) in plain text with clickable bean-link HTML.
+ * Replace totem IDs (e.g. totems-s1m0) in plain text with clickable totem-link HTML.
  * The input is HTML-escaped first, so the result is safe for innerHTML.
- * Returns undefined if no bean IDs are found (caller can skip innerHTML).
+ * Returns undefined if no totem IDs are found (caller can skip innerHTML).
  */
-export function linkifyBeanIds(text: string): string | undefined {
-  const pattern = /\bbeans-[a-z0-9]{4}\b/g;
+export function linkifyTotemIds(text: string): string | undefined {
+  const pattern = /\btotems-[a-z0-9]{4}\b/g;
   if (!pattern.test(text)) return undefined;
   pattern.lastIndex = 0;
   const escaped = escapeHtml(text);
-  return escaped.replace(pattern, (match) => `<a data-bean-id="${match}" class="bean-link">${match}</a>`);
+  return escaped.replace(pattern, (match) => `<a data-totem-id="${match}" class="totem-link">${match}</a>`);
 }
 
 /**

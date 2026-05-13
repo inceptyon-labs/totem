@@ -28,8 +28,8 @@ async function openDestroyModal(page: import('@playwright/test').Page, wsName: s
 }
 
 test.describe('Workspace destroy warnings', () => {
-  test('shows no warning for clean workspace', async ({ beans, page }) => {
-    await page.goto(beans.baseURL + '/');
+  test('shows no warning for clean workspace', async ({ totems, page }) => {
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
     const wsName = await createWorkspace(page);
@@ -45,17 +45,17 @@ test.describe('Workspace destroy warnings', () => {
     await page.getByRole('button', { name: 'Cancel' }).click();
   });
 
-  test('warns about uncommitted changes', async ({ beans, page }) => {
-    await page.goto(beans.baseURL + '/');
+  test('warns about uncommitted changes', async ({ totems, page }) => {
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
     const wsName = await createWorkspace(page);
 
     // Find the worktree path and create an uncommitted file
-    const worktrees = await beans.getWorktrees();
+    const worktrees = await totems.getWorktrees();
     const wt = worktrees.find((w) => w.branch.includes(wsName));
     expect(wt).toBeTruthy();
-    beans.createFileInWorktree(wt!.path, 'dirty-file.txt', 'uncommitted content');
+    totems.createFileInWorktree(wt!.path, 'dirty-file.txt', 'uncommitted content');
 
     await openDestroyModal(page, wsName);
 
@@ -66,17 +66,17 @@ test.describe('Workspace destroy warnings', () => {
     await page.getByRole('button', { name: 'Cancel' }).click();
   });
 
-  test('warns about unmerged commits', async ({ beans, page }) => {
-    await page.goto(beans.baseURL + '/');
+  test('warns about unmerged commits', async ({ totems, page }) => {
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
     const wsName = await createWorkspace(page);
 
     // Find the worktree path and create a commit
-    const worktrees = await beans.getWorktrees();
+    const worktrees = await totems.getWorktrees();
     const wt = worktrees.find((w) => w.branch.includes(wsName));
     expect(wt).toBeTruthy();
-    beans.commitInWorktree(wt!.path, 'committed-file.txt', 'committed content');
+    totems.commitInWorktree(wt!.path, 'committed-file.txt', 'committed content');
 
     await openDestroyModal(page, wsName);
 
@@ -87,20 +87,20 @@ test.describe('Workspace destroy warnings', () => {
     await page.getByRole('button', { name: 'Cancel' }).click();
   });
 
-  test('warns about both uncommitted changes and unmerged commits', async ({ beans, page }) => {
-    await page.goto(beans.baseURL + '/');
+  test('warns about both uncommitted changes and unmerged commits', async ({ totems, page }) => {
+    await page.goto(totems.baseURL + '/');
     await expect(page.getByText('Workspaces')).toBeVisible({ timeout: 10_000 });
 
     const wsName = await createWorkspace(page);
 
     // Find the worktree path
-    const worktrees = await beans.getWorktrees();
+    const worktrees = await totems.getWorktrees();
     const wt = worktrees.find((w) => w.branch.includes(wsName));
     expect(wt).toBeTruthy();
 
     // Create both a commit and an uncommitted file
-    beans.commitInWorktree(wt!.path, 'committed-file.txt', 'committed content');
-    beans.createFileInWorktree(wt!.path, 'dirty-file.txt', 'uncommitted content');
+    totems.commitInWorktree(wt!.path, 'committed-file.txt', 'committed content');
+    totems.createFileInWorktree(wt!.path, 'dirty-file.txt', 'uncommitted content');
 
     // Wait for the subscription to pick up the changes
     await page.waitForTimeout(1_000);

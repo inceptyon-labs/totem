@@ -1,63 +1,63 @@
 import { test, expect } from './fixtures';
 
 test.describe('Workflow action buttons', () => {
-  test('draft bean shows Todo and Scrap buttons', async ({ beans, backlogPage, page }) => {
-    beans.create('Draft Bean', { status: 'draft', type: 'task' });
+  test('draft totem shows Todo and Scrap buttons', async ({ totems, backlogPage, page }) => {
+    totems.create('Draft Totem', { status: 'draft', type: 'task' });
 
     await backlogPage.goto(1);
-    await backlogPage.selectBean('Draft Bean');
+    await backlogPage.selectTotem('Draft Totem');
 
-    const detail = page.locator('h1', { hasText: 'Draft Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Draft Totem' }).locator('..');
 
     await expect(detail.getByRole('button', { name: 'Todo' })).toBeVisible();
     await expect(detail.getByRole('button', { name: 'Scrap' })).toBeVisible();
     await expect(detail.getByRole('button', { name: 'Complete' })).not.toBeVisible();
   });
 
-  test('todo bean shows Scrap button (no Start Work without agent)', async ({
-    beans,
+  test('todo totem shows Scrap button (no Start Work without agent)', async ({
+    totems,
     backlogPage,
     page
   }) => {
-    beans.create('Todo Bean', { status: 'todo', type: 'task' });
+    totems.create('Todo Totem', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(1);
-    await backlogPage.selectBean('Todo Bean');
+    await backlogPage.selectTotem('Todo Totem');
 
-    const detail = page.locator('h1', { hasText: 'Todo Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Todo Totem' }).locator('..');
 
     await expect(detail.getByRole('button', { name: 'Scrap' })).toBeVisible();
     await expect(detail.getByRole('button', { name: 'Todo' })).not.toBeVisible();
     await expect(detail.getByRole('button', { name: 'Complete' })).not.toBeVisible();
   });
 
-  test('in-progress bean shows Complete and Scrap buttons', async ({
-    beans,
+  test('in-progress totem shows Complete and Scrap buttons', async ({
+    totems,
     boardPage,
     page
   }) => {
-    beans.create('Active Bean', { status: 'in-progress', type: 'task' });
+    totems.create('Active Totem', { status: 'in-progress', type: 'task' });
 
     await boardPage.goto();
-    await boardPage.waitForBeanInColumn('Active Bean', 'in-progress');
-    // Click the bean in the board to select it
-    await page.locator('[data-status="in-progress"] [role="listitem"]', { hasText: 'Active Bean' }).locator('[role="button"]').click();
+    await boardPage.waitForTotemInColumn('Active Totem', 'in-progress');
+    // Click the totem in the board to select it
+    await page.locator('[data-status="in-progress"] [role="listitem"]', { hasText: 'Active Totem' }).locator('[role="button"]').click();
 
-    const detail = page.locator('h1', { hasText: 'Active Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Active Totem' }).locator('..');
 
     await expect(detail.getByRole('button', { name: 'Complete' })).toBeVisible();
     await expect(detail.getByRole('button', { name: 'Scrap' })).toBeVisible();
     await expect(detail.getByRole('button', { name: 'Todo' })).not.toBeVisible();
   });
 
-  test('completed bean shows no workflow buttons', async ({ beans, boardPage, page }) => {
-    beans.create('Done Bean', { status: 'completed', type: 'task' });
+  test('completed totem shows no workflow buttons', async ({ totems, boardPage, page }) => {
+    totems.create('Done Totem', { status: 'completed', type: 'task' });
 
     await boardPage.goto();
-    await boardPage.waitForBeanInColumn('Done Bean', 'completed');
-    await page.locator('[data-status="completed"] [role="listitem"]', { hasText: 'Done Bean' }).locator('[role="button"]').click();
+    await boardPage.waitForTotemInColumn('Done Totem', 'completed');
+    await page.locator('[data-status="completed"] [role="listitem"]', { hasText: 'Done Totem' }).locator('[role="button"]').click();
 
-    const detail = page.locator('h1', { hasText: 'Done Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Done Totem' }).locator('..');
 
     await expect(detail.getByRole('button', { name: 'Todo' })).not.toBeVisible();
     await expect(detail.getByRole('button', { name: 'Scrap' })).not.toBeVisible();
@@ -65,25 +65,25 @@ test.describe('Workflow action buttons', () => {
     await expect(detail.getByRole('button', { name: 'Start Work' })).not.toBeVisible();
   });
 
-  test('scrapped bean shows no workflow buttons', async ({ beans, page }) => {
-    const id = beans.create('Scrapped Bean', { status: 'scrapped', type: 'task' });
+  test('scrapped totem shows no workflow buttons', async ({ totems, page }) => {
+    const id = totems.create('Scrapped Totem', { status: 'scrapped', type: 'task' });
 
-    // Navigate directly with bean param since scrapped beans don't appear in any view
-    await page.goto(`${beans.baseURL}/?bean=${id}`);
-    await expect(page.locator('h1', { hasText: 'Scrapped Bean' })).toBeVisible({ timeout: 10_000 });
+    // Navigate directly with totem param since scrapped totems don't appear in any view
+    await page.goto(`${totems.baseURL}/?totem=${id}`);
+    await expect(page.locator('h1', { hasText: 'Scrapped Totem' })).toBeVisible({ timeout: 10_000 });
 
-    const detail = page.locator('h1', { hasText: 'Scrapped Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Scrapped Totem' }).locator('..');
 
     await expect(detail.getByRole('button', { name: 'Todo' })).not.toBeVisible();
     await expect(detail.getByRole('button', { name: 'Scrap' })).not.toBeVisible();
     await expect(detail.getByRole('button', { name: 'Complete' })).not.toBeVisible();
   });
 
-  test('Todo button moves draft bean to todo status', async ({ beans, backlogPage, page }) => {
-    beans.create('My Draft', { status: 'draft', type: 'task' });
+  test('Todo button moves draft totem to todo status', async ({ totems, backlogPage, page }) => {
+    totems.create('My Draft', { status: 'draft', type: 'task' });
 
     await backlogPage.goto(1);
-    await backlogPage.selectBean('My Draft');
+    await backlogPage.selectTotem('My Draft');
 
     const detail = page.locator('h1', { hasText: 'My Draft' }).locator('..');
 
@@ -94,15 +94,15 @@ test.describe('Workflow action buttons', () => {
     await expect(detail.getByRole('button', { name: 'Todo' })).not.toBeVisible();
   });
 
-  test('Complete button moves in-progress bean to completed', async ({
-    beans,
+  test('Complete button moves in-progress totem to completed', async ({
+    totems,
     boardPage,
     page
   }) => {
-    beans.create('Active Task', { status: 'in-progress', type: 'task' });
+    totems.create('Active Task', { status: 'in-progress', type: 'task' });
 
     await boardPage.goto();
-    await boardPage.waitForBeanInColumn('Active Task', 'in-progress');
+    await boardPage.waitForTotemInColumn('Active Task', 'in-progress');
     await page.locator('[data-status="in-progress"] [role="listitem"]', { hasText: 'Active Task' }).locator('[role="button"]').click();
 
     const detail = page.locator('h1', { hasText: 'Active Task' }).locator('..');
@@ -115,13 +115,13 @@ test.describe('Workflow action buttons', () => {
     await expect(detail.getByRole('button', { name: 'Scrap' })).not.toBeVisible();
   });
 
-  test('Scrap button moves bean to scrapped', async ({ beans, backlogPage, page }) => {
-    beans.create('Unwanted Bean', { status: 'todo', type: 'task' });
+  test('Scrap button moves totem to scrapped', async ({ totems, backlogPage, page }) => {
+    totems.create('Unwanted Totem', { status: 'todo', type: 'task' });
 
     await backlogPage.goto(1);
-    await backlogPage.selectBean('Unwanted Bean');
+    await backlogPage.selectTotem('Unwanted Totem');
 
-    const detail = page.locator('h1', { hasText: 'Unwanted Bean' }).locator('..');
+    const detail = page.locator('h1', { hasText: 'Unwanted Totem' }).locator('..');
 
     await detail.getByRole('button', { name: 'Scrap' }).click();
 

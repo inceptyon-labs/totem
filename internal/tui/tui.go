@@ -14,8 +14,8 @@ import (
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 	"github.com/inceptyon-labs/totem/pkg/config"
 	"github.com/inceptyon-labs/totem/pkg/safepath"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 )
 
 // viewState represents which view is currently active
@@ -307,7 +307,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case statusSelectedMsg:
 		// Update all beans' status via GraphQL mutations
 		for _, beanID := range msg.beanIDs {
-			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateBeanInput{
+			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateTotemInput{
 				Status: &msg.status,
 			})
 			if err != nil {
@@ -341,7 +341,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case typeSelectedMsg:
 		// Update all beans' type via GraphQL mutations
 		for _, beanID := range msg.beanIDs {
-			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateBeanInput{
+			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateTotemInput{
 				Type: &msg.beanType,
 			})
 			if err != nil {
@@ -375,7 +375,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case prioritySelectedMsg:
 		// Update all beans' priority via GraphQL mutations
 		for _, beanID := range msg.beanIDs {
-			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateBeanInput{
+			_, err := a.resolver.UpdateBean(context.Background(), beanID, model.UpdateTotemInput{
 				Priority: &msg.priority,
 			})
 			if err != nil {
@@ -455,7 +455,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case beanCreatedMsg:
 		// Create the bean via GraphQL mutation with draft status
 		draftStatus := "draft"
-		createdBean, err := a.resolver.CreateBean(context.Background(), model.CreateBeanInput{
+		createdBean, err := a.resolver.CreateBean(context.Background(), model.CreateTotemInput{
 			Title:  msg.title,
 			Status: &draftStatus,
 		})

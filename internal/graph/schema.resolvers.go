@@ -21,77 +21,22 @@ import (
 	"github.com/inceptyon-labs/totem/internal/worktree"
 	"github.com/inceptyon-labs/totem/pkg/bean"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
 	"github.com/inceptyon-labs/totem/pkg/config"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 )
 
-// IsDirty is the resolver for the isDirty field.
-func (r *beanResolver) IsDirty(ctx context.Context, obj *bean.Bean) (bool, error) {
-	return r.CoreResolver.BeanIsDirty(ctx, obj)
-}
-
-// WorktreeID is the resolver for the worktreeId field.
-func (r *beanResolver) WorktreeID(ctx context.Context, obj *bean.Bean) (*string, error) {
-	return r.CoreResolver.BeanWorktreeID(ctx, obj)
-}
-
-// ParentID is the resolver for the parentId field.
-func (r *beanResolver) ParentID(ctx context.Context, obj *bean.Bean) (*string, error) {
-	return r.CoreResolver.BeanParentID(ctx, obj)
-}
-
-// BlockingIds is the resolver for the blockingIds field.
-func (r *beanResolver) BlockingIds(ctx context.Context, obj *bean.Bean) ([]string, error) {
-	return r.CoreResolver.BeanBlockingIds(ctx, obj)
-}
-
-// BlockedByIds is the resolver for the blockedByIds field.
-func (r *beanResolver) BlockedByIds(ctx context.Context, obj *bean.Bean) ([]string, error) {
-	return r.CoreResolver.BeanBlockedByIds(ctx, obj)
-}
-
-// BlockedBy is the resolver for the blockedBy field.
-func (r *beanResolver) BlockedBy(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
-	return r.CoreResolver.BeanBlockedBy(ctx, obj, filter)
-}
-
-// Blocking is the resolver for the blocking field.
-func (r *beanResolver) Blocking(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
-	return r.CoreResolver.BeanBlocking(ctx, obj, filter)
-}
-
-// Parent is the resolver for the parent field.
-func (r *beanResolver) Parent(ctx context.Context, obj *bean.Bean) (*bean.Bean, error) {
-	return r.CoreResolver.BeanParent(ctx, obj)
-}
-
-// Children is the resolver for the children field.
-func (r *beanResolver) Children(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
-	return r.CoreResolver.BeanChildren(ctx, obj, filter)
-}
-
-// ImplicitStatus is the resolver for the implicitStatus field.
-func (r *beanResolver) ImplicitStatus(ctx context.Context, obj *bean.Bean) (*string, error) {
-	return r.CoreResolver.BeanImplicitStatus(ctx, obj)
-}
-
-// ImplicitStatusFrom is the resolver for the implicitStatusFrom field.
-func (r *beanResolver) ImplicitStatusFrom(ctx context.Context, obj *bean.Bean) (*string, error) {
-	return r.CoreResolver.BeanImplicitStatusFrom(ctx, obj)
-}
-
 // CreateBean is the resolver for the createBean field.
-func (r *mutationResolver) CreateBean(ctx context.Context, input model.CreateBeanInput) (*bean.Bean, error) {
+func (r *mutationResolver) CreateTotem(ctx context.Context, input model.CreateTotemInput) (*bean.Bean, error) {
 	return r.CoreResolver.CreateBean(ctx, input)
 }
 
 // UpdateBean is the resolver for the updateBean field.
-func (r *mutationResolver) UpdateBean(ctx context.Context, id string, input model.UpdateBeanInput) (*bean.Bean, error) {
+func (r *mutationResolver) UpdateTotem(ctx context.Context, id string, input model.UpdateTotemInput) (*bean.Bean, error) {
 	return r.CoreResolver.UpdateBean(ctx, id, input)
 }
 
 // DeleteBean is the resolver for the deleteBean field.
-func (r *mutationResolver) DeleteBean(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) DeleteTotem(ctx context.Context, id string) (bool, error) {
 	return r.CoreResolver.DeleteBean(ctx, id)
 }
 
@@ -261,19 +206,19 @@ func (r *mutationResolver) RemoveWorktree(ctx context.Context, id string) (bool,
 }
 
 // SendAgentMessage is the resolver for the sendAgentMessage field.
-func (r *mutationResolver) SendAgentMessage(ctx context.Context, beanID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) (bool, error) {
+func (r *mutationResolver) SendAgentMessage(ctx context.Context, totemID string, message string, images []*model.ImageInput, attachments []*model.FileAttachmentInput) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
 
 	var workDir string
-	if beanID == CentralSessionID {
+	if totemID == CentralSessionID {
 		// Central agent chat runs in the project root
 		workDir = r.ProjectRoot
 	} else {
 		// Find the worktree path for this bean
 		var err error
-		workDir, err = r.findWorktreePath(beanID)
+		workDir, err = r.findWorktreePath(totemID)
 		if err != nil {
 			return false, err
 		}
@@ -293,58 +238,58 @@ func (r *mutationResolver) SendAgentMessage(ctx context.Context, beanID string, 
 		uploads = append(uploads, agent.ImageUpload{Data: data, MediaType: img.MediaType})
 	}
 
-	if err := r.AgentMgr.SendMessage(beanID, workDir, message, uploads, attachmentPaths...); err != nil {
+	if err := r.AgentMgr.SendMessage(totemID, workDir, message, uploads, attachmentPaths...); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // StopAgent is the resolver for the stopAgent field.
-func (r *mutationResolver) StopAgent(ctx context.Context, beanID string) (bool, error) {
+func (r *mutationResolver) StopAgent(ctx context.Context, totemID string) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
-	if err := r.AgentMgr.StopSession(beanID); err != nil {
+	if err := r.AgentMgr.StopSession(totemID); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // SetAgentPlanMode is the resolver for the setAgentPlanMode field.
-func (r *mutationResolver) SetAgentPlanMode(ctx context.Context, beanID string, planMode bool) (bool, error) {
+func (r *mutationResolver) SetAgentPlanMode(ctx context.Context, totemID string, planMode bool) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
-	if err := r.AgentMgr.SetPlanMode(beanID, planMode); err != nil {
+	if err := r.AgentMgr.SetPlanMode(totemID, planMode); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // SetAgentActMode is the resolver for the setAgentActMode field.
-func (r *mutationResolver) SetAgentActMode(ctx context.Context, beanID string, actMode bool) (bool, error) {
+func (r *mutationResolver) SetAgentActMode(ctx context.Context, totemID string, actMode bool) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
-	if err := r.AgentMgr.SetActMode(beanID, actMode); err != nil {
+	if err := r.AgentMgr.SetActMode(totemID, actMode); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // SetAgentEffort is the resolver for the setAgentEffort field.
-func (r *mutationResolver) SetAgentEffort(ctx context.Context, beanID string, effort string) (bool, error) {
+func (r *mutationResolver) SetAgentEffort(ctx context.Context, totemID string, effort string) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
-	if err := r.AgentMgr.SetEffort(beanID, effort); err != nil {
+	if err := r.AgentMgr.SetEffort(totemID, effort); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // SetAgentPendingInteraction is the resolver for the setAgentPendingInteraction field.
-func (r *mutationResolver) SetAgentPendingInteraction(ctx context.Context, beanID string, typeArg model.InteractionType, planContent *string) (bool, error) {
+func (r *mutationResolver) SetAgentPendingInteraction(ctx context.Context, totemID string, typeArg model.InteractionType, planContent *string) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
@@ -361,35 +306,35 @@ func (r *mutationResolver) SetAgentPendingInteraction(ctx context.Context, beanI
 	if planContent != nil {
 		interaction.PlanContent = *planContent
 	}
-	if err := r.AgentMgr.SetPendingInteraction(beanID, interaction); err != nil {
+	if err := r.AgentMgr.SetPendingInteraction(totemID, interaction); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // ClearAgentSession is the resolver for the clearAgentSession field.
-func (r *mutationResolver) ClearAgentSession(ctx context.Context, beanID string) (bool, error) {
+func (r *mutationResolver) ClearAgentSession(ctx context.Context, totemID string) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
-	if err := r.AgentMgr.ClearSession(beanID); err != nil {
+	if err := r.AgentMgr.ClearSession(totemID); err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
 // ArchiveBean is the resolver for the archiveBean field.
-func (r *mutationResolver) ArchiveBean(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) ArchiveTotem(ctx context.Context, id string) (bool, error) {
 	return r.CoreResolver.ArchiveBean(ctx, id)
 }
 
 // SaveDirtyBeans is the resolver for the saveDirtyBeans field.
-func (r *mutationResolver) SaveDirtyBeans(ctx context.Context) (int, error) {
+func (r *mutationResolver) SaveDirtyTotems(ctx context.Context) (int, error) {
 	return r.Core.SaveDirty()
 }
 
 // SaveBean is the resolver for the saveBean field.
-func (r *mutationResolver) SaveBean(ctx context.Context, id string) (bool, error) {
+func (r *mutationResolver) SaveTotem(ctx context.Context, id string) (bool, error) {
 	if err := r.Core.SaveBean(id); err != nil {
 		return false, err
 	}
@@ -397,7 +342,7 @@ func (r *mutationResolver) SaveBean(ctx context.Context, id string) (bool, error
 }
 
 // ExecuteAgentAction is the resolver for the executeAgentAction field.
-func (r *mutationResolver) ExecuteAgentAction(ctx context.Context, beanID string, actionID string) (bool, error) {
+func (r *mutationResolver) ExecuteAgentAction(ctx context.Context, totemID string, actionID string) (bool, error) {
 	if r.AgentMgr == nil {
 		return false, fmt.Errorf("agent manager not available")
 	}
@@ -408,17 +353,17 @@ func (r *mutationResolver) ExecuteAgentAction(ctx context.Context, beanID string
 	}
 
 	var workDir string
-	if beanID == CentralSessionID {
+	if totemID == CentralSessionID {
 		workDir = r.ProjectRoot
 	} else {
 		var err error
-		workDir, err = r.findWorktreePath(beanID)
+		workDir, err = r.findWorktreePath(totemID)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	actCtx := actionContext{WorktreeID: beanID, WorkDir: workDir, MainRepoPath: r.ProjectRoot}
+	actCtx := actionContext{WorktreeID: totemID, WorkDir: workDir, MainRepoPath: r.ProjectRoot}
 
 	// Populate git state
 	actCtx.HasChanges = gitutil.HasChanges(workDir)
@@ -436,7 +381,7 @@ func (r *mutationResolver) ExecuteAgentAction(ctx context.Context, beanID string
 		}
 	}
 
-	if err := r.AgentMgr.SendMessage(beanID, workDir, action.PromptFunc(actCtx), nil); err != nil {
+	if err := r.AgentMgr.SendMessage(totemID, workDir, action.PromptFunc(actCtx), nil); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -506,12 +451,12 @@ func (r *mutationResolver) OpenInEditor(ctx context.Context, workspaceID string)
 }
 
 // Bean is the resolver for the bean field.
-func (r *queryResolver) Bean(ctx context.Context, id string) (*bean.Bean, error) {
+func (r *queryResolver) Totem(ctx context.Context, id string) (*bean.Bean, error) {
 	return r.CoreResolver.Bean(ctx, id)
 }
 
 // Beans is the resolver for the beans field.
-func (r *queryResolver) Beans(ctx context.Context, filter *model.BeanFilter) ([]*bean.Bean, error) {
+func (r *queryResolver) Totems(ctx context.Context, filter *model.TotemFilter) ([]*bean.Bean, error) {
 	return r.CoreResolver.Beans(ctx, filter)
 }
 
@@ -535,11 +480,11 @@ func (r *queryResolver) Worktrees(ctx context.Context) ([]*model.Worktree, error
 }
 
 // AgentSession is the resolver for the agentSession field.
-func (r *queryResolver) AgentSession(ctx context.Context, beanID string) (*model.AgentSession, error) {
+func (r *queryResolver) AgentSession(ctx context.Context, totemID string) (*model.AgentSession, error) {
 	if r.AgentMgr == nil {
 		return nil, nil
 	}
-	s := r.AgentMgr.GetSession(beanID)
+	s := r.AgentMgr.GetSession(totemID)
 	if s == nil {
 		return nil, nil
 	}
@@ -736,14 +681,14 @@ func (r *queryResolver) BranchStatus(ctx context.Context, path *string) (*model.
 }
 
 // HasDirtyBeans is the resolver for the hasDirtyBeans field.
-func (r *queryResolver) HasDirtyBeans(ctx context.Context) (bool, error) {
+func (r *queryResolver) HasDirtyTotems(ctx context.Context) (bool, error) {
 	return r.Core.HasDirty(), nil
 }
 
 // AgentActions is the resolver for the agentActions field.
-func (r *queryResolver) AgentActions(ctx context.Context, beanID string, skipForge *bool) ([]*model.AgentAction, error) {
+func (r *queryResolver) AgentActions(ctx context.Context, totemID string, skipForge *bool) ([]*model.AgentAction, error) {
 	// Build action context for visibility filtering
-	actCtx := actionContext{WorktreeID: beanID}
+	actCtx := actionContext{WorktreeID: totemID}
 
 	// Set integrate mode from config
 	if cfg := r.Core.Config(); cfg != nil {
@@ -759,7 +704,7 @@ func (r *queryResolver) AgentActions(ctx context.Context, beanID string, skipFor
 
 		if wts, err := r.WorktreeMgr.List(); err == nil {
 			for _, wt := range wts {
-				if wt.ID == beanID {
+				if wt.ID == totemID {
 					actCtx.WorkDir = wt.Path
 					actCtx.HasChanges = gitutil.HasChanges(wt.Path)
 					actCtx.HasNewCommits = gitutil.HasUnmergedCommits(wt.Path, r.WorktreeMgr.BaseRef())
@@ -940,14 +885,14 @@ func (r *queryResolver) ListFiles(ctx context.Context, workspaceID *string, pref
 }
 
 // BeanChanged is the resolver for the beanChanged field.
-func (r *subscriptionResolver) BeanChanged(ctx context.Context, includeInitial *bool) (<-chan *model.BeanChangeEvent, error) {
+func (r *subscriptionResolver) TotemChanged(ctx context.Context, includeInitial *bool) (<-chan *model.TotemChangeEvent, error) {
 	// Subscribe to bean events from beancore
 	eventCh, unsubscribe := r.Core.Subscribe()
 
 	// Create buffered output channel for GraphQL to reduce backpressure on the
 	// subscriber channel. Without buffering, the resolver blocks on sends to gqlgen's
 	// WebSocket transport, which prevents draining eventCh and causes fanOut to drop events.
-	out := make(chan *model.BeanChangeEvent, 64)
+	out := make(chan *model.TotemChangeEvent, 64)
 
 	// Start goroutine to forward events
 	go func() {
@@ -961,9 +906,9 @@ func (r *subscriptionResolver) BeanChanged(ctx context.Context, includeInitial *
 			bean.SortByStatusPriorityAndType(beans, cfg.StatusNames(), cfg.PriorityNames(), cfg.TypeNames())
 
 			select {
-			case out <- &model.BeanChangeEvent{
-				Type:  model.ChangeTypeInitialSnapshot,
-				Beans: beans,
+			case out <- &model.TotemChangeEvent{
+				Type:   model.ChangeTypeInitialSnapshot,
+				Totems: beans,
 			}:
 				// Sent successfully
 			case <-ctx.Done():
@@ -984,9 +929,9 @@ func (r *subscriptionResolver) BeanChanged(ctx context.Context, includeInitial *
 
 				// Forward each event to the GraphQL subscription
 				for _, event := range events {
-					gqlEvent := &model.BeanChangeEvent{
-						BeanID: event.BeanID,
-						Bean:   event.Bean,
+					gqlEvent := &model.TotemChangeEvent{
+						TotemID: event.BeanID,
+						Totem:   event.Bean,
 					}
 
 					// Convert event type
@@ -1115,27 +1060,27 @@ func (r *subscriptionResolver) WorktreesChanged(ctx context.Context) (<-chan []*
 }
 
 // AgentSessionChanged is the resolver for the agentSessionChanged field.
-func (r *subscriptionResolver) AgentSessionChanged(ctx context.Context, beanID string) (<-chan *model.AgentSession, error) {
+func (r *subscriptionResolver) AgentSessionChanged(ctx context.Context, totemID string) (<-chan *model.AgentSession, error) {
 	if r.AgentMgr == nil {
 		out := make(chan *model.AgentSession)
 		close(out)
 		return out, nil
 	}
 
-	ch := r.AgentMgr.Subscribe(beanID)
+	ch := r.AgentMgr.Subscribe(totemID)
 	out := make(chan *model.AgentSession)
 
 	go func() {
-		defer r.AgentMgr.Unsubscribe(beanID, ch)
+		defer r.AgentMgr.Unsubscribe(totemID, ch)
 		defer close(out)
 
 		fetchState := func() *model.AgentSession {
-			if s := r.AgentMgr.GetSession(beanID); s != nil {
+			if s := r.AgentMgr.GetSession(totemID); s != nil {
 				return agentSessionToModel(s)
 			}
 			// Session was cleared — send an empty session so the UI resets
 			return &model.AgentSession{
-				BeanID:    beanID,
+				TotemID:   totemID,
 				AgentType: "claude",
 				Status:    model.AgentSessionStatusIdle,
 				Messages:  []*model.AgentMessage{},
@@ -1143,7 +1088,7 @@ func (r *subscriptionResolver) AgentSessionChanged(ctx context.Context, beanID s
 		}
 
 		// Emit current state immediately (if session exists)
-		if s := r.AgentMgr.GetSession(beanID); s != nil {
+		if s := r.AgentMgr.GetSession(totemID); s != nil {
 			select {
 			case out <- agentSessionToModel(s):
 			case <-ctx.Done():
@@ -1339,8 +1284,60 @@ func (r *subscriptionResolver) WorkspaceStatuses(ctx context.Context) (<-chan []
 	return out, nil
 }
 
-// Bean returns BeanResolver implementation.
-func (r *Resolver) Bean() BeanResolver { return &beanResolver{r} }
+// IsDirty is the resolver for the isDirty field.
+func (r *totemResolver) IsDirty(ctx context.Context, obj *bean.Bean) (bool, error) {
+	return r.CoreResolver.BeanIsDirty(ctx, obj)
+}
+
+// WorktreeID is the resolver for the worktreeId field.
+func (r *totemResolver) WorktreeID(ctx context.Context, obj *bean.Bean) (*string, error) {
+	return r.CoreResolver.BeanWorktreeID(ctx, obj)
+}
+
+// ParentID is the resolver for the parentId field.
+func (r *totemResolver) ParentID(ctx context.Context, obj *bean.Bean) (*string, error) {
+	return r.CoreResolver.BeanParentID(ctx, obj)
+}
+
+// BlockingIds is the resolver for the blockingIds field.
+func (r *totemResolver) BlockingIds(ctx context.Context, obj *bean.Bean) ([]string, error) {
+	return r.CoreResolver.BeanBlockingIds(ctx, obj)
+}
+
+// BlockedByIds is the resolver for the blockedByIds field.
+func (r *totemResolver) BlockedByIds(ctx context.Context, obj *bean.Bean) ([]string, error) {
+	return r.CoreResolver.BeanBlockedByIds(ctx, obj)
+}
+
+// BlockedBy is the resolver for the blockedBy field.
+func (r *totemResolver) BlockedBy(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
+	return r.CoreResolver.BeanBlockedBy(ctx, obj, filter)
+}
+
+// Blocking is the resolver for the blocking field.
+func (r *totemResolver) Blocking(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
+	return r.CoreResolver.BeanBlocking(ctx, obj, filter)
+}
+
+// Parent is the resolver for the parent field.
+func (r *totemResolver) Parent(ctx context.Context, obj *bean.Bean) (*bean.Bean, error) {
+	return r.CoreResolver.BeanParent(ctx, obj)
+}
+
+// Children is the resolver for the children field.
+func (r *totemResolver) Children(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
+	return r.CoreResolver.BeanChildren(ctx, obj, filter)
+}
+
+// ImplicitStatus is the resolver for the implicitStatus field.
+func (r *totemResolver) ImplicitStatus(ctx context.Context, obj *bean.Bean) (*string, error) {
+	return r.CoreResolver.BeanImplicitStatus(ctx, obj)
+}
+
+// ImplicitStatusFrom is the resolver for the implicitStatusFrom field.
+func (r *totemResolver) ImplicitStatusFrom(ctx context.Context, obj *bean.Bean) (*string, error) {
+	return r.CoreResolver.BeanImplicitStatusFrom(ctx, obj)
+}
 
 // Mutation returns MutationResolver implementation.
 func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
@@ -1351,7 +1348,10 @@ func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 // Subscription returns SubscriptionResolver implementation.
 func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionResolver{r} }
 
-type beanResolver struct{ *Resolver }
+// Totem returns TotemResolver implementation.
+func (r *Resolver) Totem() TotemResolver { return &totemResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+type totemResolver struct{ *Resolver }

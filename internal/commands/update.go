@@ -9,8 +9,8 @@ import (
 	"github.com/inceptyon-labs/totem/pkg/bean"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 	"github.com/inceptyon-labs/totem/pkg/config"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/internal/output"
 	"github.com/inceptyon-labs/totem/internal/ui"
 	"github.com/spf13/cobra"
@@ -124,8 +124,8 @@ var updateCmd = &cobra.Command{
 }
 
 // buildUpdateInput constructs the GraphQL input from flags and returns which fields changed.
-func buildUpdateInput(cmd *cobra.Command, existingTags []string, currentBody string) (model.UpdateBeanInput, []string, error) {
-	var input model.UpdateBeanInput
+func buildUpdateInput(cmd *cobra.Command, existingTags []string, currentBody string) (model.UpdateTotemInput, []string, error) {
+	var input model.UpdateTotemInput
 	var changes []string
 
 	if cmd.Flags().Changed("status") {
@@ -236,7 +236,7 @@ func buildUpdateInput(cmd *cobra.Command, existingTags []string, currentBody str
 }
 
 // hasFieldUpdates returns true if any field in the input is set.
-func hasFieldUpdates(input model.UpdateBeanInput) bool {
+func hasFieldUpdates(input model.UpdateTotemInput) bool {
 	return input.Status != nil || input.Type != nil || input.Priority != nil ||
 		input.Title != nil || input.Body != nil || input.BodyMod != nil || input.Tags != nil ||
 		input.AddTags != nil || input.RemoveTags != nil ||

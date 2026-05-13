@@ -2,13 +2,13 @@ package beangraph
 
 import (
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 )
 
 // ApplyFilter applies BeanFilter to a slice of beans and returns filtered results.
 // This is used by both the top-level beans query and relationship field resolvers.
-func ApplyFilter(beans []*bean.Bean, filter *model.BeanFilter, core *beancore.Core) []*bean.Bean {
+func ApplyFilter(beans []*bean.Bean, filter *model.TotemFilter, core *beancore.Core) []*bean.Bean {
 	if filter == nil {
 		return beans
 	}

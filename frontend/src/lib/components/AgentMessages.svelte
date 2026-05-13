@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { AgentMessage, SubagentActivity } from '$lib/agentChat.svelte';
-  import { beansStore } from '$lib/beans.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { ui } from '$lib/uiState.svelte';
-  import { renderMarkdown, linkifyBeanIds, escapeHtml } from '$lib/markdown';
+  import { renderMarkdown, linkifyTotemIds, escapeHtml } from '$lib/markdown';
   import { fade } from 'svelte/transition';
   import { decryptText } from '$lib/actions/decryptText';
 
@@ -104,12 +104,12 @@
     return renderedMessages.get(key) ?? null;
   }
 
-  function handleBeanLinkClick(e: MouseEvent) {
-    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-bean-id]');
+  function handleTotemLinkClick(e: MouseEvent) {
+    const target = (e.target as HTMLElement).closest<HTMLElement>('[data-totem-id]');
     if (!target) return;
     e.preventDefault();
-    const linkedBean = beansStore.get(target.dataset.beanId!);
-    if (linkedBean) ui.selectBean(linkedBean);
+    const linkedTotem = totemsStore.get(target.dataset.totemId!);
+    if (linkedTotem) ui.selectTotem(linkedTotem);
   }
 
   // Force scroll to bottom when triggered externally (e.g. action buttons, composer send)
@@ -133,7 +133,7 @@
   <div
     bind:this={messagesEl}
     class="h-full space-y-3 overflow-y-auto p-4"
-    onclick={handleBeanLinkClick}
+    onclick={handleTotemLinkClick}
     onscroll={handleMessagesScroll}
   >
     {#if setupRunning}
@@ -173,7 +173,7 @@
           </div>
         {:else if msg.role === 'INFO'}
           <div class="rounded-lg border border-border bg-surface px-3 py-2 text-text-muted">
-            <p class="whitespace-pre-wrap" use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyBeanIds(msg.content) }}></p>
+            <p class="whitespace-pre-wrap" use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyTotemIds(msg.content) }}></p>
           </div>
         {:else if msg.role === 'TOOL'}
           <div class="flex gap-2 text-text-faint">
@@ -185,10 +185,10 @@
                   onclick={() => toggleDiff(i)}
                 >
                   <span class="shrink-0 select-none">{expandedDiffs.has(i) ? '▾' : '▸'}</span>
-                  <span use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyBeanIds(msg.content) }}></span>
+                  <span use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyTotemIds(msg.content) }}></span>
                 </button>
               {:else}
-                <span use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyBeanIds(msg.content) }}></span>
+                <span use:decryptText={{ text: msg.content, immediate: settledMessageCount === -1 || i < settledMessageCount, html: linkifyTotemIds(msg.content) }}></span>
               {/if}
               {#if msg.diff && expandedDiffs.has(i)}
                 <pre class="mt-1 max-h-64 overflow-auto rounded border border-border bg-surface-alt p-2 font-mono leading-relaxed">{#each msg.diff.split('\n') as line}<span class={diffLineClass(line)}>{line}

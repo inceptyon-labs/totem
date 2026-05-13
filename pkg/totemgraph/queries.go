@@ -5,7 +5,7 @@ import (
 
 	"github.com/inceptyon-labs/totem/internal/gitutil"
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 )
 
@@ -19,7 +19,7 @@ func (r *CoreResolver) Bean(ctx context.Context, id string) (*bean.Bean, error) 
 }
 
 // Beans returns a filtered, sorted list of beans.
-func (r *CoreResolver) Beans(ctx context.Context, filter *model.BeanFilter) ([]*bean.Bean, error) {
+func (r *CoreResolver) Beans(ctx context.Context, filter *model.TotemFilter) ([]*bean.Bean, error) {
 	var beans []*bean.Bean
 
 	// If search filter is provided, start with search results

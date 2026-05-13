@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 )
 
 // CreateBean creates a new bean from the given input.
-func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInput) (*bean.Bean, error) {
+func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateTotemInput) (*bean.Bean, error) {
 	b := &bean.Bean{
 		Slug:     bean.Slugify(input.Title),
 		Title:    input.Title,
@@ -103,7 +103,7 @@ func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInp
 }
 
 // UpdateBean updates an existing bean.
-func (r *CoreResolver) UpdateBean(ctx context.Context, id string, input model.UpdateBeanInput, opts ...beancore.UpdateOption) (*bean.Bean, error) {
+func (r *CoreResolver) UpdateBean(ctx context.Context, id string, input model.UpdateTotemInput, opts ...beancore.UpdateOption) (*bean.Bean, error) {
 	b, err := r.Core.Get(id)
 	if err != nil {
 		return nil, err

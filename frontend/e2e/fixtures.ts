@@ -19,28 +19,28 @@ const GIT_ENV = {
 };
 
 function getBinaries() {
-  const beans = process.env.BEANS_BINARY;
-  const beansServe = process.env.BEANS_SERVE_BINARY;
-  if (!beans || !beansServe) {
+  const totems = process.env.BEANS_BINARY;
+  const totemsServe = process.env.BEANS_SERVE_BINARY;
+  if (!totems || !totemsServe) {
     throw new Error('BEANS_BINARY and BEANS_SERVE_BINARY must be set — run tests via e2e/run.sh');
   }
-  return { beans, beansServe };
+  return { totems, totemsServe };
 }
 
 /**
- * Create a beans template directory via `beans init`.
+ * Create a totems template directory via `totems init`.
  * Called once per worker. Each test gets a fresh git repo but copies the
- * pre-initialized .beans directory to avoid the expensive CLI invocation.
+ * pre-initialized .totems directory to avoid the expensive CLI invocation.
  */
-function createBeansTemplate(beansBin: string): string {
-  const templateDir = mkdtempSync(join(tmpdir(), 'beans-e2e-template-'));
+function createTotemsTemplate(totemsBin: string): string {
+  const templateDir = mkdtempSync(join(tmpdir(), 'totems-e2e-template-'));
   execFileSync('git', ['init', '-b', 'main'], { cwd: templateDir, timeout: 10_000 });
   execFileSync('git', ['commit', '--allow-empty', '-m', 'init'], {
     cwd: templateDir,
     timeout: 10_000,
     env: GIT_ENV
   });
-  execFileSync(beansBin, ['init'], {
+  execFileSync(totemsBin, ['init'], {
     cwd: templateDir,
     encoding: 'utf-8',
     timeout: 10_000
@@ -84,18 +84,18 @@ async function waitForServer(port: number, timeoutMs = 10_000): Promise<void> {
 }
 
 /**
- * Helper to run beans CLI commands against a specific beans path.
+ * Helper to run totems CLI commands against a specific totems path.
  */
-class BeansCLI {
+class TotemsCLI {
   constructor(
-    readonly beansPath: string,
+    readonly totemsPath: string,
     readonly projectDir: string,
     private binaryPath: string,
     readonly baseURL: string
   ) {}
 
   run(args: string[]): string {
-    return execFileSync(this.binaryPath, ['--beans-path', this.beansPath, ...args], {
+    return execFileSync(this.binaryPath, ['--totems-path', this.totemsPath, ...args], {
       cwd: this.projectDir,
       encoding: 'utf-8',
       timeout: 10_000
@@ -108,7 +108,7 @@ class BeansCLI {
     if (opts.priority) args.push('-p', opts.priority);
     const output = this.run(args);
     const json = JSON.parse(output);
-    return (json.bean?.id ?? json.id) as string;
+    return (json.totem?.id ?? json.id) as string;
   }
 
   update(id: string, opts: { status?: string; priority?: string; type?: string }): void {
@@ -119,7 +119,7 @@ class BeansCLI {
     this.run(args);
   }
 
-  /** Run a GraphQL query against the running beans-serve instance. */
+  /** Run a GraphQL query against the running totems-serve instance. */
   async graphql<T = unknown>(query: string): Promise<T> {
     const res = await fetch(`${this.baseURL}/api/graphql`, {
       method: 'POST',
@@ -156,57 +156,57 @@ class BeansCLI {
 }
 
 type Fixtures = {
-  beans: BeansCLI;
-  beansWithRun: BeansCLI;
+  totems: TotemsCLI;
+  totemsWithRun: TotemsCLI;
   backlogPage: BacklogPage;
   boardPage: BoardPage;
 };
 
 type WorkerFixtures = {
-  beansTemplate: string;
+  totemsTemplate: string;
 };
 
 /**
  * Each test gets its own temp directory (copied from a worker-scoped template),
- * beans-serve process, and port. Full isolation — no shared state between tests.
+ * totems-serve process, and port. Full isolation — no shared state between tests.
  */
 export const test = base.extend<Fixtures, WorkerFixtures>({
-  // Worker-scoped: run `beans init` once per worker, copy .beans dir for each test.
+  // Worker-scoped: run `totems init` once per worker, copy .totems dir for each test.
   // Fresh git repos are created per test (avoids stale git index/worktree state).
-  beansTemplate: [
+  totemsTemplate: [
     async ({}, use) => {
-      const { beans: beansBin } = getBinaries();
-      const templateDir = createBeansTemplate(beansBin);
+      const { totems: totemsBin } = getBinaries();
+      const templateDir = createTotemsTemplate(totemsBin);
       await use(templateDir);
       rmSync(templateDir, { recursive: true, force: true });
     },
     { scope: 'worker' }
   ],
 
-  beans: async ({ page, beansTemplate }, use, testInfo) => {
-    const { beans: beansBin, beansServe } = getBinaries();
+  totems: async ({ page, totemsTemplate }, use, testInfo) => {
+    const { totems: totemsBin, totemsServe } = getBinaries();
 
     // Fresh git repo per test (needed for worktree operations)
-    const projectDir = mkdtempSync(join(tmpdir(), 'beans-e2e-'));
+    const projectDir = mkdtempSync(join(tmpdir(), 'totems-e2e-'));
     execFileSync('git', ['init', '-b', 'main'], { cwd: projectDir, timeout: 10_000 });
     execFileSync('git', ['commit', '--allow-empty', '-m', 'init'], {
       cwd: projectDir,
       timeout: 10_000,
       env: GIT_ENV
     });
-    // Copy pre-initialized beans files from template (avoids expensive `beans init` per test)
-    cpSync(join(beansTemplate, '.beans'), join(projectDir, '.beans'), { recursive: true });
-    cpSync(join(beansTemplate, '.beans.yml'), join(projectDir, '.beans.yml'));
+    // Copy pre-initialized totems files from template (avoids expensive `totems init` per test)
+    cpSync(join(totemsTemplate, '.totems'), join(projectDir, '.totems'), { recursive: true });
+    cpSync(join(totemsTemplate, '.totems.yml'), join(projectDir, '.totems.yml'));
 
-    const beansPath = join(projectDir, '.beans');
+    const totemsPath = join(projectDir, '.totems');
 
     // Pick a unique port based on worker + test index
     const port = BASE_PORT + testInfo.workerIndex * 100 + testInfo.parallelIndex;
 
-    // Start beans-serve
+    // Start totems-serve
     const server: ChildProcess = spawn(
-      beansServe,
-      ['--port', String(port), '--beans-path', beansPath],
+      totemsServe,
+      ['--port', String(port), '--totems-path', totemsPath],
       {
         cwd: projectDir,
         env: { ...process.env, GIN_MODE: 'release' },
@@ -222,7 +222,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       // Navigate away so tests start fresh with goto()
       await page.goto('about:blank');
 
-      const cli = new BeansCLI(beansPath, projectDir, beansBin, `http://localhost:${port}`);
+      const cli = new TotemsCLI(totemsPath, projectDir, totemsBin, `http://localhost:${port}`);
       await use(cli);
     } finally {
       server.kill();
@@ -230,30 +230,30 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
     }
   },
 
-  beansWithRun: async ({ page, beansTemplate }, use, testInfo) => {
-    const { beans: beansBin, beansServe } = getBinaries();
+  totemsWithRun: async ({ page, totemsTemplate }, use, testInfo) => {
+    const { totems: totemsBin, totemsServe } = getBinaries();
 
-    const projectDir = mkdtempSync(join(tmpdir(), 'beans-e2e-'));
+    const projectDir = mkdtempSync(join(tmpdir(), 'totems-e2e-'));
     execFileSync('git', ['init', '-b', 'main'], { cwd: projectDir, timeout: 10_000 });
     execFileSync('git', ['commit', '--allow-empty', '-m', 'init'], {
       cwd: projectDir,
       timeout: 10_000,
       env: GIT_ENV
     });
-    cpSync(join(beansTemplate, '.beans'), join(projectDir, '.beans'), { recursive: true });
-    cpSync(join(beansTemplate, '.beans.yml'), join(projectDir, '.beans.yml'));
+    cpSync(join(totemsTemplate, '.totems'), join(projectDir, '.totems'), { recursive: true });
+    cpSync(join(totemsTemplate, '.totems.yml'), join(projectDir, '.totems.yml'));
 
     // Add a run command to the config — a long-running process we can stop
-    const configPath = join(projectDir, '.beans.yml');
+    const configPath = join(projectDir, '.totems.yml');
     const config = readFileSync(configPath, 'utf-8');
     writeFileSync(configPath, config.replace(/run: ""/g, 'run: "sleep 300"'));
 
-    const beansPath = join(projectDir, '.beans');
+    const totemsPath = join(projectDir, '.totems');
     const port = BASE_PORT + testInfo.workerIndex * 100 + testInfo.parallelIndex;
 
     const server: ChildProcess = spawn(
-      beansServe,
-      ['--port', String(port), '--beans-path', beansPath],
+      totemsServe,
+      ['--port', String(port), '--totems-path', totemsPath],
       {
         cwd: projectDir,
         env: { ...process.env, GIN_MODE: 'release' },
@@ -266,7 +266,7 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
       await page.goto(`http://localhost:${port}/`);
       await page.goto('about:blank');
 
-      const cli = new BeansCLI(beansPath, projectDir, beansBin, `http://localhost:${port}`);
+      const cli = new TotemsCLI(totemsPath, projectDir, totemsBin, `http://localhost:${port}`);
       await use(cli);
     } finally {
       server.kill();
@@ -274,13 +274,13 @@ export const test = base.extend<Fixtures, WorkerFixtures>({
     }
   },
 
-  backlogPage: async ({ page, beans }, use) => {
-    const backlog = new BacklogPage(page, beans.baseURL);
+  backlogPage: async ({ page, totems }, use) => {
+    const backlog = new BacklogPage(page, totems.baseURL);
     await use(backlog);
   },
 
-  boardPage: async ({ page, beans }, use) => {
-    const board = new BoardPage(page, beans.baseURL);
+  boardPage: async ({ page, totems }, use) => {
+    const board = new BoardPage(page, totems.baseURL);
     await use(board);
   }
 });

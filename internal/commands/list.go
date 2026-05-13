@@ -7,8 +7,8 @@ import (
 	"sort"
 
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/config"
 	"github.com/inceptyon-labs/totem/internal/output"
 	"github.com/inceptyon-labs/totem/internal/ui"
@@ -60,7 +60,7 @@ Search Syntax (--search/-S):
   body:auth      Search only in body field`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Build GraphQL filter from CLI flags
-		filter := &model.BeanFilter{
+		filter := &model.TotemFilter{
 			Status:          listStatus,
 			ExcludeStatus:   listNoStatus,
 			Type:            listType,

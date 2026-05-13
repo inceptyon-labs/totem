@@ -1,17 +1,17 @@
-import type { Bean } from '$lib/beans.svelte';
+import type { Totem } from '$lib/totems.svelte';
 
 /**
- * Returns true if the bean matches the filter text.
+ * Returns true if the totem matches the filter text.
  * Case-insensitive substring match against title, type, status, tags, and ID.
  */
-export function matchesFilter(bean: Bean, text: string): boolean {
+export function matchesFilter(totem: Totem, text: string): boolean {
   if (!text) return true;
   const lower = text.toLowerCase();
   return (
-    bean.title.toLowerCase().includes(lower) ||
-    bean.type.toLowerCase().includes(lower) ||
-    bean.status.toLowerCase().includes(lower) ||
-    bean.id.toLowerCase().includes(lower) ||
-    bean.tags.some((tag) => tag.toLowerCase().includes(lower))
+    totem.title.toLowerCase().includes(lower) ||
+    totem.type.toLowerCase().includes(lower) ||
+    totem.status.toLowerCase().includes(lower) ||
+    totem.id.toLowerCase().includes(lower) ||
+    totem.tags.some((tag) => tag.toLowerCase().includes(lower))
   );
 }

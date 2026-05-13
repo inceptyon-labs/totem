@@ -10,8 +10,8 @@ import (
 	"github.com/inceptyon-labs/totem/internal/worktree"
 	"github.com/inceptyon-labs/totem/pkg/bean"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/forge"
 )
 
@@ -48,7 +48,7 @@ func worktreeToModel(wt *worktree.Worktree, core *beancore.Core, baseRef string,
 		ID:     wt.ID,
 		Branch: wt.Branch,
 		Path:   wt.Path,
-		Beans:  []*bean.Bean{},
+		Totems:  []*bean.Bean{},
 	}
 	if computeGitStatus {
 		m.HasChanges = gitutil.HasChanges(wt.Path)
@@ -65,7 +65,7 @@ func worktreeToModel(wt *worktree.Worktree, core *beancore.Core, baseRef string,
 	if core != nil {
 		for _, id := range wt.BeanIDs {
 			if b, err := core.Get(id); err == nil {
-				m.Beans = append(m.Beans, b)
+				m.Totems = append(m.Totems, b)
 			}
 		}
 	}

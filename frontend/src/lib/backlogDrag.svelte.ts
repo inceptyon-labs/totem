@@ -1,45 +1,45 @@
 /**
  * Shared drag state for the backlog view.
  *
- * Since BeanItem is recursive, we need a single source of truth for
- * which bean is being dragged and where the drop target is. This module
+ * Since TotemItem is recursive, we need a single source of truth for
+ * which totem is being dragged and where the drop target is. This module
  * provides that shared reactive state.
  *
  * Card hover uses three zones:
  *   - Top 25%:    reorder above
- *   - Middle 50%: reparent onto this bean
+ *   - Middle 50%: reparent onto this totem
  *   - Bottom 25%: reorder below
  */
 
-import type { Bean } from '$lib/beans.svelte';
-import { beansStore } from '$lib/beans.svelte';
+import type { Totem } from '$lib/totems.svelte';
+import { totemsStore } from '$lib/totems.svelte';
 import { applyDrop, applyReparent } from '$lib/dragOrder';
 
 export type DropMode = 'reorder' | 'reparent';
 
 class BacklogDragState {
-  draggedBeanId = $state<string | null>(null);
+  draggedTotemId = $state<string | null>(null);
   /** The parent ID of the sibling group being hovered (null = top-level) */
   dropTargetParent = $state<string | null | undefined>(undefined);
   dropIndex = $state<number | null>(null);
-  /** The bean ID being hovered for reparenting */
+  /** The totem ID being hovered for reparenting */
   reparentTargetId = $state<string | null>(null);
   dropMode = $state<DropMode>('reorder');
   /** The target status when dropping into a different section */
   targetStatus = $state<string | null>(null);
 
   get isDragging() {
-    return this.draggedBeanId !== null;
+    return this.draggedTotemId !== null;
   }
 
-  startDrag(e: DragEvent, bean: Bean) {
-    this.draggedBeanId = bean.id;
+  startDrag(e: DragEvent, totem: Totem) {
+    this.draggedTotemId = totem.id;
     e.dataTransfer!.effectAllowed = 'move';
-    e.dataTransfer!.setData('text/plain', bean.id);
+    e.dataTransfer!.setData('text/plain', totem.id);
   }
 
   endDrag() {
-    this.draggedBeanId = null;
+    this.draggedTotemId = null;
     this.dropTargetParent = undefined;
     this.dropIndex = null;
     this.reparentTargetId = null;
@@ -47,13 +47,13 @@ class BacklogDragState {
     this.targetStatus = null;
   }
 
-  hoverCard(e: DragEvent, parentId: string | null, index: number, beanId: string, status?: string) {
+  hoverCard(e: DragEvent, parentId: string | null, index: number, totemId: string, status?: string) {
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer!.dropEffect = 'move';
 
     // Don't allow dropping on yourself
-    if (beanId === this.draggedBeanId) return;
+    if (totemId === this.draggedTotemId) return;
 
     if (status) this.targetStatus = status;
 
@@ -73,15 +73,15 @@ class BacklogDragState {
       this.dropIndex = index + 1;
       this.reparentTargetId = null;
     } else {
-      // Middle zone — reparent onto this bean
+      // Middle zone — reparent onto this totem
       this.dropMode = 'reparent';
-      this.reparentTargetId = beanId;
+      this.reparentTargetId = totemId;
       this.dropTargetParent = undefined;
       this.dropIndex = null;
     }
   }
 
-  hoverList(e: DragEvent, parentId: string | null, beanCount: number, status?: string) {
+  hoverList(e: DragEvent, parentId: string | null, totemCount: number, status?: string) {
     e.preventDefault();
     e.dataTransfer!.dropEffect = 'move';
     this.dropMode = 'reorder';
@@ -89,7 +89,7 @@ class BacklogDragState {
     this.dropTargetParent = parentId;
     this.targetStatus = status ?? null;
     if (this.dropIndex === null || this.dropTargetParent !== parentId) {
-      this.dropIndex = beanCount;
+      this.dropIndex = totemCount;
     }
   }
 
@@ -105,30 +105,30 @@ class BacklogDragState {
     }
   }
 
-  drop(e: DragEvent, parentId: string | null, beans: Bean[]) {
+  drop(e: DragEvent, parentId: string | null, totems: Totem[]) {
     e.preventDefault();
     e.stopPropagation();
 
     const mode = this.dropMode;
     const targetIdx = this.dropIndex;
-    const beanId = this.draggedBeanId;
+    const totemId = this.draggedTotemId;
     const reparentTarget = this.reparentTargetId;
     const newStatus = this.targetStatus;
 
     this.dropTargetParent = undefined;
     this.dropIndex = null;
-    this.draggedBeanId = null;
+    this.draggedTotemId = null;
     this.reparentTargetId = null;
     this.dropMode = 'reorder';
     this.targetStatus = null;
 
-    if (!beanId) return;
+    if (!totemId) return;
 
     if (mode === 'reparent' && reparentTarget) {
-      const targetChildren = beansStore.children(reparentTarget);
-      applyReparent(beanId, reparentTarget, targetChildren);
+      const targetChildren = totemsStore.children(reparentTarget);
+      applyReparent(totemId, reparentTarget, targetChildren);
     } else {
-      applyDrop(beans, beanId, targetIdx ?? beans.length, {
+      applyDrop(totems, totemId, targetIdx ?? totems.length, {
         newParentId: parentId,
         newStatus: newStatus ?? undefined
       });
@@ -136,13 +136,13 @@ class BacklogDragState {
   }
 
   /** Check if a drop indicator should show at this position */
-  showIndicator(parentId: string | null, index: number, beanId: string, status?: string): boolean {
+  showIndicator(parentId: string | null, index: number, totemId: string, status?: string): boolean {
     return (
       this.dropMode === 'reorder' &&
       this.dropTargetParent === parentId &&
       (!status || this.targetStatus === status) &&
-      this.draggedBeanId !== null &&
-      this.draggedBeanId !== beanId &&
+      this.draggedTotemId !== null &&
+      this.draggedTotemId !== totemId &&
       this.dropIndex === index
     );
   }
@@ -152,14 +152,14 @@ class BacklogDragState {
       this.dropMode === 'reorder' &&
       this.dropTargetParent === parentId &&
       (!status || this.targetStatus === status) &&
-      this.draggedBeanId !== null &&
+      this.draggedTotemId !== null &&
       this.dropIndex === count
     );
   }
 
-  /** Check if this bean is the reparent target */
-  isReparentTarget(beanId: string): boolean {
-    return this.dropMode === 'reparent' && this.reparentTargetId === beanId;
+  /** Check if this totem is the reparent target */
+  isReparentTarget(totemId: string): boolean {
+    return this.dropMode === 'reparent' && this.reparentTargetId === totemId;
   }
 }
 

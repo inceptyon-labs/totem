@@ -9,7 +9,7 @@ exec:
   package: graph
 
 model:
-  filename: pkg/beangraph/model/models_gen.go
+  filename: pkg/totemgraph/model/models_gen.go
   package: model
 
 resolver:
@@ -22,8 +22,8 @@ autobind:
   - github.com/inceptyon-labs/totem/pkg/bean
 
 models:
-  # Use existing Bean type from bean package
-  Bean:
+  # Use existing Bean type from bean package (GraphQL surface renamed to Totem)
+  Totem:
     model: github.com/inceptyon-labs/totem/pkg/bean.Bean
   # Map ID scalar to string
   ID:

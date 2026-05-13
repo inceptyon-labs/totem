@@ -13,7 +13,7 @@ import (
 	"github.com/inceptyon-labs/totem/pkg/bean"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 	"github.com/inceptyon-labs/totem/pkg/config"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
 	"github.com/inceptyon-labs/totem/internal/ui"
 )
 

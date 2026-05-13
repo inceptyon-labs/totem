@@ -4,75 +4,75 @@ import { expect, type Locator, type Page } from '@playwright/test';
  * Page object for the backlog (list) view at /.
  */
 export class BacklogPage {
-  readonly beanItems: Locator;
+  readonly totemItems: Locator;
 
   constructor(
     private page: Page,
     private baseURL: string
   ) {
-    this.beanItems = page.locator('.bean-item');
+    this.totemItems = page.locator('.totem-item');
   }
 
   /**
-   * Navigate to the backlog page and wait for beans to load.
-   * @param expectedCount If provided, wait until exactly this many beans are visible.
+   * Navigate to the backlog page and wait for totems to load.
+   * @param expectedCount If provided, wait until exactly this many totems are visible.
    */
   async goto(expectedCount?: number) {
     await this.page.goto(this.baseURL + '/');
     if (expectedCount !== undefined && expectedCount > 0) {
-      await expect(this.beanItems).toHaveCount(expectedCount, { timeout: 10_000 });
+      await expect(this.totemItems).toHaveCount(expectedCount, { timeout: 10_000 });
     } else if (expectedCount === undefined) {
-      await this.page.waitForSelector('.bean-item', { timeout: 10_000 });
+      await this.page.waitForSelector('.totem-item', { timeout: 10_000 });
     }
   }
 
-  /** Get all visible bean titles in display order. */
-  async getBeanTitles(): Promise<string[]> {
-    const titles = await this.beanItems
+  /** Get all visible totem titles in display order. */
+  async getTotemTitles(): Promise<string[]> {
+    const titles = await this.totemItems
       .locator('[role="button"] > div > span.text-sm')
       .allTextContents();
     return titles.map((t) => t.trim());
   }
 
-  /** Get all visible bean statuses in display order. */
-  async getBeanStatuses(): Promise<string[]> {
-    const statuses = await this.beanItems
+  /** Get all visible totem statuses in display order. */
+  async getTotemStatuses(): Promise<string[]> {
+    const statuses = await this.totemItems
       .locator('[role="button"] > div > span.rounded-full')
       .allTextContents();
     return statuses.map((s) => s.trim());
   }
 
-  /** Click on a bean by its title. */
-  async selectBean(title: string) {
-    await this.beanItems.filter({ hasText: title }).first().locator('[role="button"]').click();
+  /** Click on a totem by its title. */
+  async selectTotem(title: string) {
+    await this.totemItems.filter({ hasText: title }).first().locator('[role="button"]').click();
   }
 
-  /** Wait for a specific bean to appear. */
-  async waitForBean(title: string) {
-    await this.page.locator('.bean-item', { hasText: title }).waitFor({ timeout: 10_000 });
+  /** Wait for a specific totem to appear. */
+  async waitForTotem(title: string) {
+    await this.page.locator('.totem-item', { hasText: title }).waitFor({ timeout: 10_000 });
   }
 
-  /** Wait for a bean to disappear from the list. */
-  async waitForBeanGone(title: string) {
+  /** Wait for a totem to disappear from the list. */
+  async waitForTotemGone(title: string) {
     await this.page
-      .locator('.bean-item', { hasText: title })
+      .locator('.totem-item', { hasText: title })
       .waitFor({ state: 'detached', timeout: 10_000 });
   }
 
-  /** Get the count of visible beans. */
+  /** Get the count of visible totems. */
   async count(): Promise<number> {
-    return this.beanItems.count();
+    return this.totemItems.count();
   }
 
-  /** Get the .bean-item for a specific bean by title (uses data-bean-id for precision). */
-  beanByTitle(title: string): Locator {
-    return this.beanItems.filter({ hasText: title }).first();
+  /** Get the .totem-item for a specific totem by title (uses data-totem-id for precision). */
+  totemByTitle(title: string): Locator {
+    return this.totemItems.filter({ hasText: title }).first();
   }
 
   /**
-   * Get the draggable card element for a bean, identified by title.
+   * Get the draggable card element for a totem, identified by title.
    * Each [draggable] div contains only its own card's content (not descendants),
-   * so filtering by text gives us the exact bean's drag handle.
+   * so filtering by text gives us the exact totem's drag handle.
    */
   private draggableByTitle(title: string): Locator {
     return this.page.locator(
@@ -81,12 +81,12 @@ export class BacklogPage {
   }
 
   /**
-   * Drag a bean to reorder it above/below another bean, or onto it to reparent.
+   * Drag a totem to reorder it above/below another totem, or onto it to reparent.
    *
    * The drop zones are: top 25% = above, middle 50% = reparent, bottom 25% = below.
    * We target 10%/90% for reorder and 50% for reparent to avoid zone boundaries.
    */
-  async dragBean(
+  async dragTotem(
     sourceTitle: string,
     targetTitle: string,
     position: 'above' | 'below' | 'onto' = 'above'
@@ -95,7 +95,7 @@ export class BacklogPage {
     const target = this.draggableByTitle(targetTitle);
 
     const targetBox = await target.boundingBox();
-    if (!targetBox) throw new Error(`Target bean "${targetTitle}" not visible`);
+    if (!targetBox) throw new Error(`Target totem "${targetTitle}" not visible`);
 
     // Compute Y offset within the target card
     const yFraction = position === 'above' ? 0.1 : position === 'below' ? 0.9 : 0.5;

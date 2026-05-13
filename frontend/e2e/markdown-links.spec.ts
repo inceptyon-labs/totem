@@ -2,17 +2,17 @@ import { test, expect } from './fixtures';
 
 test.describe('Markdown links', () => {
   test('external links have target="_blank" and rel="noopener noreferrer"', async ({
-    beans,
+    totems,
     backlogPage,
     page
   }) => {
-    const id = beans.create('Link Test Bean', {
+    const id = totems.create('Link Test Totem', {
       status: 'todo',
       type: 'task'
     });
 
-    // Update the bean body with a markdown link and a bare URL
-    beans.run([
+    // Update the totem body with a markdown link and a bare URL
+    totems.run([
       'update',
       id,
       '--body-append',
@@ -20,10 +20,10 @@ test.describe('Markdown links', () => {
     ]);
 
     await backlogPage.goto(1);
-    await backlogPage.selectBean('Link Test Bean');
+    await backlogPage.selectTotem('Link Test Totem');
 
-    // Wait for the bean detail body to render
-    const body = page.locator('.bean-body');
+    // Wait for the totem detail body to render
+    const body = page.locator('.totem-body');
     await expect(body).toBeVisible({ timeout: 10_000 });
 
     // Check the explicit markdown link

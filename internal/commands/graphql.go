@@ -16,7 +16,7 @@ import (
 	"github.com/vektah/gqlparser/v2/formatter"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"github.com/inceptyon-labs/totem/internal/graph"
-	"github.com/inceptyon-labs/totem/pkg/beangraph"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph"
 )
 
 var (

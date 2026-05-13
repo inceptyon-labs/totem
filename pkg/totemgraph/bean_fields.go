@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/inceptyon-labs/totem/pkg/bean"
-	"github.com/inceptyon-labs/totem/pkg/beangraph/model"
+	"github.com/inceptyon-labs/totem/pkg/totemgraph/model"
 	"github.com/inceptyon-labs/totem/pkg/beancore"
 )
 
@@ -46,7 +46,7 @@ func (r *CoreResolver) BeanBlockedByIds(ctx context.Context, obj *bean.Bean) ([]
 // BeanBlockedBy resolves the full list of beans blocking this one.
 // Combines both directions: the bean's own blocked_by field AND incoming
 // blocking links (other beans that list this bean in their blocking field).
-func (r *CoreResolver) BeanBlockedBy(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
+func (r *CoreResolver) BeanBlockedBy(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
 	seen := make(map[string]bool)
 	var result []*bean.Bean
 
@@ -76,7 +76,7 @@ func (r *CoreResolver) BeanBlockedBy(ctx context.Context, obj *bean.Bean, filter
 }
 
 // BeanBlocking resolves the beans this bean is blocking.
-func (r *CoreResolver) BeanBlocking(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
+func (r *CoreResolver) BeanBlocking(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
 	var result []*bean.Bean
 	for _, targetID := range obj.Blocking {
 		// Filter out broken links
@@ -104,7 +104,7 @@ func (r *CoreResolver) BeanParent(ctx context.Context, obj *bean.Bean) (*bean.Be
 }
 
 // BeanChildren resolves the child beans.
-func (r *CoreResolver) BeanChildren(ctx context.Context, obj *bean.Bean, filter *model.BeanFilter) ([]*bean.Bean, error) {
+func (r *CoreResolver) BeanChildren(ctx context.Context, obj *bean.Bean, filter *model.TotemFilter) ([]*bean.Bean, error) {
 	incoming := r.Core.FindIncomingLinks(obj.ID)
 	var result []*bean.Bean
 	for _, link := range incoming {

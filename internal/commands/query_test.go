@@ -55,88 +55,88 @@ func TestExecuteQuery(t *testing.T) {
 	testCore, cleanup := setupQueryTestCore(t)
 	defer cleanup()
 
-	// Create test beans
+	// Create test totems
 	createQueryTestBean(t, testCore, "test-1", "First Bean", "todo")
 	createQueryTestBean(t, testCore, "test-2", "Second Bean", "in-progress")
 	createQueryTestBean(t, testCore, "test-3", "Third Bean", "completed")
 
 	t.Run("basic query all beans", func(t *testing.T) {
-		query := `{ beans { id title status } }`
+		query := `{ totems { id title status } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID     string `json:"id"`
 				Title  string `json:"title"`
 				Status string `json:"status"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 3 {
-			t.Errorf("expected 3 beans, got %d", len(data.Beans))
+		if len(data.Totems) != 3 {
+			t.Errorf("expected 3 beans, got %d", len(data.Totems))
 		}
 	})
 
 	t.Run("query single bean by id", func(t *testing.T) {
-		query := `{ bean(id: "test-1") { id title } }`
+		query := `{ totem(id: "test-1") { id title } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID    string `json:"id"`
 				Title string `json:"title"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if data.Bean.ID != "test-1" {
-			t.Errorf("expected id 'test-1', got %q", data.Bean.ID)
+		if data.Totem.ID != "test-1" {
+			t.Errorf("expected id 'test-1', got %q", data.Totem.ID)
 		}
-		if data.Bean.Title != "First Bean" {
-			t.Errorf("expected title 'First Bean', got %q", data.Bean.Title)
+		if data.Totem.Title != "First Bean" {
+			t.Errorf("expected title 'First Bean', got %q", data.Totem.Title)
 		}
 	})
 
 	t.Run("query with filter", func(t *testing.T) {
-		query := `{ beans(filter: { status: ["todo"] }) { id } }`
+		query := `{ totems(filter: { status: ["todo"] }) { id } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID string `json:"id"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 1 {
-			t.Errorf("expected 1 bean with status 'todo', got %d", len(data.Beans))
+		if len(data.Totems) != 1 {
+			t.Errorf("expected 1 bean with status 'todo', got %d", len(data.Totems))
 		}
-		if len(data.Beans) > 0 && data.Beans[0].ID != "test-1" {
-			t.Errorf("expected bean id 'test-1', got %q", data.Beans[0].ID)
+		if len(data.Totems) > 0 && data.Totems[0].ID != "test-1" {
+			t.Errorf("expected bean id 'test-1', got %q", data.Totems[0].ID)
 		}
 	})
 
 	t.Run("query with variables", func(t *testing.T) {
-		query := `query GetBean($id: ID!) { bean(id: $id) { id title } }`
+		query := `query GetBean($id: ID!) { totem(id: $id) { id title } }`
 		variables := map[string]any{
 			"id": "test-2",
 		}
@@ -146,40 +146,40 @@ func TestExecuteQuery(t *testing.T) {
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID    string `json:"id"`
 				Title string `json:"title"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if data.Bean.ID != "test-2" {
-			t.Errorf("expected id 'test-2', got %q", data.Bean.ID)
+		if data.Totem.ID != "test-2" {
+			t.Errorf("expected id 'test-2', got %q", data.Totem.ID)
 		}
 	})
 
 	t.Run("query nonexistent bean returns null", func(t *testing.T) {
-		query := `{ bean(id: "nonexistent") { id } }`
+		query := `{ totem(id: "nonexistent") { id } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean *struct {
+			Totem *struct {
 				ID string `json:"id"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if data.Bean != nil {
-			t.Errorf("expected null bean, got %+v", data.Bean)
+		if data.Totem != nil {
+			t.Errorf("expected null bean, got %+v", data.Totem)
 		}
 	})
 
@@ -235,118 +235,118 @@ func TestExecuteQueryWithRelationships(t *testing.T) {
 	}
 
 	t.Run("query parent relationship", func(t *testing.T) {
-		query := `{ bean(id: "child-1") { id parent { id title } } }`
+		query := `{ totem(id: "child-1") { id parent { id title } } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID     string `json:"id"`
 				Parent *struct {
 					ID    string `json:"id"`
 					Title string `json:"title"`
 				} `json:"parent"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if data.Bean.Parent == nil {
+		if data.Totem.Parent == nil {
 			t.Fatal("expected parent to be set")
 		}
-		if data.Bean.Parent.ID != "parent-1" {
-			t.Errorf("expected parent id 'parent-1', got %q", data.Bean.Parent.ID)
+		if data.Totem.Parent.ID != "parent-1" {
+			t.Errorf("expected parent id 'parent-1', got %q", data.Totem.Parent.ID)
 		}
 	})
 
 	t.Run("query children relationship", func(t *testing.T) {
-		query := `{ bean(id: "parent-1") { id children { id title } } }`
+		query := `{ totem(id: "parent-1") { id children { id title } } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID       string `json:"id"`
 				Children []struct {
 					ID    string `json:"id"`
 					Title string `json:"title"`
 				} `json:"children"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Bean.Children) != 1 {
-			t.Errorf("expected 1 child, got %d", len(data.Bean.Children))
+		if len(data.Totem.Children) != 1 {
+			t.Errorf("expected 1 child, got %d", len(data.Totem.Children))
 		}
-		if len(data.Bean.Children) > 0 && data.Bean.Children[0].ID != "child-1" {
-			t.Errorf("expected child id 'child-1', got %q", data.Bean.Children[0].ID)
+		if len(data.Totem.Children) > 0 && data.Totem.Children[0].ID != "child-1" {
+			t.Errorf("expected child id 'child-1', got %q", data.Totem.Children[0].ID)
 		}
 	})
 
 	t.Run("query blockedBy relationship", func(t *testing.T) {
-		query := `{ bean(id: "child-1") { id blockedBy { id title } } }`
+		query := `{ totem(id: "child-1") { id blockedBy { id title } } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID        string `json:"id"`
 				BlockedBy []struct {
 					ID    string `json:"id"`
 					Title string `json:"title"`
 				} `json:"blockedBy"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Bean.BlockedBy) != 1 {
-			t.Errorf("expected 1 blocker, got %d", len(data.Bean.BlockedBy))
+		if len(data.Totem.BlockedBy) != 1 {
+			t.Errorf("expected 1 blocker, got %d", len(data.Totem.BlockedBy))
 		}
-		if len(data.Bean.BlockedBy) > 0 && data.Bean.BlockedBy[0].ID != "blocker-1" {
-			t.Errorf("expected blocker id 'blocker-1', got %q", data.Bean.BlockedBy[0].ID)
+		if len(data.Totem.BlockedBy) > 0 && data.Totem.BlockedBy[0].ID != "blocker-1" {
+			t.Errorf("expected blocker id 'blocker-1', got %q", data.Totem.BlockedBy[0].ID)
 		}
 	})
 
 	t.Run("query blocking relationship", func(t *testing.T) {
-		query := `{ bean(id: "blocker-1") { id blocking { id title } } }`
+		query := `{ totem(id: "blocker-1") { id blocking { id title } } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Bean struct {
+			Totem struct {
 				ID       string `json:"id"`
 				Blocking []struct {
 					ID    string `json:"id"`
 					Title string `json:"title"`
 				} `json:"blocking"`
-			} `json:"bean"`
+			} `json:"totem"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Bean.Blocking) != 1 {
-			t.Errorf("expected 1 blocked bean, got %d", len(data.Bean.Blocking))
+		if len(data.Totem.Blocking) != 1 {
+			t.Errorf("expected 1 blocked bean, got %d", len(data.Totem.Blocking))
 		}
-		if len(data.Bean.Blocking) > 0 && data.Bean.Blocking[0].ID != "child-1" {
-			t.Errorf("expected blocked id 'child-1', got %q", data.Bean.Blocking[0].ID)
+		if len(data.Totem.Blocking) > 0 && data.Totem.Blocking[0].ID != "child-1" {
+			t.Errorf("expected blocked id 'child-1', got %q", data.Totem.Blocking[0].ID)
 		}
 	})
 }
@@ -355,7 +355,7 @@ func TestExecuteQueryWithFilters(t *testing.T) {
 	testCore, cleanup := setupQueryTestCore(t)
 	defer cleanup()
 
-	// Create beans with different types and priorities
+	// Create totems with different types and priorities
 	b1 := &bean.Bean{
 		ID:       "bug-1",
 		Slug:     "bug-one",
@@ -389,96 +389,96 @@ func TestExecuteQueryWithFilters(t *testing.T) {
 	testCore.Create(b3)
 
 	t.Run("filter by type", func(t *testing.T) {
-		query := `{ beans(filter: { type: ["bug"] }) { id type } }`
+		query := `{ totems(filter: { type: ["bug"] }) { id type } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID   string `json:"id"`
 				Type string `json:"type"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 1 {
-			t.Errorf("expected 1 bean with type 'bug', got %d", len(data.Beans))
+		if len(data.Totems) != 1 {
+			t.Errorf("expected 1 bean with type 'bug', got %d", len(data.Totems))
 		}
 	})
 
 	t.Run("filter by priority", func(t *testing.T) {
-		query := `{ beans(filter: { priority: ["critical", "high"] }) { id priority } }`
+		query := `{ totems(filter: { priority: ["critical", "high"] }) { id priority } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID       string `json:"id"`
 				Priority string `json:"priority"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 2 {
-			t.Errorf("expected 2 beans with priority 'critical' or 'high', got %d", len(data.Beans))
+		if len(data.Totems) != 2 {
+			t.Errorf("expected 2 totems with priority 'critical' or 'high', got %d", len(data.Totems))
 		}
 	})
 
 	t.Run("filter by tags", func(t *testing.T) {
-		query := `{ beans(filter: { tags: ["frontend"] }) { id tags } }`
+		query := `{ totems(filter: { tags: ["frontend"] }) { id tags } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID   string   `json:"id"`
 				Tags []string `json:"tags"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 2 {
-			t.Errorf("expected 2 beans with tag 'frontend', got %d", len(data.Beans))
+		if len(data.Totems) != 2 {
+			t.Errorf("expected 2 totems with tag 'frontend', got %d", len(data.Totems))
 		}
 	})
 
 	t.Run("exclude by status", func(t *testing.T) {
-		query := `{ beans(filter: { excludeStatus: ["completed"] }) { id status } }`
+		query := `{ totems(filter: { excludeStatus: ["completed"] }) { id status } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID     string `json:"id"`
 				Status string `json:"status"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 2 {
-			t.Errorf("expected 2 beans (excluding completed), got %d", len(data.Beans))
+		if len(data.Totems) != 2 {
+			t.Errorf("expected 2 totems (excluding completed), got %d", len(data.Totems))
 		}
-		for _, b := range data.Beans {
+		for _, b := range data.Totems {
 			if b.Status == "completed" {
 				t.Errorf("should not include completed beans, got bean with status %q", b.Status)
 			}
@@ -486,24 +486,24 @@ func TestExecuteQueryWithFilters(t *testing.T) {
 	})
 
 	t.Run("combined filters", func(t *testing.T) {
-		query := `{ beans(filter: { status: ["todo", "in-progress"], type: ["bug", "feature"] }) { id } }`
+		query := `{ totems(filter: { status: ["todo", "in-progress"], type: ["bug", "feature"] }) { id } }`
 		result, err := executeQuery(query, nil, "")
 		if err != nil {
 			t.Fatalf("executeQuery() error = %v", err)
 		}
 
 		var data struct {
-			Beans []struct {
+			Totems []struct {
 				ID string `json:"id"`
-			} `json:"beans"`
+			} `json:"totems"`
 		}
 
 		if err := json.Unmarshal(result, &data); err != nil {
 			t.Fatalf("failed to parse response: %v", err)
 		}
 
-		if len(data.Beans) != 2 {
-			t.Errorf("expected 2 beans matching combined filters, got %d", len(data.Beans))
+		if len(data.Totems) != 2 {
+			t.Errorf("expected 2 totems matching combined filters, got %d", len(data.Totems))
 		}
 	})
 }
@@ -517,8 +517,8 @@ func TestGetGraphQLSchema(t *testing.T) {
 	// Verify schema contains expected types
 	expectedTypes := []string{
 		"type Query",
-		"type Bean",
-		"input BeanFilter",
+		"type Totem",
+		"input TotemFilter",
 	}
 
 	for _, expected := range expectedTypes {
@@ -529,8 +529,8 @@ func TestGetGraphQLSchema(t *testing.T) {
 
 	// Verify schema contains expected fields
 	expectedFields := []string{
-		"bean(id: ID!)",
-		"beans(filter: BeanFilter)",
+		"totem(id: ID!)",
+		"totems(filter: TotemFilter)",
 		"blockedBy",
 		"blocking",
 		"parent",

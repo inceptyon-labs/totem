@@ -15,7 +15,7 @@
   import { diffSelectionStore } from '$lib/diffSelection.svelte';
   import SplitPane from './SplitPane.svelte';
   import AgentChat from './AgentChat.svelte';
-  import BeanPane from './BeanPane.svelte';
+  import TotemPane from './TotemPane.svelte';
   import ChangesPane from './ChangesPane.svelte';
   import DiffPane from './DiffPane.svelte';
 
@@ -131,7 +131,7 @@
 {/snippet}
 
 {#snippet agentChatPanel()}
-  <AgentChat beanId={worktreeId} store={agentStore} {setupRunning} {scrollToBottomTrigger} />
+  <AgentChat totemId={worktreeId} store={agentStore} {setupRunning} {scrollToBottomTrigger} />
 {/snippet}
 
 {#snippet shellPane()}
@@ -172,11 +172,11 @@
   {/if}
 {/snippet}
 
-{#snippet beanDetailPanel()}
-  {#if ui.currentBean}
-    <BeanPane
-      bean={ui.currentBean}
-      onSelect={(b) => ui.selectBean(b)}
+{#snippet totemDetailPanel()}
+  {#if ui.currentTotem}
+    <TotemPane
+      totem={ui.currentTotem}
+      onSelect={(b) => ui.selectTotem(b)}
       onEdit={(b) => ui.openEditForm(b)}
       onClose={() => ui.clearSelection()}
     />
@@ -194,7 +194,7 @@
       { content: agentChatPanel },
       { content: diffPanel, size: 600, collapsed: !diffSelectionStore.selected, persistKey: 'workspace-diff' },
       { content: changesPanel, size: 420, collapsed: !ui.showChanges, persistKey: 'workspace-changes' },
-      { content: beanDetailPanel, size: 480, collapsed: !ui.currentBean, persistKey: 'workspace-detail' }
+      { content: totemDetailPanel, size: 480, collapsed: !ui.currentTotem, persistKey: 'workspace-detail' }
     ]}
   />
 {/snippet}
@@ -245,7 +245,7 @@
       VS Code
     </button>
     {#snippet right()}
-      <AgentActions beanId={worktreeId} {agentBusy} onExecute={() => scrollToBottomTrigger++} />
+      <AgentActions totemId={worktreeId} {agentBusy} onExecute={() => scrollToBottomTrigger++} />
       {#if worktree?.pullRequest && configStore.worktreeIntegrateMode === 'pr'}
         {@const isMerged = worktree.pullRequest.state === 'merged'}
         <a

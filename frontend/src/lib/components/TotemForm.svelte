@@ -1,35 +1,35 @@
 <script lang="ts">
-  import type { Bean } from '$lib/beans.svelte';
-  import { beansStore } from '$lib/beans.svelte';
+  import type { Totem } from '$lib/totems.svelte';
+  import { totemsStore } from '$lib/totems.svelte';
   import { client } from '$lib/graphqlClient';
-  import { CreateBeanDocument, UpdateBeanDocument, type CreateBeanInput, type UpdateBeanInput } from '$lib/graphql/generated';
+  import { CreateTotemDocument, UpdateTotemDocument, type CreateTotemInput, type UpdateTotemInput } from '$lib/graphql/generated';
 
   interface Props {
-    bean?: Bean | null;
+    totem?: Totem | null;
     onClose: () => void;
-    onSaved?: (bean: Bean) => void;
+    onSaved?: (totem: Totem) => void;
   }
 
-  let { bean = null, onClose, onSaved }: Props = $props();
+  let { totem = null, onClose, onSaved }: Props = $props();
 
-  const isEdit = $derived(!!bean);
+  const isEdit = $derived(!!totem);
 
   // Form fields — intentionally capture initial prop values for local editing
   /* eslint-disable svelte/valid-compile */
   // svelte-ignore state_referenced_locally
-  let title = $state(bean?.title ?? '');
+  let title = $state(totem?.title ?? '');
   // svelte-ignore state_referenced_locally
-  let type = $state(bean?.type ?? 'task');
+  let type = $state(totem?.type ?? 'task');
   // svelte-ignore state_referenced_locally
-  let status = $state(bean?.status ?? 'todo');
+  let status = $state(totem?.status ?? 'todo');
   // svelte-ignore state_referenced_locally
-  let priority = $state(bean?.priority ?? 'normal');
+  let priority = $state(totem?.priority ?? 'normal');
   // svelte-ignore state_referenced_locally
-  let tags = $state(bean?.tags.join(', ') ?? '');
+  let tags = $state(totem?.tags.join(', ') ?? '');
   // svelte-ignore state_referenced_locally
-  let body = $state(bean?.body ?? '');
+  let body = $state(totem?.body ?? '');
   // svelte-ignore state_referenced_locally
-  let parentId = $state(bean?.parentId ?? '');
+  let parentId = $state(totem?.parentId ?? '');
   /* eslint-enable svelte/valid-compile */
 
   let submitting = $state(false);
@@ -39,16 +39,16 @@
   const statuses = ['draft', 'todo', 'in-progress', 'completed', 'scrapped'];
   const priorities = ['critical', 'high', 'normal', 'low', 'deferred'];
 
-  // Available parents (all beans except current bean and its descendants)
+  // Available parents (all totems except current totem and its descendants)
   const availableParents = $derived(
-    beansStore.all.filter((b) => {
-      if (!bean) return true;
-      if (b.id === bean.id) return false;
+    totemsStore.all.filter((b) => {
+      if (!totem) return true;
+      if (b.id === totem.id) return false;
       // Simple cycle check: don't allow own children as parent
-      let current: Bean | undefined = b;
+      let current: Totem | undefined = b;
       while (current) {
-        if (current.parentId === bean.id) return false;
-        current = current.parentId ? beansStore.get(current.parentId) : undefined;
+        if (current.parentId === totem.id) return false;
+        current = current.parentId ? totemsStore.get(current.parentId) : undefined;
       }
       return true;
     })
@@ -80,19 +80,19 @@
       parent: parentId || null
     };
 
-    let saved: Bean | null = null;
-    if (isEdit && bean) {
-      const input: UpdateBeanInput = fields;
-      const result = await client.mutation(UpdateBeanDocument, { id: bean.id, input }).toPromise();
+    let saved: Totem | null = null;
+    if (isEdit && totem) {
+      const input: UpdateTotemInput = fields;
+      const result = await client.mutation(UpdateTotemDocument, { id: totem.id, input }).toPromise();
       submitting = false;
       if (result.error) { error = result.error.message; return; }
-      saved = result.data?.updateBean ?? null;
+      saved = result.data?.updateTotem ?? null;
     } else {
-      const input: CreateBeanInput = fields;
-      const result = await client.mutation(CreateBeanDocument, { input }).toPromise();
+      const input: CreateTotemInput = fields;
+      const result = await client.mutation(CreateTotemDocument, { input }).toPromise();
       submitting = false;
       if (result.error) { error = result.error.message; return; }
-      saved = result.data?.createBean ?? null;
+      saved = result.data?.createTotem ?? null;
     }
     if (saved) {
       onSaved?.(saved);
@@ -122,9 +122,9 @@
     >
       <!-- Title -->
       <div>
-        <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-title">Title</label>
+        <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-title">Title</label>
         <input
-          id="bean-title"
+          id="totem-title"
           type="text"
           class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
           bind:value={title}
@@ -135,9 +135,9 @@
       <!-- Type / Status / Priority row -->
       <div class="grid grid-cols-3 gap-3">
         <div>
-          <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-type">Type</label>
+          <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-type">Type</label>
           <select
-            id="bean-type"
+            id="totem-type"
             class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
             bind:value={type}
           >
@@ -148,11 +148,11 @@
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-status"
+          <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-status"
             >Status</label
           >
           <select
-            id="bean-status"
+            id="totem-status"
             class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
             bind:value={status}
           >
@@ -163,11 +163,11 @@
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-priority"
+          <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-priority"
             >Priority</label
           >
           <select
-            id="bean-priority"
+            id="totem-priority"
             class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
             bind:value={priority}
           >
@@ -180,11 +180,11 @@
 
       <!-- Parent -->
       <div>
-        <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-parent"
+        <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-parent"
           >Parent</label
         >
         <select
-          id="bean-parent"
+          id="totem-parent"
           class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
           bind:value={parentId}
         >
@@ -197,9 +197,9 @@
 
       <!-- Tags -->
       <div>
-        <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-tags">Tags</label>
+        <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-tags">Tags</label>
         <input
-          id="bean-tags"
+          id="totem-tags"
           type="text"
           class="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
           bind:value={tags}
@@ -209,11 +209,11 @@
 
       <!-- Body -->
       <div>
-        <label class="mb-1 block text-sm font-medium text-text-muted" for="bean-body"
+        <label class="mb-1 block text-sm font-medium text-text-muted" for="totem-body"
           >Description (Markdown)</label
         >
         <textarea
-          id="bean-body"
+          id="totem-body"
           class="h-40 w-full resize-y rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm text-text focus:border-accent focus:ring-2 focus:ring-accent/50 focus:outline-none"
           bind:value={body}
           placeholder="Markdown content..."
@@ -238,7 +238,7 @@
               class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-accent-text/30 border-t-accent-text"
             ></span>
           {/if}
-          {isEdit ? 'Save Changes' : 'Create Bean'}
+          {isEdit ? 'Save Changes' : 'Create Totem'}
         </button>
       </div>
     </form>
