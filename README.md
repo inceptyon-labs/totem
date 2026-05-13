@@ -1,7 +1,7 @@
 # Totem
 
 <p align="center">
-  <img src="assets/logo.png" alt="Totem logo" height="120" />
+  <img src="assets/logo-gpt2.png" alt="Totem logo" height="120" />
 </p>
 
 [![License](https://img.shields.io/github/license/inceptyon-labs/totem?style=for-the-badge)](LICENSE)

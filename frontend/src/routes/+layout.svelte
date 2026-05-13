@@ -1,6 +1,6 @@
 <script lang="ts">
   import './layout.css';
-  import favicon from '$lib/assets/favicon.svg';
+  import favicon from '$lib/assets/favicon.png';
   import { preloadHighlighter } from '$lib/markdown';
   import { page } from '$app/state';
   import { onMount, onDestroy } from 'svelte';
