@@ -251,7 +251,7 @@ func TestLoadAppliesDefaults(t *testing.T) {
 	configPath := filepath.Join(tmpDir, ConfigFileName)
 
 	// Write minimal config (missing id_length and default_type)
-	minimalConfig := `beans:
+	minimalConfig := `totems:
   prefix: "my-"
 `
 	if err := os.WriteFile(configPath, []byte(minimalConfig), 0644); err != nil {
@@ -430,7 +430,7 @@ func TestTypeDescriptions(t *testing.T) {
 		cfg := Default()
 
 		expectedDescriptions := map[string]string{
-			"epic":      "A thematic container for related work; should have child beans, not be worked on directly",
+			"epic":      "A thematic container for related work; should have child totems, not be worked on directly",
 			"milestone": "A target release or checkpoint; group work that should ship together",
 			"feature":   "A user-facing capability or enhancement",
 			"bug":       "Something that is broken and needs fixing",
@@ -456,7 +456,7 @@ func TestTypeDescriptions(t *testing.T) {
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
 		// Config with custom types (should be ignored)
-		configYAML := `beans:
+		configYAML := `totems:
   prefix: "test-"
   id_length: 4
   default_status: open
@@ -520,7 +520,7 @@ func TestStatusDescriptions(t *testing.T) {
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
 		// Config with custom statuses (should be ignored)
-		configYAML := `beans:
+		configYAML := `totems:
   prefix: "test-"
   id_length: 4
 statuses:
@@ -553,7 +553,7 @@ func TestFindConfig(t *testing.T) {
 	t.Run("finds config in current directory", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
-		if err := os.WriteFile(configPath, []byte("beans:\n  prefix: test-\n"), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte("totems:\n  prefix: test-\n"), 0644); err != nil {
 			t.Fatalf("WriteFile error = %v", err)
 		}
 
@@ -574,7 +574,7 @@ func TestFindConfig(t *testing.T) {
 		}
 
 		configPath := filepath.Join(tmpDir, ConfigFileName)
-		if err := os.WriteFile(configPath, []byte("beans:\n  prefix: test-\n"), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte("totems:\n  prefix: test-\n"), 0644); err != nil {
 			t.Fatalf("WriteFile error = %v", err)
 		}
 
@@ -604,8 +604,8 @@ func TestLoadFromDirectory(t *testing.T) {
 	t.Run("loads config from directory with .totem.yml", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
-		configYAML := `beans:
-  path: custom-beans
+		configYAML := `totems:
+  path: custom-totems
   prefix: test-
   id_length: 6
 `
@@ -617,8 +617,8 @@ func TestLoadFromDirectory(t *testing.T) {
 		if err != nil {
 			t.Fatalf("LoadFromDirectory() error = %v", err)
 		}
-		if cfg.Beans.Path != "custom-beans" {
-			t.Errorf("Beans.Path = %q, want \"custom-beans\"", cfg.Beans.Path)
+		if cfg.Beans.Path != "custom-totems" {
+			t.Errorf("Totem.Path = %q, want \"custom-totems\"", cfg.Beans.Path)
 		}
 		if cfg.Beans.Prefix != "test-" {
 			t.Errorf("Prefix = %q, want \"test-\"", cfg.Beans.Prefix)
@@ -636,7 +636,7 @@ func TestLoadFromDirectory(t *testing.T) {
 			t.Fatalf("LoadFromDirectoryWithin() error = %v", err)
 		}
 		if cfg.Beans.Path != DefaultBeansPath {
-			t.Errorf("Beans.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
+			t.Errorf("Totem.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
 		}
 		if cfg.ConfigDir() != tmpDir {
 			t.Errorf("ConfigDir() = %q, want %q", cfg.ConfigDir(), tmpDir)
@@ -647,12 +647,12 @@ func TestLoadFromDirectory(t *testing.T) {
 func TestResolveBeansPath(t *testing.T) {
 	t.Run("resolves relative path from config directory", func(t *testing.T) {
 		cfg := &Config{
-			Beans: BeansConfig{Path: "custom-beans"},
+			Beans: BeansConfig{Path: "custom-totems"},
 		}
 		cfg.SetConfigDir("/project/root")
 
 		got := cfg.ResolveBeansPath()
-		want := "/project/root/custom-beans"
+		want := "/project/root/custom-totems"
 		if got != want {
 			t.Errorf("ResolveBeansPath() = %q, want %q", got, want)
 		}
@@ -660,12 +660,12 @@ func TestResolveBeansPath(t *testing.T) {
 
 	t.Run("returns absolute path unchanged", func(t *testing.T) {
 		cfg := &Config{
-			Beans: BeansConfig{Path: "/absolute/path/to/beans"},
+			Beans: BeansConfig{Path: "/absolute/path/to/totems"},
 		}
 		cfg.SetConfigDir("/project/root")
 
 		got := cfg.ResolveBeansPath()
-		want := "/absolute/path/to/beans"
+		want := "/absolute/path/to/totems"
 		if got != want {
 			t.Errorf("ResolveBeansPath() = %q, want %q", got, want)
 		}
@@ -686,7 +686,7 @@ func TestResolveBeansPath(t *testing.T) {
 func TestDefaultHasBeansPath(t *testing.T) {
 	cfg := Default()
 	if cfg.Beans.Path != DefaultBeansPath {
-		t.Errorf("Default().Beans.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
+		t.Errorf("Default().Totem.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
 	}
 }
 
@@ -821,8 +821,8 @@ func TestSaveIncludesComments(t *testing.T) {
 	content := string(data)
 
 	// Verify header comment
-	if !strings.Contains(content, "# Beans configuration") {
-		t.Error("missing header comment 'Beans configuration'")
+	if !strings.Contains(content, "# Totem configuration") {
+		t.Error("missing header comment 'Totem configuration'")
 	}
 	if !strings.Contains(content, "# See: https://github.com/inceptyon-labs/totem") {
 		t.Error("missing header comment with URL")
@@ -830,11 +830,11 @@ func TestSaveIncludesComments(t *testing.T) {
 
 	// Verify field comments
 	expectedComments := []string{
-		"# Directory where bean files are stored",
-		"# Prefix for bean IDs",
+		"# Directory where totem files are stored",
+		"# Prefix for totem IDs",
 		"# Length of the random ID suffix",
-		"# Default status for new beans",
-		"# Default type for new beans",
+		"# Default status for new totems",
+		"# Default type for new totems",
 		"# Port for the web UI",
 	}
 	for _, comment := range expectedComments {
@@ -965,7 +965,7 @@ func TestLoadAgentPermissionMode(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, ConfigFileName)
 
-	configYAML := `beans:
+	configYAML := `totems:
   prefix: test-
 agent:
   default_mode: plan
@@ -1084,7 +1084,7 @@ func TestLoadAgentEnabled(t *testing.T) {
 
 	// Write config with agent.enabled: false
 	configContent := `
-beans:
+totems:
     prefix: "test-"
     id_length: 4
 agent:
@@ -1145,7 +1145,7 @@ func TestGetWorktreeBaseRef(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := `beans:
+		configContent := `totems:
   prefix: test-
 worktree:
   base_ref: origin/develop
@@ -1205,7 +1205,7 @@ func TestWorktreeSetupAndRun(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := `beans:
+		configContent := `totems:
   prefix: test-
 worktree:
   setup: pnpm install
@@ -1311,7 +1311,7 @@ func TestWorktreeIntegrateLoadAndSave(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := `beans:
+		configContent := `totems:
   prefix: test-
 worktree:
   integrate: pr
@@ -1404,7 +1404,7 @@ func TestGetWorktreeFetchTimeout(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := "beans:\n  prefix: test-\nworktree:\n  fetch_timeout: 5\n"
+		configContent := "totems:\n  prefix: test-\nworktree:\n  fetch_timeout: 5\n"
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("WriteFile error = %v", err)
 		}
@@ -1423,7 +1423,7 @@ func TestGetWorktreeFetchTimeout(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := "beans:\n  prefix: test-\nworktree:\n  fetch_timeout: 0\n"
+		configContent := "totems:\n  prefix: test-\nworktree:\n  fetch_timeout: 0\n"
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
 			t.Fatalf("WriteFile error = %v", err)
 		}
@@ -1459,7 +1459,7 @@ func TestGetServerPort(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := `beans:
+		configContent := `totems:
   prefix: test-
 server:
   port: 3000
@@ -1501,7 +1501,7 @@ func TestGetProjectName(t *testing.T) {
 
 		configContent := `project:
   name: my-project
-beans:
+totems:
   prefix: test-
 `
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
@@ -1592,7 +1592,7 @@ func TestGetCORSOrigins(t *testing.T) {
 		tmpDir := t.TempDir()
 		configPath := filepath.Join(tmpDir, ConfigFileName)
 
-		configContent := `beans:
+		configContent := `totems:
   prefix: test-
 server:
   cors_origins:

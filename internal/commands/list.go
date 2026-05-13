@@ -42,8 +42,8 @@ var (
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List all beans",
-	Long: `Lists all beans in the .totem directory.
+	Short:   "List all totems",
+	Long: `Lists all totems in the .totem directory.
 
 Search Syntax (--search/-S):
   The search flag supports Bleve query string syntax:
@@ -115,7 +115,7 @@ Search Syntax (--search/-S):
 		resolver := &beangraph.CoreResolver{Core: core}
 		beans, err := resolver.Beans(context.Background(), filter)
 		if err != nil {
-			return fmt.Errorf("querying beans: %w", err)
+			return fmt.Errorf("querying totems: %w", err)
 		}
 
 		// Sort beans
@@ -143,7 +143,7 @@ Search Syntax (--search/-S):
 		// We need all beans to find ancestors for context
 		allBeans, err := resolver.Beans(context.Background(), nil)
 		if err != nil {
-			return fmt.Errorf("querying all beans for tree: %w", err)
+			return fmt.Errorf("querying all totems for tree: %w", err)
 		}
 
 		// Pre-compute implicit statuses for all beans
@@ -163,7 +163,7 @@ Search Syntax (--search/-S):
 		tree := ui.BuildTree(beans, allBeans, sortFn, implicitStatuses)
 
 		if len(tree) == 0 {
-			fmt.Println(ui.Muted.Render("No beans found. Create one with: beans new <title>"))
+			fmt.Println(ui.Muted.Render("No totems found. Create one with: totems new <title>"))
 			return nil
 		}
 
@@ -300,16 +300,16 @@ func RegisterListCmd(root *cobra.Command) {
 	listCmd.Flags().StringArrayVarP(&listPriority, "priority", "p", nil, "Filter by priority (can be repeated)")
 	listCmd.Flags().StringArrayVar(&listNoPriority, "no-priority", nil, "Exclude by priority (can be repeated)")
 	listCmd.Flags().StringArrayVar(&listTag, "tag", nil, "Filter by tag (can be repeated, OR logic)")
-	listCmd.Flags().StringArrayVar(&listNoTag, "no-tag", nil, "Exclude beans with tag (can be repeated)")
-	listCmd.Flags().BoolVar(&listHasParent, "has-parent", false, "Filter beans with a parent")
-	listCmd.Flags().BoolVar(&listNoParent, "no-parent", false, "Filter beans without a parent")
+	listCmd.Flags().StringArrayVar(&listNoTag, "no-tag", nil, "Exclude totems with tag (can be repeated)")
+	listCmd.Flags().BoolVar(&listHasParent, "has-parent", false, "Filter totems with a parent")
+	listCmd.Flags().BoolVar(&listNoParent, "no-parent", false, "Filter totems without a parent")
 	listCmd.Flags().StringVar(&listParentID, "parent", "", "Filter by parent ID")
-	listCmd.Flags().BoolVar(&listHasBlocking, "has-blocking", false, "Filter beans that are blocking others")
-	listCmd.Flags().BoolVar(&listNoBlocking, "no-blocking", false, "Filter beans that aren't blocking others")
-	listCmd.Flags().BoolVar(&listIsBlocked, "is-blocked", false, "Filter beans that are blocked by others")
-	listCmd.Flags().BoolVar(&listReady, "ready", false, "Filter beans available to start (not blocked, excludes in-progress/completed/scrapped/draft)")
+	listCmd.Flags().BoolVar(&listHasBlocking, "has-blocking", false, "Filter totems that are blocking others")
+	listCmd.Flags().BoolVar(&listNoBlocking, "no-blocking", false, "Filter totems that aren't blocking others")
+	listCmd.Flags().BoolVar(&listIsBlocked, "is-blocked", false, "Filter totems that are blocked by others")
+	listCmd.Flags().BoolVar(&listReady, "ready", false, "Filter totems available to start (not blocked, excludes in-progress/completed/scrapped/draft)")
 	listCmd.Flags().BoolVarP(&listQuiet, "quiet", "q", false, "Only output IDs (one per line)")
 	listCmd.Flags().StringVar(&listSort, "sort", "", "Sort by: created, updated, status, priority, id (default: status, priority, type, title)")
-	listCmd.Flags().BoolVar(&listFull, "full", false, "Include bean body in JSON output")
+	listCmd.Flags().BoolVar(&listFull, "full", false, "Include totem body in JSON output")
 	root.AddCommand(listCmd)
 }

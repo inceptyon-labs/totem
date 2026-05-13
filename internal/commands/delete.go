@@ -28,10 +28,10 @@ type beanWithLinks struct {
 var deleteCmd = &cobra.Command{
 	Use:     "delete <id> [id...]",
 	Aliases: []string{"rm"},
-	Short:   "Delete one or more beans",
-	Long: `Deletes one or more beans after confirmation (use -f to skip confirmation).
+	Short:   "Delete one or more totems",
+	Long: `Deletes one or more totems after confirmation (use -f to skip confirmation).
 
-If other beans reference the target bean(s) (as parent or via blocking), you will be
+If other totems reference the target totem(s) (as parent or via blocking), you will be
 warned and those references will be removed after confirmation. Use -f to skip all warnings.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,10 +43,10 @@ warned and those references will be removed after confirmation. Use -f to skip a
 		for _, id := range args {
 			b, err := resolver.Bean(ctx, id)
 			if err != nil {
-				return cmdError(deleteJSON, output.ErrNotFound, "failed to find bean: %v", err)
+				return cmdError(deleteJSON, output.ErrNotFound, "failed to find totem: %v", err)
 			}
 			if b == nil {
-				return cmdError(deleteJSON, output.ErrNotFound, "bean not found: %s", id)
+				return cmdError(deleteJSON, output.ErrNotFound, "totem not found: %s", id)
 			}
 			targets = append(targets, beanWithLinks{
 				bean:  b,
@@ -68,7 +68,7 @@ warned and those references will be removed after confirmation. Use -f to skip a
 		for _, target := range targets {
 			_, err := resolver.DeleteBean(ctx, target.bean.ID)
 			if err != nil {
-				return cmdError(deleteJSON, output.ErrFileError, "failed to delete bean %s: %v", target.bean.ID, err)
+				return cmdError(deleteJSON, output.ErrFileError, "failed to delete totem %s: %v", target.bean.ID, err)
 			}
 			deleted = append(deleted, target.bean)
 			totalLinksRemoved += len(target.links)
@@ -77,13 +77,13 @@ warned and those references will be removed after confirmation. Use -f to skip a
 		// Output results
 		if deleteJSON {
 			if len(deleted) == 1 {
-				return output.Success(deleted[0], "Bean deleted")
+				return output.Success(deleted[0], "Totem deleted")
 			}
 			return output.JSON(output.Response{
 				Success: true,
 				Beans:   deleted,
 				Count:   len(deleted),
-				Message: fmt.Sprintf("%d beans deleted", len(deleted)),
+				Message: fmt.Sprintf("%d totems deleted", len(deleted)),
 			})
 		}
 
@@ -112,7 +112,7 @@ func confirmDeleteMultiple(targets []beanWithLinks) bool {
 	if len(targets) == 1 {
 		t := targets[0]
 		if len(t.links) > 0 {
-			fmt.Printf("Warning: %d bean(s) link to '%s':\n", len(t.links), t.bean.Title)
+			fmt.Printf("Warning: %d totem(s) link to '%s':\n", len(t.links), t.bean.Title)
 			for _, link := range t.links {
 				fmt.Printf("  - %s (%s) via %s\n", link.FromBean.ID, link.FromBean.Title, link.LinkType)
 			}
@@ -122,7 +122,7 @@ func confirmDeleteMultiple(targets []beanWithLinks) bool {
 		}
 	} else {
 		// Multiple beans: show batch summary
-		fmt.Printf("About to delete %d bean(s):\n", len(targets))
+		fmt.Printf("About to delete %d totem(s):\n", len(targets))
 		for _, t := range targets {
 			if len(t.links) > 0 {
 				fmt.Printf("  - %s (%s) ← %d incoming link(s)\n", t.bean.ID, t.bean.Title, len(t.links))
@@ -131,7 +131,7 @@ func confirmDeleteMultiple(targets []beanWithLinks) bool {
 			}
 		}
 		if beansWithLinks > 0 {
-			fmt.Printf("\nWarning: %d bean(s) have incoming references (%d total) that will be removed.\n", beansWithLinks, totalLinks)
+			fmt.Printf("\nWarning: %d totem(s) have incoming references (%d total) that will be removed.\n", beansWithLinks, totalLinks)
 		}
 		fmt.Print("\nProceed with deletion? [y/N] ")
 	}

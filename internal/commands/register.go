@@ -23,8 +23,8 @@ func RegisterCoreCommands(root *cobra.Command) {
 	RegisterVersionCmd(root)
 
 	// Deprecated placeholders for commands that moved to separate binaries
-	registerDeprecatedCmd(root, "serve", "beans-serve")
-	registerDeprecatedCmd(root, "tui", "beans-tui")
+	registerDeprecatedCmd(root, "serve", "totems-serve")
+	registerDeprecatedCmd(root, "tui", "totems-tui")
 }
 
 func registerDeprecatedCmd(root *cobra.Command, name, binary string) {

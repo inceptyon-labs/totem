@@ -165,7 +165,7 @@ func TestSearch_NoResults(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Some content",
 	}
 	if err := idx.IndexBean(b); err != nil {
@@ -187,7 +187,7 @@ func TestSearch_EmptyQuery(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Some content",
 	}
 	if err := idx.IndexBean(b); err != nil {
@@ -269,7 +269,7 @@ func TestDeleteBean(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Some content",
 	}
 	if err := idx.IndexBean(b); err != nil {
@@ -279,7 +279,7 @@ func TestDeleteBean(t *testing.T) {
 	// Verify it's indexed
 	ids, _ := idx.Search("Test", 10)
 	if len(ids) != 1 {
-		t.Fatal("bean should be indexed before delete")
+		t.Fatal("totem should be indexed before delete")
 	}
 
 	// Delete
@@ -298,9 +298,9 @@ func TestIndexBeans(t *testing.T) {
 	idx := setupTestIndex(t)
 
 	beans := []*bean.Bean{
-		{ID: "aaa1", Title: "Bean One", Body: "First content"},
-		{ID: "bbb2", Title: "Bean Two", Body: "Second content"},
-		{ID: "ccc3", Title: "Bean Three", Body: "Third content"},
+		{ID: "aaa1", Title: "Totem One", Body: "First content"},
+		{ID: "bbb2", Title: "Totem Two", Body: "Second content"},
+		{ID: "ccc3", Title: "Totem Three", Body: "Third content"},
 	}
 
 	if err := idx.IndexBeans(beans); err != nil {
@@ -308,13 +308,13 @@ func TestIndexBeans(t *testing.T) {
 	}
 
 	// All beans should be searchable
-	ids, err := idx.Search("Bean", 10)
+	ids, err := idx.Search("Totem", 10)
 	if err != nil {
 		t.Fatalf("Search() error = %v", err)
 	}
 
 	if len(ids) != 3 {
-		t.Errorf("Search(Bean) returned %d results, want 3", len(ids))
+		t.Errorf("Search(Totem) returned %d results, want 3", len(ids))
 	}
 }
 
@@ -358,7 +358,7 @@ func TestSearch_Limit(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		b := &bean.Bean{
 			ID:    mustNewID(t),
-			Title: "Test Bean",
+			Title: "Test Totem",
 			Body:  "Content",
 		}
 		if err := idx.IndexBean(b); err != nil {

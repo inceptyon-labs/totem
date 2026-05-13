@@ -66,18 +66,18 @@ branch refs/heads/main
 			id:   "",
 		},
 		{
-			name: "one beans worktree",
+			name: "one totems worktree",
 			input: `worktree /home/user/project
 HEAD abc123
 branch refs/heads/main
 
-worktree /home/user/project-beans-a1b2
+worktree /home/user/project-totems-a1b2
 HEAD def456
-branch refs/heads/beans/beans-a1b2
+branch refs/heads/totems/totems-a1b2
 
 `,
 			want: 1,
-			id:   "beans-a1b2",
+			id:   "totems-a1b2",
 		},
 		{
 			name: "mixed worktrees",
@@ -89,13 +89,13 @@ worktree /home/user/project-feature
 HEAD def456
 branch refs/heads/feature/login
 
-worktree /home/user/project-beans-x1y2
+worktree /home/user/project-totems-x1y2
 HEAD ghi789
-branch refs/heads/beans/beans-x1y2
+branch refs/heads/totems/totems-x1y2
 
 `,
 			want: 1,
-			id:   "beans-x1y2",
+			id:   "totems-x1y2",
 		},
 		{
 			name: "no trailing newline",
@@ -103,11 +103,11 @@ branch refs/heads/beans/beans-x1y2
 HEAD abc
 branch refs/heads/main
 
-worktree /tmp/repo-beans-foo
+worktree /tmp/repo-totems-foo
 HEAD def
-branch refs/heads/beans/beans-foo`,
+branch refs/heads/totems/totems-foo`,
 			want: 1,
-			id:   "beans-foo",
+			id:   "totems-foo",
 		},
 		{
 			name:         "detached HEAD during rebase",
@@ -116,13 +116,13 @@ branch refs/heads/beans/beans-foo`,
 HEAD abc123
 branch refs/heads/main
 
-worktree /home/user/.totem/worktrees/project/beans-rebasing
+worktree /home/user/.totem/worktrees/project/totems-rebasing
 HEAD def456
 detached
 
 `,
 			want: 1,
-			id:   "beans-rebasing",
+			id:   "totems-rebasing",
 		},
 		{
 			name:         "detached HEAD without worktreesDir is skipped",
@@ -141,18 +141,18 @@ detached
 HEAD abc123
 branch refs/heads/main
 
-worktree /home/user/project-beans-stale
+worktree /home/user/project-totems-stale
 HEAD def456
-branch refs/heads/beans/beans-stale
+branch refs/heads/totems/totems-stale
 prunable gitdir file points to non-existent location
 
-worktree /home/user/project-beans-good
+worktree /home/user/project-totems-good
 HEAD ghi789
-branch refs/heads/beans/beans-good
+branch refs/heads/totems/totems-good
 
 `,
 			want: 1,
-			id:   "beans-good",
+			id:   "totems-good",
 		},
 	}
 
@@ -194,8 +194,8 @@ func TestCreateAndList(t *testing.T) {
 	if wt.Name != "test-worktree" {
 		t.Errorf("Name = %q, want %q", wt.Name, "test-worktree")
 	}
-	if wt.Branch != "beans/test-worktree" {
-		t.Errorf("Branch = %q, want %q", wt.Branch, "beans/test-worktree")
+	if wt.Branch != "totems/test-worktree" {
+		t.Errorf("Branch = %q, want %q", wt.Branch, "totems/test-worktree")
 	}
 
 	expectedPath := filepath.Join(wtRoot, wt.ID)
@@ -489,12 +489,12 @@ func TestDetectBeanIDs(t *testing.T) {
 	}
 
 	// Add a bean file
-	if err := os.WriteFile(filepath.Join(wtBeansDir, "beans-abc1--my-task.md"), []byte("---\ntitle: My Task\n---\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wtBeansDir, "totems-abc1--my-task.md"), []byte("---\ntitle: My Task\n---\n"), 0644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
 	// Add another bean file
-	if err := os.WriteFile(filepath.Join(wtBeansDir, "beans-def2--another-task.md"), []byte("---\ntitle: Another Task\n---\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wtBeansDir, "totems-def2--another-task.md"), []byte("---\ntitle: Another Task\n---\n"), 0644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -512,7 +512,7 @@ func TestDetectBeanIDs(t *testing.T) {
 	if err := os.MkdirAll(archiveDir, 0755); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(archiveDir, "beans-old1.md"), []byte("---\ntitle: Old\n---\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(archiveDir, "totems-old1.md"), []byte("---\ntitle: Old\n---\n"), 0644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -523,7 +523,7 @@ func TestDetectBeanIDs(t *testing.T) {
 
 	// Stage and commit the bean files
 	gitRun(t, wt.Path, "add", "-A")
-	gitRun(t, wt.Path, "commit", "-m", "add beans")
+	gitRun(t, wt.Path, "commit", "-m", "add totems")
 
 	ids := mgr.DetectBeanIDs(wt.Path)
 
@@ -531,11 +531,11 @@ func TestDetectBeanIDs(t *testing.T) {
 	if len(ids) != 2 {
 		t.Fatalf("got %d IDs, want 2: %v", len(ids), ids)
 	}
-	if ids[0] != "beans-abc1" {
-		t.Errorf("ids[0] = %q, want %q", ids[0], "beans-abc1")
+	if ids[0] != "totems-abc1" {
+		t.Errorf("ids[0] = %q, want %q", ids[0], "totems-abc1")
 	}
-	if ids[1] != "beans-def2" {
-		t.Errorf("ids[1] = %q, want %q", ids[1], "beans-def2")
+	if ids[1] != "totems-def2" {
+		t.Errorf("ids[1] = %q, want %q", ids[1], "totems-def2")
 	}
 }
 
@@ -577,7 +577,7 @@ func TestDetectBeanIDs_UncommittedChanges(t *testing.T) {
 	if err := os.MkdirAll(wtBeansDir, 0755); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(wtBeansDir, "beans-xyz9--untracked.md"), []byte("---\ntitle: Untracked\n---\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(wtBeansDir, "totems-xyz9--untracked.md"), []byte("---\ntitle: Untracked\n---\n"), 0644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 
@@ -587,8 +587,8 @@ func TestDetectBeanIDs_UncommittedChanges(t *testing.T) {
 	if len(ids) != 1 {
 		t.Fatalf("got %d IDs, want 1: %v", len(ids), ids)
 	}
-	if ids[0] != "beans-xyz9" {
-		t.Errorf("ids[0] = %q, want %q", ids[0], "beans-xyz9")
+	if ids[0] != "totems-xyz9" {
+		t.Errorf("ids[0] = %q, want %q", ids[0], "totems-xyz9")
 	}
 }
 
@@ -596,11 +596,11 @@ func TestDetectBeanIDs_DeletedFile(t *testing.T) {
 	repoDir, beansDir, wtRoot := initTestRepo(t)
 
 	// Create a bean on main
-	if err := os.WriteFile(filepath.Join(beansDir, "beans-del1--to-delete.md"), []byte("---\ntitle: To Delete\nstatus: todo\ntype: task\n---\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(beansDir, "totems-del1--to-delete.md"), []byte("---\ntitle: To Delete\nstatus: todo\ntype: task\n---\n"), 0644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 	gitRun(t, repoDir, "add", "-A")
-	gitRun(t, repoDir, "commit", "-m", "add bean")
+	gitRun(t, repoDir, "commit", "-m", "add totem")
 
 	mgr := NewManager(repoDir, wtRoot, "main", "")
 
@@ -610,18 +610,18 @@ func TestDetectBeanIDs_DeletedFile(t *testing.T) {
 	}
 
 	// Delete the bean file in the worktree
-	wtBeanFile := filepath.Join(wt.Path, ".totem", "beans-del1--to-delete.md")
+	wtBeanFile := filepath.Join(wt.Path, ".totem", "totems-del1--to-delete.md")
 	if err := os.Remove(wtBeanFile); err != nil {
 		t.Fatalf("Remove: %v", err)
 	}
 	gitRun(t, wt.Path, "add", "-A")
-	gitRun(t, wt.Path, "commit", "-m", "delete bean")
+	gitRun(t, wt.Path, "commit", "-m", "delete totem")
 
 	ids := mgr.DetectBeanIDs(wt.Path)
 
 	// Should NOT include the deleted bean
 	if len(ids) != 0 {
-		t.Errorf("expected 0 IDs for deleted bean, got %d: %v", len(ids), ids)
+		t.Errorf("expected 0 IDs for deleted totem, got %d: %v", len(ids), ids)
 	}
 }
 

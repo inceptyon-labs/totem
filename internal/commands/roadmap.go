@@ -63,7 +63,7 @@ var roadmapCmd = &cobra.Command{
 		resolver := &beangraph.CoreResolver{Core: core}
 		allBeans, err := resolver.Beans(context.Background(), nil)
 		if err != nil {
-			return fmt.Errorf("querying beans: %w", err)
+			return fmt.Errorf("querying totems: %w", err)
 		}
 
 		// Build the roadmap
@@ -438,7 +438,7 @@ func RegisterRoadmapCmd(root *cobra.Command) {
 	roadmapCmd.Flags().BoolVar(&roadmapIncludeDone, "include-done", false, "Include completed items")
 	roadmapCmd.Flags().StringArrayVar(&roadmapStatus, "status", nil, "Filter milestones by status (can be repeated)")
 	roadmapCmd.Flags().StringArrayVar(&roadmapNoStatus, "no-status", nil, "Exclude milestones by status (can be repeated)")
-	roadmapCmd.Flags().BoolVar(&roadmapNoLinks, "no-links", false, "Don't render bean IDs as markdown links")
+	roadmapCmd.Flags().BoolVar(&roadmapNoLinks, "no-links", false, "Don't render totem IDs as markdown links")
 	roadmapCmd.Flags().StringVar(&roadmapLinkPrefix, "link-prefix", "", "URL prefix for links")
 	root.AddCommand(roadmapCmd)
 }

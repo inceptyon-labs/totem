@@ -36,7 +36,7 @@ var DefaultStatuses = []StatusConfig{
 // DefaultTypes defines the default type configuration.
 var DefaultTypes = []TypeConfig{
 	{Name: "milestone", Color: "cyan", Description: "A target release or checkpoint; group work that should ship together"},
-	{Name: "epic", Color: "purple", Description: "A thematic container for related work; should have child beans, not be worked on directly"},
+	{Name: "epic", Color: "purple", Description: "A thematic container for related work; should have child totems, not be worked on directly"},
 	{Name: "bug", Color: "red", Description: "Something that is broken and needs fixing"},
 	{Name: "feature", Color: "green", Description: "A user-facing capability or enhancement"},
 	{Name: "task", Color: "blue", Description: "A concrete piece of work to complete (eg. a chore, or a sub-task for a feature)"},
@@ -141,7 +141,7 @@ type AgentConfig struct {
 // ProjectConfig defines project-level settings.
 type ProjectConfig struct {
 	// Name is the human-readable project name, displayed in the UI.
-	// Default: derived from directory name during `beans init`.
+	// Default: derived from directory name during `totem init`.
 	Name string `yaml:"name,omitempty"`
 }
 
@@ -160,7 +160,7 @@ type ServerConfig struct {
 // Note: Statuses are no longer stored in config - they are hardcoded like types.
 type Config struct {
 	Project  ProjectConfig  `yaml:"project,omitempty"`
-	Beans    BeansConfig    `yaml:"totem"`
+	Beans    BeansConfig    `yaml:"totems"`
 	Worktree WorktreeConfig `yaml:"worktree,omitempty"`
 	Agent    AgentConfig    `yaml:"agent,omitempty"`
 	Server   ServerConfig   `yaml:"server,omitempty"`
@@ -393,7 +393,7 @@ func (c *Config) toYAMLNode() *yaml.Node {
 	}
 
 	prefixKey := strNode("prefix")
-	prefixKey.HeadComment = "Prefix for bean IDs (e.g., \"myproject-abc1\")"
+	prefixKey.HeadComment = "Prefix for totem IDs (e.g., \"myproject-abc1\")"
 	beansMapping.Content = append(beansMapping.Content, prefixKey, strNode(c.Beans.Prefix))
 
 	idLenKey := strNode("id_length")
@@ -472,7 +472,7 @@ func (c *Config) toYAMLNode() *yaml.Node {
 		topMapping.Content = append(topMapping.Content, strNode("project"), projectMapping)
 	}
 
-	topMapping.Content = append(topMapping.Content, strNode("totem"), beansMapping)
+	topMapping.Content = append(topMapping.Content, strNode("totems"), beansMapping)
 
 	if len(worktreeMapping.Content) > 0 {
 		topMapping.Content = append(topMapping.Content, strNode("worktree"), worktreeMapping)

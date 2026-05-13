@@ -41,8 +41,8 @@ var (
 var updateCmd = &cobra.Command{
 	Use:     "update <id>",
 	Aliases: []string{"u"},
-	Short:   "Update a bean's properties",
-	Long:    `Updates one or more properties of an existing bean.`,
+	Short:   "Update a totem's properties",
+	Long:    `Updates one or more properties of an existing totem.`,
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
@@ -51,7 +51,7 @@ var updateCmd = &cobra.Command{
 		// Find the bean
 		b, err := resolver.Bean(ctx, args[0])
 		if err != nil {
-			return cmdError(updateJSON, output.ErrNotFound, "failed to find bean: %v", err)
+			return cmdError(updateJSON, output.ErrNotFound, "failed to find totem: %v", err)
 		}
 
 		// If not found, check the archive and unarchive if present
@@ -59,12 +59,12 @@ var updateCmd = &cobra.Command{
 		if b == nil {
 			unarchived, unarchiveErr := core.LoadAndUnarchive(args[0])
 			if unarchiveErr != nil {
-				return cmdError(updateJSON, output.ErrNotFound, "bean not found: %s", args[0])
+				return cmdError(updateJSON, output.ErrNotFound, "totem not found: %s", args[0])
 			}
 			// Re-query to get the model.Bean
 			b, err = resolver.Bean(ctx, unarchived.ID)
 			if err != nil || b == nil {
-				return cmdError(updateJSON, output.ErrNotFound, "bean not found: %s", args[0])
+				return cmdError(updateJSON, output.ErrNotFound, "totem not found: %s", args[0])
 			}
 			wasArchived = true
 		}
@@ -107,9 +107,9 @@ var updateCmd = &cobra.Command{
 
 		// Output result
 		if updateJSON {
-			msg := "Bean updated"
+			msg := "Totem updated"
 			if wasArchived {
-				msg = "Bean unarchived and updated"
+				msg = "Totem unarchived and updated"
 			}
 			return output.Success(b, msg)
 		}
@@ -283,12 +283,12 @@ func RegisterUpdateCmd(root *cobra.Command) {
 	updateCmd.Flags().StringVar(&updateBodyReplaceOld, "body-replace-old", "", "Text to find and replace (requires --body-replace-new)")
 	updateCmd.Flags().StringVar(&updateBodyReplaceNew, "body-replace-new", "", "Replacement text (requires --body-replace-old)")
 	updateCmd.Flags().StringVar(&updateBodyAppend, "body-append", "", "Text to append to body (use '-' for stdin)")
-	updateCmd.Flags().StringVar(&updateParent, "parent", "", "Set parent bean ID")
+	updateCmd.Flags().StringVar(&updateParent, "parent", "", "Set parent totem ID")
 	updateCmd.Flags().BoolVar(&updateRemoveParent, "remove-parent", false, "Remove parent")
-	updateCmd.Flags().StringArrayVar(&updateBlocking, "blocking", nil, "ID of bean this blocks (can be repeated)")
-	updateCmd.Flags().StringArrayVar(&updateRemoveBlocking, "remove-blocking", nil, "ID of bean to unblock (can be repeated)")
-	updateCmd.Flags().StringArrayVar(&updateBlockedBy, "blocked-by", nil, "ID of bean that blocks this one (can be repeated)")
-	updateCmd.Flags().StringArrayVar(&updateRemoveBlockedBy, "remove-blocked-by", nil, "ID of blocker bean to remove (can be repeated)")
+	updateCmd.Flags().StringArrayVar(&updateBlocking, "blocking", nil, "ID of totem this blocks (can be repeated)")
+	updateCmd.Flags().StringArrayVar(&updateRemoveBlocking, "remove-blocking", nil, "ID of totem to unblock (can be repeated)")
+	updateCmd.Flags().StringArrayVar(&updateBlockedBy, "blocked-by", nil, "ID of totem that blocks this one (can be repeated)")
+	updateCmd.Flags().StringArrayVar(&updateRemoveBlockedBy, "remove-blocked-by", nil, "ID of blocker totem to remove (can be repeated)")
 	updateCmd.Flags().StringArrayVar(&updateTag, "tag", nil, "Add tag (can be repeated)")
 	updateCmd.Flags().StringArrayVar(&updateRemoveTag, "remove-tag", nil, "Remove tag (can be repeated)")
 	updateCmd.Flags().StringVar(&updateIfMatch, "if-match", "", "Only update if etag matches (optimistic locking)")

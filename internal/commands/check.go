@@ -25,11 +25,11 @@ type checkResult struct {
 
 var checkCmd = &cobra.Command{
 	Use:   "check",
-	Short: "Validate configuration and bean integrity",
-	Long: `Checks configuration and bean integrity, including:
+	Short: "Validate configuration and totem integrity",
+	Long: `Checks configuration and totem integrity, including:
 - Configuration settings (colors, default type)
-- Broken links (links to non-existent beans)
-- Self-references (beans linking to themselves)
+- Broken links (links to non-existent totems)
+- Self-references (totems linking to themselves)
 - Circular dependencies (cycles in blocks/parent relationships)
 
 Use --fix to automatically remove broken links and self-references.
@@ -117,7 +117,7 @@ Note: Cycles cannot be auto-fixed and require manual intervention.`,
 		// === Bean link checks ===
 		if !checkJSON {
 			fmt.Println()
-			fmt.Println(ui.Bold.Render("Bean Links"))
+			fmt.Println(ui.Bold.Render("Totem Links"))
 		}
 
 		linkResult := core.CheckAllLinks()

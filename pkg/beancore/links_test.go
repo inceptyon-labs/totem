@@ -15,16 +15,16 @@ func TestFindIncomingLinks(t *testing.T) {
 	// D -> B (blocks)
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"bbb2"},
 		Parent: "ccc3",
 	}
-	beanB := &bean.Bean{ID: "bbb2", Title: "Bean B", Status: "todo"}
-	beanC := &bean.Bean{ID: "ccc3", Title: "Bean C", Status: "todo"}
+	beanB := &bean.Bean{ID: "bbb2", Title: "Totem B", Status: "todo"}
+	beanC := &bean.Bean{ID: "ccc3", Title: "Totem C", Status: "todo"}
 	beanD := &bean.Bean{
 		ID:     "ddd4",
-		Title:  "Bean D",
+		Title:  "Totem D",
 		Status: "todo",
 		Blocking: []string{"bbb2"},
 	}
@@ -71,7 +71,7 @@ func TestFindIncomingLinks(t *testing.T) {
 		}
 	})
 
-	t.Run("nonexistent bean", func(t *testing.T) {
+	t.Run("nonexistent totem", func(t *testing.T) {
 		links := core.FindIncomingLinks("nonexistent")
 		if len(links) != 0 {
 			t.Errorf("FindIncomingLinks(nonexistent) = %d links, want 0", len(links))
@@ -85,19 +85,19 @@ func TestDetectCycle(t *testing.T) {
 	// Create a chain: A blocks B, B blocks C
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"bbb2"},
 	}
 	beanB := &bean.Bean{
 		ID:     "bbb2",
-		Title:  "Bean B",
+		Title:  "Totem B",
 		Status: "todo",
 		Blocking: []string{"ccc3"},
 	}
 	beanC := &bean.Bean{
 		ID:     "ccc3",
-		Title:  "Bean C",
+		Title:  "Totem C",
 		Status: "todo",
 	}
 
@@ -120,7 +120,7 @@ func TestDetectCycle(t *testing.T) {
 
 	t.Run("no cycle", func(t *testing.T) {
 		// Adding D blocks A would not create a cycle (D doesn't exist in chain)
-		beanD := &bean.Bean{ID: "ddd4", Title: "Bean D", Status: "todo"}
+		beanD := &bean.Bean{ID: "ddd4", Title: "Totem D", Status: "todo"}
 		if err := core.Create(beanD); err != nil {
 			t.Fatalf("Create error: %v", err)
 		}
@@ -135,19 +135,19 @@ func TestDetectCycle(t *testing.T) {
 		// Create parent chain: X -> Y -> Z (X has parent Y, Y has parent Z)
 		beanX := &bean.Bean{
 			ID:     "xxx1",
-			Title:  "Bean X",
+			Title:  "Totem X",
 			Status: "todo",
 			Parent: "yyy2",
 		}
 		beanY := &bean.Bean{
 			ID:     "yyy2",
-			Title:  "Bean Y",
+			Title:  "Totem Y",
 			Status: "todo",
 			Parent: "zzz3",
 		}
 		beanZ := &bean.Bean{
 			ID:     "zzz3",
-			Title:  "Bean Z",
+			Title:  "Totem Z",
 			Status: "todo",
 		}
 
@@ -174,14 +174,14 @@ func TestCheckAllLinks(t *testing.T) {
 	// - Cycle (A -> B -> A via blocks)
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"bbb2", "aaa1"}, // aaa1 is self-reference
 		Parent: "nonexistent",
 	}
 	beanB := &bean.Bean{
 		ID:     "bbb2",
-		Title:  "Bean B",
+		Title:  "Totem B",
 		Status: "todo",
 		Blocking: []string{"aaa1"}, // creates cycle
 	}
@@ -252,13 +252,13 @@ func TestCheckAllLinksClean(t *testing.T) {
 	// Create clean beans with no issues
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"bbb2"},
 	}
 	beanB := &bean.Bean{
 		ID:     "bbb2",
-		Title:  "Bean B",
+		Title:  "Totem B",
 		Status: "todo",
 	}
 
@@ -271,7 +271,7 @@ func TestCheckAllLinksClean(t *testing.T) {
 	result := core.CheckAllLinks()
 
 	if result.HasIssues() {
-		t.Errorf("HasIssues() should return false for clean beans, got broken=%d self=%d cycles=%d",
+		t.Errorf("HasIssues() should return false for clean totems, got broken=%d self=%d cycles=%d",
 			len(result.BrokenLinks), len(result.SelfLinks), len(result.Cycles))
 	}
 }
@@ -282,20 +282,20 @@ func TestRemoveLinksTo(t *testing.T) {
 	// Create beans where multiple beans link to one target
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"target"},
 		Parent: "target",
 	}
 	beanB := &bean.Bean{
 		ID:     "bbb2",
-		Title:  "Bean B",
+		Title:  "Totem B",
 		Status: "todo",
 		Blocking: []string{"target"},
 	}
 	target := &bean.Bean{
 		ID:     "target",
-		Title:  "Target Bean",
+		Title:  "Target Totem",
 		Status: "todo",
 	}
 
@@ -318,12 +318,12 @@ func TestRemoveLinksTo(t *testing.T) {
 	// Verify links are gone
 	loadedA, _ := core.Get("aaa1")
 	if loadedA.Parent != "" || len(loadedA.Blocking) != 0 {
-		t.Errorf("Bean A still has relationships: parent=%q blocks=%v", loadedA.Parent, loadedA.Blocking)
+		t.Errorf("Totem A still has relationships: parent=%q blocks=%v", loadedA.Parent, loadedA.Blocking)
 	}
 
 	loadedB, _ := core.Get("bbb2")
 	if len(loadedB.Blocking) != 0 {
-		t.Errorf("Bean B still has %d blocks, want 0", len(loadedB.Blocking))
+		t.Errorf("Totem B still has %d blocks, want 0", len(loadedB.Blocking))
 	}
 }
 
@@ -333,14 +333,14 @@ func TestFixBrokenLinks(t *testing.T) {
 	// Create bean with broken link and self-reference
 	beanA := &bean.Bean{
 		ID:     "aaa1",
-		Title:  "Bean A",
+		Title:  "Totem A",
 		Status: "todo",
 		Blocking: []string{"bbb2", "aaa1"}, // bbb2 is valid, aaa1 is self-reference
 		Parent: "nonexistent",             // broken
 	}
 	beanB := &bean.Bean{
 		ID:     "bbb2",
-		Title:  "Bean B",
+		Title:  "Totem B",
 		Status: "todo",
 	}
 
@@ -363,7 +363,7 @@ func TestFixBrokenLinks(t *testing.T) {
 	// Verify only valid link remains
 	loadedA, _ := core.Get("aaa1")
 	if len(loadedA.Blocking) != 1 {
-		t.Errorf("Bean A has %d blocks, want 1", len(loadedA.Blocking))
+		t.Errorf("Totem A has %d blocks, want 1", len(loadedA.Blocking))
 	}
 	if !loadedA.IsBlocking("bbb2") {
 		t.Error("valid 'blocks' link should be preserved")
@@ -527,7 +527,7 @@ func TestIsBlocked(t *testing.T) {
 		{"broken blocker link", "blocked-by-broken", false},
 		{"mixed blockers (one active)", "mixed-blockers", true},
 		{"all resolved blockers", "all-resolved-blockers", false},
-		{"nonexistent bean", "nonexistent", false},
+		{"nonexistent totem", "nonexistent", false},
 	}
 
 	for _, tt := range tests {
@@ -563,7 +563,7 @@ func TestFindActiveBlockers(t *testing.T) {
 	}
 	target := &bean.Bean{
 		ID:        "target",
-		Title:     "Target Bean",
+		Title:     "Target Totem",
 		Status:    "todo",
 		BlockedBy: []string{"active-blocker-2", "completed-blocker"},
 	}
@@ -601,14 +601,14 @@ func TestFindActiveBlockers(t *testing.T) {
 		}
 	})
 
-	t.Run("returns nil for bean with no blockers", func(t *testing.T) {
+	t.Run("returns nil for totem with no blockers", func(t *testing.T) {
 		blockers := core.FindActiveBlockers("no-blockers")
 		if len(blockers) != 0 {
 			t.Errorf("FindActiveBlockers() returned %d blockers, want 0", len(blockers))
 		}
 	})
 
-	t.Run("returns nil for nonexistent bean", func(t *testing.T) {
+	t.Run("returns nil for nonexistent totem", func(t *testing.T) {
 		blockers := core.FindActiveBlockers("nonexistent")
 		if blockers != nil {
 			t.Errorf("FindActiveBlockers() returned %v, want nil", blockers)
@@ -679,7 +679,7 @@ func TestImplicitStatus(t *testing.T) {
 		}
 	})
 
-	t.Run("nonexistent bean", func(t *testing.T) {
+	t.Run("nonexistent totem", func(t *testing.T) {
 		status, fromID := core.ImplicitStatus("nope")
 		if status != "" || fromID != "" {
 			t.Errorf("want empty, got status=%q fromID=%q", status, fromID)
@@ -792,7 +792,7 @@ func TestImplicitBlocking(t *testing.T) {
 		}
 	})
 
-	t.Run("bean with no parent is not implicitly blocked", func(t *testing.T) {
+	t.Run("totem with no parent is not implicitly blocked", func(t *testing.T) {
 		core, _ := setupTestCore(t)
 
 		task := &bean.Bean{ID: "task", Title: "Task", Status: "todo", Type: "task"}

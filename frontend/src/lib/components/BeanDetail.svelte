@@ -195,7 +195,7 @@
           class="btn-toggle btn-toggle-inactive"
           onclick={archiveBean}
           disabled={archiving}
-          title="Archive this bean"
+          title="Archive this totem"
         >
           <span class="icon-[uil--archive] size-4 text-amber-400"></span>
           {archiving ? 'Archiving…' : 'Archive'}

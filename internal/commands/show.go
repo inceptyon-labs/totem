@@ -23,8 +23,8 @@ var (
 
 var showCmd = &cobra.Command{
 	Use:   "show <id> [id...]",
-	Short: "Show a bean's contents",
-	Long:  `Displays the full contents of one or more beans, including front matter and body.`,
+	Short: "Show a totem's contents",
+	Long:  `Displays the full contents of one or more totems, including front matter and body.`,
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		resolver := &beangraph.CoreResolver{Core: core}
@@ -37,13 +37,13 @@ var showCmd = &cobra.Command{
 				if showJSON {
 					return output.Error(output.ErrNotFound, err.Error())
 				}
-				return fmt.Errorf("failed to find bean: %w", err)
+				return fmt.Errorf("failed to find totem: %w", err)
 			}
 			if b == nil {
 				if showJSON {
-					return output.Error(output.ErrNotFound, fmt.Sprintf("bean not found: %s", id))
+					return output.Error(output.ErrNotFound, fmt.Sprintf("totem not found: %s", id))
 				}
-				return fmt.Errorf("bean not found: %s", id)
+				return fmt.Errorf("totem not found: %s", id)
 			}
 			beans = append(beans, b)
 		}
@@ -64,7 +64,7 @@ var showCmd = &cobra.Command{
 				}
 				content, err := b.Render()
 				if err != nil {
-					return fmt.Errorf("failed to render bean: %w", err)
+					return fmt.Errorf("failed to render totem: %w", err)
 				}
 				fmt.Print(string(content))
 			}

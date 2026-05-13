@@ -30,32 +30,32 @@ var graphqlCmd = &cobra.Command{
 	Use:     "graphql <query>",
 	Aliases: []string{"query"},
 	Short:   "Execute a GraphQL query or mutation",
-	Long: `Execute a GraphQL query or mutation against the beans data.
+	Long: `Execute a GraphQL query or mutation against the totems data.
 
 The argument should be a valid GraphQL query or mutation string.
 
 Examples:
-  # List all beans
-  beans graphql '{ beans { id title status } }'
+  # List all totems
+  totem graphql '{ totems { id title status } }'
 
-  # Get a specific bean
-  beans graphql '{ bean(id: "abc") { title status body } }'
+  # Get a specific totem
+  totem graphql '{ bean(id: "abc") { title status body } }'
 
-  # Filter beans by status
-  beans graphql '{ beans(filter: { status: ["todo", "in-progress"] }) { id title } }'
+  # Filter totems by status
+  totem graphql '{ beans(filter: { status: ["todo", "in-progress"] }) { id title } }'
 
-  # Get beans with relationships
-  beans graphql '{ beans { id title blockedBy { id title } children { id title } } }'
+  # Get totems with relationships
+  totem graphql '{ totems { id title blockedBy { id title } children { id title } } }'
 
   # Use variables
-  beans graphql -v '{"id": "abc"}' 'query GetBean($id: ID!) { bean(id: $id) { title } }'
+  totem graphql -v '{"id": "abc"}' 'query GetBean($id: ID!) { bean(id: $id) { title } }'
 
   # Read from stdin (useful for complex queries or escaping issues)
-  echo '{ beans { id title } }' | beans graphql
-  cat query.graphql | beans graphql
+  echo '{ totems { id title } }' | totem graphql
+  cat query.graphql | totem graphql
 
   # Print the schema
-  beans graphql --schema`,
+  totem graphql --schema`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if querySchemaOnly {
 			return nil

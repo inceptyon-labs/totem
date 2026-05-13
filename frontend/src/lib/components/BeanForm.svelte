@@ -103,7 +103,7 @@
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
   <div class="w-11/12 max-w-2xl rounded-xl bg-surface p-6 shadow-xl">
-    <h3 class="text-lg font-bold text-text">{isEdit ? 'Edit Bean' : 'New Bean'}</h3>
+    <h3 class="text-lg font-bold text-text">{isEdit ? 'Edit Totem' : 'New Totem'}</h3>
 
     {#if error}
       <div

@@ -467,12 +467,12 @@ func (c *Core) ValidateParent(b *bean.Bean, parentID string) error {
 
 	validTypes := ValidParentTypes(b.Type)
 	if validTypes == nil {
-		return fmt.Errorf("%s beans cannot have a parent", b.Type)
+		return fmt.Errorf("%s totems cannot have a parent", b.Type)
 	}
 
 	parent, err := c.Get(parentID)
 	if err != nil {
-		return fmt.Errorf("parent bean not found: %s", parentID)
+		return fmt.Errorf("parent totem not found: %s", parentID)
 	}
 
 	for _, t := range validTypes {
@@ -481,7 +481,7 @@ func (c *Core) ValidateParent(b *bean.Bean, parentID string) error {
 		}
 	}
 
-	return fmt.Errorf("%s beans can only have %s as parent, not %s",
+	return fmt.Errorf("%s totems can only have %s as parent, not %s",
 		b.Type, joinWithOr(validTypes), parent.Type)
 }
 

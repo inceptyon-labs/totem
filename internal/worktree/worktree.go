@@ -24,7 +24,7 @@ import (
 // the HTTP connection from dying before the fetch completes.
 const DefaultFetchTimeout = 10 * time.Second
 
-const branchPrefix = "beans/"
+const branchPrefix = "totems/"
 
 // SetupStatus represents the state of a worktree's post-creation setup.
 type SetupStatus string
@@ -216,7 +216,7 @@ func (m *Manager) notify() {
 	}
 }
 
-// List returns all active worktrees that were created by beans (branch prefix "beans/").
+// List returns all active worktrees that were created by beans (branch prefix "totems/").
 func (m *Manager) List() ([]Worktree, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -305,7 +305,7 @@ func parsePorcelain(output string, worktreesDir string) []Worktree {
 			detached = false
 		} else if strings.HasPrefix(line, "branch ") {
 			ref := strings.TrimPrefix(line, "branch ")
-			// ref is like "refs/heads/beans/beans-abc1"
+			// ref is like "refs/heads/totems/totems-abc1"
 			currentBranch = strings.TrimPrefix(ref, "refs/heads/")
 		} else if line == "detached" {
 			detached = true

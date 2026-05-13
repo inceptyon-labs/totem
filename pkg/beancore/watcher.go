@@ -289,7 +289,7 @@ func (c *Core) handleChanges(changes map[string]fsnotify.Op) {
 					// Update search index
 					if c.searchIndex != nil {
 						if err := c.searchIndex.DeleteBean(id); err != nil {
-							c.logWarn("failed to remove bean %s from search index: %v", id, err)
+							c.logWarn("failed to remove totem %s from search index: %v", id, err)
 						}
 					}
 
@@ -311,7 +311,7 @@ func (c *Core) handleChanges(changes map[string]fsnotify.Op) {
 		if op&fsnotify.Create != 0 || op&fsnotify.Write != 0 {
 			newBean, err := c.loadBean(path)
 			if err != nil {
-				c.logWarn("failed to load bean from %s: %v", path, err)
+				c.logWarn("failed to load totem from %s: %v", path, err)
 				continue
 			}
 
@@ -322,7 +322,7 @@ func (c *Core) handleChanges(changes map[string]fsnotify.Op) {
 			// Update search index
 			if c.searchIndex != nil {
 				if err := c.searchIndex.IndexBean(newBean); err != nil {
-					c.logWarn("failed to index bean %s: %v", newBean.ID, err)
+					c.logWarn("failed to index totem %s: %v", newBean.ID, err)
 				}
 			}
 

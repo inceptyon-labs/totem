@@ -85,7 +85,7 @@ func (c *Core) WatchWorktreeBeans(worktreePath string) error {
 	// Start the watcher goroutine
 	go c.worktreeWatchLoop(wt, watcher)
 
-	c.logWarn("watching worktree beans: %s", beansDir)
+	c.logWarn("watching worktree totems: %s", beansDir)
 	return nil
 }
 
@@ -147,7 +147,7 @@ func (c *Core) UnwatchWorktreeBeans(worktreePath string) {
 
 	if exists {
 		close(wt.done)
-		c.logWarn("stopped watching worktree beans: %s", wt.beansDir)
+		c.logWarn("stopped watching worktree totems: %s", wt.beansDir)
 	}
 }
 
@@ -311,7 +311,7 @@ func (c *Core) handleWorktreeChanges(wt *worktreeWatcher, changes map[string]fsn
 
 		newBean, err := c.loadBeanFrom(path, wt.beansDir)
 		if err != nil {
-			c.logWarn("failed to load worktree bean from %s: %v", path, err)
+			c.logWarn("failed to load worktree totem from %s: %v", path, err)
 			continue
 		}
 
@@ -348,7 +348,7 @@ func (c *Core) handleWorktreeChanges(wt *worktreeWatcher, changes map[string]fsn
 		// Update search index
 		if c.searchIndex != nil {
 			if err := c.searchIndex.IndexBean(newBean); err != nil {
-				c.logWarn("failed to index worktree bean %s: %v", newBean.ID, err)
+				c.logWarn("failed to index worktree totem %s: %v", newBean.ID, err)
 			}
 		}
 

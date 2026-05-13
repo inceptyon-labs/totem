@@ -14,7 +14,7 @@
 
 <div class="flex h-full flex-col bg-surface">
   <div class="pane-toolbar">
-    <span>Bean</span>
+    <span>Totem</span>
     <div class="flex-1"></div>
     {#if onClose}
       <button onclick={onClose} class="btn-icon" title="Close"> &#x2715; </button>

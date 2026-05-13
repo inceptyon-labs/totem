@@ -19,13 +19,13 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 		SortByStatusPriorityAndType(beans, statusNames, priorityNames, typeNames)
 
 		if beans[0].Status != "draft" {
-			t.Errorf("First bean status = %q, want \"draft\"", beans[0].Status)
+			t.Errorf("First totem status = %q, want \"draft\"", beans[0].Status)
 		}
 		if beans[1].Status != "todo" {
-			t.Errorf("Second bean status = %q, want \"todo\"", beans[1].Status)
+			t.Errorf("Second totem status = %q, want \"todo\"", beans[1].Status)
 		}
 		if beans[2].Status != "completed" {
-			t.Errorf("Third bean status = %q, want \"completed\"", beans[2].Status)
+			t.Errorf("Third totem status = %q, want \"completed\"", beans[2].Status)
 		}
 	})
 
@@ -45,7 +45,7 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 		expectedOrder := []string{"A Critical", "B High", "C Normal", "D No Priority", "E Low"}
 		for i, expected := range expectedOrder {
 			if beans[i].Title != expected {
-				t.Errorf("beans[%d].Title = %q, want %q", i, beans[i].Title, expected)
+				t.Errorf("totems[%d].Title = %q, want %q", i, beans[i].Title, expected)
 			}
 		}
 	})
@@ -62,10 +62,10 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 
 		// High should come first, then Normal and Empty (same priority level), then Low
 		if beans[0].Title != "High" {
-			t.Errorf("First bean = %q, want \"High\"", beans[0].Title)
+			t.Errorf("First totem = %q, want \"High\"", beans[0].Title)
 		}
 		if beans[3].Title != "Low" {
-			t.Errorf("Last bean = %q, want \"Low\"", beans[3].Title)
+			t.Errorf("Last totem = %q, want \"Low\"", beans[3].Title)
 		}
 		// Empty and Normal should be adjacent (both at normal priority level)
 		normalIdx, emptyIdx := -1, -1
@@ -95,13 +95,13 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 		SortByStatusPriorityAndType(beans, statusNames, priorityNames, typeNames)
 
 		if beans[0].Type != "bug" {
-			t.Errorf("First bean type = %q, want \"bug\"", beans[0].Type)
+			t.Errorf("First totem type = %q, want \"bug\"", beans[0].Type)
 		}
 		if beans[1].Type != "feature" {
-			t.Errorf("Second bean type = %q, want \"feature\"", beans[1].Type)
+			t.Errorf("Second totem type = %q, want \"feature\"", beans[1].Type)
 		}
 		if beans[2].Type != "task" {
-			t.Errorf("Third bean type = %q, want \"task\"", beans[2].Type)
+			t.Errorf("Third totem type = %q, want \"task\"", beans[2].Type)
 		}
 	})
 
@@ -115,13 +115,13 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 		SortByStatusPriorityAndType(beans, statusNames, priorityNames, typeNames)
 
 		if beans[0].Title != "Apple" {
-			t.Errorf("First bean title = %q, want \"Apple\"", beans[0].Title)
+			t.Errorf("First totem title = %q, want \"Apple\"", beans[0].Title)
 		}
 		if beans[1].Title != "Mango" {
-			t.Errorf("Second bean title = %q, want \"Mango\"", beans[1].Title)
+			t.Errorf("Second totem title = %q, want \"Mango\"", beans[1].Title)
 		}
 		if beans[2].Title != "Zebra" {
-			t.Errorf("Third bean title = %q, want \"Zebra\"", beans[2].Title)
+			t.Errorf("Third totem title = %q, want \"Zebra\"", beans[2].Title)
 		}
 	})
 
@@ -136,7 +136,7 @@ func TestSortByStatusPriorityAndType(t *testing.T) {
 
 		// Both should be sorted by status, type, then title
 		if beans[0].Title != "A" {
-			t.Errorf("First bean title = %q, want \"A\"", beans[0].Title)
+			t.Errorf("First totem title = %q, want \"A\"", beans[0].Title)
 		}
 	})
 }

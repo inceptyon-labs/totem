@@ -110,9 +110,9 @@ type BeanChangeEvent struct {
 	// Type of change that occurred
 	Type ChangeType `json:"type"`
 	// The bean that changed (null for INITIAL_SNAPSHOT and DELETED events)
-	Bean *bean.Bean `json:"bean,omitempty"`
+	Bean *bean.Bean `json:"totem,omitempty"`
 	// All beans as a batch (only present for INITIAL_SNAPSHOT events)
-	Beans []*bean.Bean `json:"beans,omitempty"`
+	Beans []*bean.Bean `json:"totems,omitempty"`
 	// ID of the bean that changed (empty for INITIAL_SNAPSHOT events)
 	BeanID string `json:"beanId"`
 }
@@ -373,7 +373,7 @@ type Worktree struct {
 	// Filesystem path to the worktree
 	Path string `json:"path"`
 	// Beans detected from changes in this worktree vs the base branch
-	Beans []*bean.Bean `json:"beans"`
+	Beans []*bean.Bean `json:"totems"`
 	// Whether the worktree has uncommitted changes or untracked files
 	HasChanges bool `json:"hasChanges"`
 	// Whether the worktree has commits not yet merged into the base branch

@@ -22,7 +22,7 @@ import (
 const BeansDir = ".totem"
 const ArchiveDir = "archive"
 
-var ErrNotFound = errors.New("bean not found")
+var ErrNotFound = errors.New("totem not found")
 
 // ETagMismatchError is returned when an ETag validation fails.
 // This allows callers to distinguish concurrency conflicts from other errors.
@@ -306,7 +306,7 @@ func (c *Core) All() []*bean.Bean {
 
 // Get finds a bean by exact ID match.
 // If a prefix is configured and the query doesn't include it, the prefix is automatically prepended.
-// For example, with prefix "beans-", Get("abc") will match "beans-abc" but Get("ab") will not.
+// For example, with prefix "totems-", Get("abc") will match "totems-abc" but Get("ab") will not.
 func (c *Core) Get(id string) (*bean.Bean, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -317,7 +317,7 @@ func (c *Core) Get(id string) (*bean.Bean, error) {
 	}
 
 	// If not found and we have a configured prefix that isn't already in the query,
-	// try with the prefix prepended (allows short IDs like "abc" to match "beans-abc")
+	// try with the prefix prepended (allows short IDs like "abc" to match "totems-abc")
 	if c.config != nil && c.config.Beans.Prefix != "" && !strings.HasPrefix(id, c.config.Beans.Prefix) {
 		if b, ok := c.beans[c.config.Beans.Prefix+id]; ok {
 			return b, nil
@@ -340,7 +340,7 @@ func (c *Core) NormalizeID(id string) (string, bool) {
 	}
 
 	// If not found and we have a configured prefix that isn't already in the query,
-	// try with the prefix prepended (allows short IDs like "abc" to match "beans-abc")
+	// try with the prefix prepended (allows short IDs like "abc" to match "totems-abc")
 	if c.config != nil && c.config.Beans.Prefix != "" && !strings.HasPrefix(id, c.config.Beans.Prefix) {
 		fullID := c.config.Beans.Prefix + id
 		if _, ok := c.beans[fullID]; ok {
@@ -442,7 +442,7 @@ func (c *Core) SaveDirty() (int, error) {
 		}
 
 		if err := c.saveToDisk(b); err != nil {
-			return saved, fmt.Errorf("saving bean %s: %w", id, err)
+			return saved, fmt.Errorf("saving totem %s: %w", id, err)
 		}
 
 		delete(c.dirty, id)
@@ -468,7 +468,7 @@ func (c *Core) SaveBean(id string) error {
 	}
 
 	if err := c.saveToDisk(b); err != nil {
-		return fmt.Errorf("saving bean %s: %w", id, err)
+		return fmt.Errorf("saving totem %s: %w", id, err)
 	}
 
 	delete(c.dirty, id)
@@ -498,7 +498,7 @@ func (c *Core) Create(b *bean.Bean, opts ...UpdateOption) error {
 		}
 		id, err := bean.NewID(prefix, length)
 		if err != nil {
-			return fmt.Errorf("generating bean ID: %w", err)
+			return fmt.Errorf("generating totem ID: %w", err)
 		}
 		b.ID = id
 	}
@@ -524,7 +524,7 @@ func (c *Core) Create(b *bean.Bean, opts ...UpdateOption) error {
 	// Update search index if active (best-effort, don't fail create)
 	if c.searchIndex != nil {
 		if err := c.searchIndex.IndexBean(b); err != nil {
-			c.logWarn("failed to index bean %s: %v", b.ID, err)
+			c.logWarn("failed to index totem %s: %v", b.ID, err)
 		}
 	}
 
@@ -621,7 +621,7 @@ func (c *Core) Update(b *bean.Bean, ifMatch *string, opts ...UpdateOption) error
 	// Update search index if active (best-effort, don't fail update)
 	if c.searchIndex != nil {
 		if err := c.searchIndex.IndexBean(b); err != nil {
-			c.logWarn("failed to update bean %s in search index: %v", b.ID, err)
+			c.logWarn("failed to update totem %s in search index: %v", b.ID, err)
 		}
 	}
 
@@ -665,7 +665,7 @@ func (c *Core) saveToWorktree(b *bean.Bean, worktreePath string) error {
 
 	// Ensure the .totem/ directory exists in the worktree
 	if err := os.MkdirAll(beansDir, 0755); err != nil {
-		return fmt.Errorf("creating worktree beans dir: %w", err)
+		return fmt.Errorf("creating worktree totems dir: %w", err)
 	}
 
 	filename := bean.BuildFilename(b.ID, b.Slug)
@@ -677,7 +677,7 @@ func (c *Core) saveToWorktree(b *bean.Bean, worktreePath string) error {
 	}
 
 	if err := os.WriteFile(path, content, 0644); err != nil {
-		return fmt.Errorf("writing worktree bean: %w", err)
+		return fmt.Errorf("writing worktree totem: %w", err)
 	}
 
 	return nil
@@ -719,7 +719,7 @@ func (c *Core) Delete(id string) error {
 	// Update search index if active (best-effort, don't fail delete)
 	if c.searchIndex != nil {
 		if err := c.searchIndex.DeleteBean(targetID); err != nil {
-			c.logWarn("failed to remove bean %s from search index: %v", targetID, err)
+			c.logWarn("failed to remove totem %s from search index: %v", targetID, err)
 		}
 	}
 
@@ -758,7 +758,7 @@ func (c *Core) Archive(id string) error {
 
 	if err := os.Rename(oldPath, newPath); err != nil {
 		c.mu.Unlock()
-		return fmt.Errorf("moving bean to archive: %w", err)
+		return fmt.Errorf("moving totem to archive: %w", err)
 	}
 
 	// Update bean's path in store and notify subscribers
@@ -798,7 +798,7 @@ func (c *Core) Unarchive(id string) error {
 	newPath := filepath.Join(c.root, newRelPath)
 
 	if err := os.Rename(oldPath, newPath); err != nil {
-		return fmt.Errorf("moving bean from archive: %w", err)
+		return fmt.Errorf("moving totem from archive: %w", err)
 	}
 
 	// Update bean's path
@@ -911,7 +911,7 @@ func (c *Core) LoadAndUnarchive(id string) (*bean.Bean, error) {
 	newPath := filepath.Join(c.root, newRelPath)
 
 	if err := os.Rename(oldPath, newPath); err != nil {
-		return nil, fmt.Errorf("moving bean from archive: %w", err)
+		return nil, fmt.Errorf("moving totem from archive: %w", err)
 	}
 
 	// Update bean's path
@@ -969,7 +969,7 @@ func Init(dir string) error {
 // to exclude conversation logs from version control.
 // Note: worktrees are stored outside the repo (in ~/.totem/worktrees/<project>/).
 func writeGitignore(beansDir string) error {
-	content := "# Generated by beans init\n.conversations/\n"
+	content := "# Generated by totems init\n.conversations/\n"
 	return os.WriteFile(filepath.Join(beansDir, ".gitignore"), []byte(content), 0644)
 }
 

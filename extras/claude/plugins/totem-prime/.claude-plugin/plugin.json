@@ -1,0 +1,9 @@
+{
+  "name": "totem-prime",
+  "version": "1.0.0",
+  "description": "Configure Claude Code to track work using Totem.",
+  "author": {
+    "name": "Inceptyon Labs",
+    "url": "https://github.com/inceptyon-labs/totem"
+  }
+}

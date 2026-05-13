@@ -37,21 +37,21 @@ var (
 	corsOrigins  []string
 )
 
-const centralAgentPrompt = `You are the planning agent for this project. Your primary role is to help manage and organize work through beans (issues).
+const centralAgentPrompt = `You are the planning agent for this project. Your primary role is to help manage and organize work through totems (issues).
 
-IMPORTANT: Do NOT use Claude Code's built-in worktree system (EnterWorktree tool). This project has its own worktree management. To start work on a bean, use the GraphQL startWork mutation instead: mutation { startWork(beanId: "<id>") { path } }
+IMPORTANT: Do NOT use Claude Code's built-in worktree system (EnterWorktree tool). This project has its own worktree management. To start work on a totem, use the GraphQL startWork mutation instead: mutation { startWork(beanId: "<id>") { path } }
 
 CRITICAL — ASKING QUESTIONS:
 You are running inside a web UI, NOT an interactive terminal. The user CANNOT see or respond to plain-text questions in your output. If you need to ask the user anything — confirmation, clarification, a choice between options — you MUST use the AskUserQuestion tool. Every single time. No exceptions. Plain-text questions will be silently ignored by the user because the UI does not surface them as interactive prompts. If you catch yourself writing a question mark at the end of a sentence directed at the user, STOP and use AskUserQuestion instead.
 
 Your responsibilities:
-- **Create and manage beans**: When the user describes work to be done, create beans for it rather than doing the work directly. Break large tasks into smaller, well-defined beans with clear descriptions.
-- **Organize work**: Help prioritize, categorize, and structure beans. Set appropriate types (milestone, epic, feature, task, bug), priorities, and relationships (parent, blocking, blocked-by).
-- **Start work on beans**: When the user wants to begin working on a specific bean, use the startWork GraphQL mutation (see above) to create a worktree for it. NEVER use the EnterWorktree tool.
-- **Nudge towards beans**: If the user asks you to implement something directly, suggest creating a bean for it instead. The actual implementation work should happen in bean-specific worktree agents, not here.
-- **Review and refine**: Help the user review existing beans, refine descriptions, update statuses, and maintain a clean backlog.
+- **Create and manage totems**: When the user describes work to be done, create totems for it rather than doing the work directly. Break large tasks into smaller, well-defined totems with clear descriptions.
+- **Organize work**: Help prioritize, categorize, and structure totems. Set appropriate types (milestone, epic, feature, task, bug), priorities, and relationships (parent, blocking, blocked-by).
+- **Start work on totems**: When the user wants to begin working on a specific totem, use the startWork GraphQL mutation (see above) to create a worktree for it. NEVER use the EnterWorktree tool.
+- **Nudge towards totems**: If the user asks you to implement something directly, suggest creating a totem for it instead. The actual implementation work should happen in totem-specific worktree agents, not here.
+- **Review and refine**: Help the user review existing totems, refine descriptions, update statuses, and maintain a clean backlog.
 
-You have access to the beans CLI and can use GraphQL queries to inspect and modify beans. Focus on planning and coordination — leave implementation to the worktree agents.`
+You have access to the totems CLI and can use GraphQL queries to inspect and modify totems. Focus on planning and coordination — leave implementation to the worktree agents.`
 
 var serveCmd = &cobra.Command{
 	Use:     "serve",
@@ -123,12 +123,12 @@ func runServer(port int, origins []string) error {
 	if err := os.MkdirAll(worktreeRoot, 0755); err != nil {
 		return fmt.Errorf("failed to create worktree directory %s: %w", worktreeRoot, err)
 	}
-	log.Printf("[beans] worktrees directory: %s", worktreeRoot)
+	log.Printf("[totems] worktrees directory: %s", worktreeRoot)
 
 	// Warn if old in-repo worktrees directory exists
 	oldWorktreeDir := filepath.Join(core.Root(), ".worktrees")
 	if entries, err := os.ReadDir(oldWorktreeDir); err == nil && len(entries) > 0 {
-		log.Printf("[beans] WARNING: found old worktrees in %s — worktrees are now created in %s. You may want to recreate existing worktrees and remove the old directory.", oldWorktreeDir, worktreeRoot)
+		log.Printf("[totems] WARNING: found old worktrees in %s — worktrees are now created in %s. You may want to recreate existing worktrees and remove the old directory.", oldWorktreeDir, worktreeRoot)
 	}
 
 	wtManager := worktree.NewManager(cfg.ConfigDir(), worktreeRoot, cfg.GetWorktreeBaseRef(), cfg.GetWorktreeSetup(),
@@ -139,7 +139,7 @@ func runServer(port int, origins []string) error {
 	if existingWTs, err := wtManager.List(); err == nil {
 		for _, wt := range existingWTs {
 			if err := core.WatchWorktreeBeans(wt.Path); err != nil {
-				fmt.Printf("[beans] warning: failed to watch worktree %s: %v\n", wt.ID, err)
+				fmt.Printf("[totems] warning: failed to watch worktree %s: %v\n", wt.ID, err)
 			}
 		}
 	}
@@ -160,7 +160,7 @@ func runServer(port int, origins []string) error {
 			// Persist the port (writes back the actual port, which may differ
 			// from the saved one if there was a conflict).
 			if err := wtManager.SavePort(wt.ID, port); err != nil {
-				log.Printf("[beans] warning: failed to save port for %s: %v", wt.ID, err)
+				log.Printf("[totems] warning: failed to save port for %s: %v", wt.ID, err)
 			}
 		}
 	}
@@ -191,10 +191,10 @@ func runServer(port int, origins []string) error {
 			return ""
 		}
 		var sb strings.Builder
-		sb.WriteString("IMPORTANT: Do NOT use Claude Code's built-in worktree system (EnterWorktree tool). You are already working inside a beans-managed worktree.\n\n")
+		sb.WriteString("IMPORTANT: Do NOT use Claude Code's built-in worktree system (EnterWorktree tool). You are already working inside a totems-managed worktree.\n\n")
 		sb.WriteString("CRITICAL — ASKING QUESTIONS:\nYou are running inside a web UI, NOT an interactive terminal. The user CANNOT see or respond to plain-text questions in your output. If you need to ask the user anything — confirmation, clarification, a choice between options — you MUST use the AskUserQuestion tool. Every single time. No exceptions. Plain-text questions will be silently ignored by the user because the UI does not surface them as interactive prompts. If you catch yourself writing a question mark at the end of a sentence directed at the user, STOP and use AskUserQuestion instead.\n\n")
 		sb.WriteString("IMPORTANT: You MUST only create or modify files within this worktree directory. NEVER make changes to files in the main repository or any other worktree. All your file operations (reads are fine anywhere, but writes, edits, and deletions) must be scoped to your current working directory.\n\n")
-		fmt.Fprintf(&sb, "You are working on bean %s: %q\n", b.ID, b.Title)
+		fmt.Fprintf(&sb, "You are working on totem %s: %q\n", b.ID, b.Title)
 		fmt.Fprintf(&sb, "Type: %s | Status: %s", b.Type, b.Status)
 		if b.Priority != "" {
 			fmt.Fprintf(&sb, " | Priority: %s", b.Priority)
@@ -216,7 +216,7 @@ func runServer(port int, origins []string) error {
 	// its workspace identity.
 	agentMgr.SetSystemPromptProvider(func(beanID string) string {
 		if beanID == graph.CentralSessionID {
-			return fmt.Sprintf("You are the central planning agent for the beans project. Your working directory is the main repository at: %s\nNEVER merge pull requests. After creating a PR, stop and report the URL. Do not run `gh pr merge` or any equivalent.\nNEVER assume CI checks are absent. Checks take time to register after a push. If `gh pr checks` returns empty, it means checks haven't started yet, not that none are configured.", filepath.Dir(core.Root()))
+			return fmt.Sprintf("You are the central planning agent for the totems project. Your working directory is the main repository at: %s\nNEVER merge pull requests. After creating a PR, stop and report the URL. Do not run `gh pr merge` or any equivalent.\nNEVER assume CI checks are absent. Checks take time to register after a push. If `gh pr checks` returns empty, it means checks haven't started yet, not that none are configured.", filepath.Dir(core.Root()))
 		}
 		wtPath := wtManager.WorktreePath(beanID)
 		if wtPath == "" {
@@ -249,9 +249,9 @@ func runServer(port int, origins []string) error {
 					desc := agent.GenerateDescription(message)
 					if desc != "" {
 						if err := wtManager.UpdateDescription(beanID, desc); err != nil {
-							log.Printf("[beans] failed to save workspace description for %s: %v", beanID, err)
+							log.Printf("[totems] failed to save workspace description for %s: %v", beanID, err)
 						} else {
-							log.Printf("[beans] generated workspace description for %s: %q", beanID, desc)
+							log.Printf("[totems] generated workspace description for %s: %q", beanID, desc)
 						}
 					}
 					break
@@ -267,7 +267,7 @@ func runServer(port int, origins []string) error {
 			return
 		}
 		if err := wtManager.TouchLastActive(beanID); err != nil {
-			log.Printf("[beans] failed to update last_active_at for %s: %v", beanID, err)
+			log.Printf("[totems] failed to update last_active_at for %s: %v", beanID, err)
 		}
 	})
 
@@ -281,7 +281,7 @@ func runServer(port int, origins []string) error {
 	projectRoot := filepath.Dir(core.Root())
 	forgeProvider := forge.Detect(projectRoot)
 	if forgeProvider != nil {
-		fmt.Printf("[beans] detected forge: %s (using %s CLI)\n", forgeProvider.Name(), forgeProvider.CLIName())
+		fmt.Printf("[totems] detected forge: %s (using %s CLI)\n", forgeProvider.Name(), forgeProvider.CLIName())
 	}
 
 	// Provide workspace context (PR status, git state) for quick reply generation.
@@ -369,7 +369,7 @@ func runServer(port int, origins []string) error {
 	router.Any("/api/graphql", gin.WrapH(gqlHandler))
 
 	// GraphQL Playground
-	router.GET("/playground", gin.WrapH(playground.Handler("Beans GraphQL", "/api/graphql")))
+	router.GET("/playground", gin.WrapH(playground.Handler("Totem GraphQL", "/api/graphql")))
 
 	// Serve agent chat image attachments
 	router.GET("/api/attachments/:beanId/:filename", func(c *gin.Context) {
@@ -414,9 +414,9 @@ func runServer(port int, origins []string) error {
 
 	// Start server in goroutine
 	go func() {
-		fmt.Printf("[beans] Starting server at http://localhost:%d/\n", port)
-		fmt.Printf("[beans] GraphQL Playground: http://localhost:%d/playground\n", port)
-		fmt.Printf("[beans] Allowed origins: %s\n", strings.Join(origins, ", "))
+		fmt.Printf("[totems] Starting server at http://localhost:%d/\n", port)
+		fmt.Printf("[totems] GraphQL Playground: http://localhost:%d/playground\n", port)
+		fmt.Printf("[totems] Allowed origins: %s\n", strings.Join(origins, ", "))
 		serverErr <- server.ListenAndServe()
 	}()
 

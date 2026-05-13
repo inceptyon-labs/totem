@@ -89,12 +89,12 @@ func (r *CoreResolver) ValidateAndAddBlocking(b *bean.Bean, targetIDs []string) 
 
 		// Validate: cannot block itself
 		if normalizedTargetID == b.ID {
-			return fmt.Errorf("bean cannot block itself")
+			return fmt.Errorf("totem cannot block itself")
 		}
 
 		// Validate: target must exist
 		if _, err := r.Core.Get(normalizedTargetID); err != nil {
-			return fmt.Errorf("blocking target bean not found: %s", targetID)
+			return fmt.Errorf("blocking target totem not found: %s", targetID)
 		}
 
 		// Check for cycles in both directions
@@ -126,12 +126,12 @@ func (r *CoreResolver) ValidateAndAddBlockedBy(b *bean.Bean, targetIDs []string)
 
 		// Validate: cannot be blocked by itself
 		if normalizedTargetID == b.ID {
-			return fmt.Errorf("bean cannot be blocked by itself")
+			return fmt.Errorf("totem cannot be blocked by itself")
 		}
 
 		// Validate: blocker must exist
 		if _, err := r.Core.Get(normalizedTargetID); err != nil {
-			return fmt.Errorf("blocker bean not found: %s", targetID)
+			return fmt.Errorf("blocker totem not found: %s", targetID)
 		}
 
 		// Check for cycles in both directions

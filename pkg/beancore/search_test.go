@@ -67,7 +67,7 @@ func TestSearch_LazyInit(t *testing.T) {
 	// Create a bean first (before any search)
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Content",
 	}
 	if err := core.Create(b); err != nil {
@@ -81,7 +81,7 @@ func TestSearch_LazyInit(t *testing.T) {
 	}
 
 	if len(results) != 1 {
-		t.Errorf("Search(Test) returned %d results, want 1 (lazy init should index existing beans)", len(results))
+		t.Errorf("Search(Test) returned %d results, want 1 (lazy init should index existing totems)", len(results))
 	}
 }
 
@@ -95,7 +95,7 @@ func TestSearch_CreateUpdatesIndex(t *testing.T) {
 	// Create a new bean
 	b := &bean.Bean{
 		ID:    "new1",
-		Title: "New Bean",
+		Title: "New Totem",
 		Body:  "Fresh content",
 	}
 	if err := core.Create(b); err != nil {
@@ -165,7 +165,7 @@ func TestSearch_DeleteUpdatesIndex(t *testing.T) {
 	// Initialize index
 	results, _ := core.Search("deleteme")
 	if len(results) != 1 {
-		t.Fatal("bean should be indexed before delete")
+		t.Fatal("totem should be indexed before delete")
 	}
 
 	// Delete the bean
@@ -191,7 +191,7 @@ func TestSearch_LoadRebuildsIndex(t *testing.T) {
 	// Create a bean
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Initial Bean",
+		Title: "Initial Totem",
 		Body:  "Content",
 	}
 	if err := core.Create(b); err != nil {
@@ -203,7 +203,7 @@ func TestSearch_LoadRebuildsIndex(t *testing.T) {
 
 	// Write a new bean file directly (simulating external change)
 	content := `---
-title: External Bean
+title: External Totem
 status: todo
 ---
 
@@ -235,7 +235,7 @@ func TestSearch_NoResults(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Content",
 	}
 	if err := core.Create(b); err != nil {
@@ -258,7 +258,7 @@ func TestClose_ClosesSearchIndex(t *testing.T) {
 	// Create a bean and search to initialize index
 	b := &bean.Bean{
 		ID:    "abc1",
-		Title: "Test Bean",
+		Title: "Test Totem",
 		Body:  "Content",
 	}
 	if err := core.Create(b); err != nil {

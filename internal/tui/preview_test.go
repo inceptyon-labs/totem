@@ -9,8 +9,8 @@ import (
 
 func TestPreviewView(t *testing.T) {
 	b := &bean.Bean{
-		ID:       "beans-test",
-		Title:    "Test Bean",
+		ID:       "totems-test",
+		Title:    "Test Totem",
 		Status:   "todo",
 		Type:     "feature",
 		Priority: "high",
@@ -22,13 +22,13 @@ func TestPreviewView(t *testing.T) {
 	view := preview.View()
 
 	// Should contain the title
-	if !strings.Contains(view, "Test Bean") {
-		t.Error("preview should contain bean title")
+	if !strings.Contains(view, "Test Totem") {
+		t.Error("preview should contain totem title")
 	}
 
 	// Should contain the ID
-	if !strings.Contains(view, "beans-test") {
-		t.Error("preview should contain bean ID")
+	if !strings.Contains(view, "totems-test") {
+		t.Error("preview should contain totem ID")
 	}
 
 	// Should contain status
@@ -51,15 +51,15 @@ func TestPreviewViewEmpty(t *testing.T) {
 	preview := newPreviewModel(nil, 60, 20)
 	view := preview.View()
 
-	if !strings.Contains(view, "No bean selected") {
-		t.Error("empty preview should show 'No bean selected'")
+	if !strings.Contains(view, "No totem selected") {
+		t.Error("empty preview should show 'No totem selected'")
 	}
 }
 
 func TestPreviewViewWithTags(t *testing.T) {
 	b := &bean.Bean{
-		ID:     "beans-test",
-		Title:  "Bean with Tags",
+		ID:     "totems-test",
+		Title:  "Totem with Tags",
 		Status: "in-progress",
 		Type:   "bug",
 		Tags:   []string{"urgent", "backend"},
@@ -77,8 +77,8 @@ func TestPreviewViewWithTags(t *testing.T) {
 
 func TestPreviewViewWithPriority(t *testing.T) {
 	b := &bean.Bean{
-		ID:       "beans-test",
-		Title:    "High Priority Bean",
+		ID:       "totems-test",
+		Title:    "High Priority Totem",
 		Status:   "todo",
 		Type:     "task",
 		Priority: "critical",
@@ -96,8 +96,8 @@ func TestPreviewViewWithPriority(t *testing.T) {
 
 func TestPreviewViewEmptyBody(t *testing.T) {
 	b := &bean.Bean{
-		ID:     "beans-test",
-		Title:  "Bean without body",
+		ID:     "totems-test",
+		Title:  "Totem without body",
 		Status: "todo",
 		Type:   "task",
 		Body:   "",

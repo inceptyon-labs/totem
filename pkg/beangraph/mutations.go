@@ -53,7 +53,7 @@ func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInp
 			normalizedBlocking[i], _ = r.Core.NormalizeID(id)
 			// Verify target exists
 			if _, err := r.Core.Get(normalizedBlocking[i]); err != nil {
-				return nil, fmt.Errorf("target bean not found: %s", id)
+				return nil, fmt.Errorf("target totem not found: %s", id)
 			}
 		}
 		b.Blocking = normalizedBlocking
@@ -67,7 +67,7 @@ func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInp
 			normalizedBlockedBy[i], _ = r.Core.NormalizeID(id)
 			// Verify blocker exists
 			if _, err := r.Core.Get(normalizedBlockedBy[i]); err != nil {
-				return nil, fmt.Errorf("blocker bean not found: %s", id)
+				return nil, fmt.Errorf("blocker totem not found: %s", id)
 			}
 		}
 		// Check for cycles with blocking relationships
@@ -75,7 +75,7 @@ func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInp
 		for _, blockerID := range normalizedBlockedBy {
 			for _, blockingID := range b.Blocking {
 				if blockerID == blockingID {
-					return nil, fmt.Errorf("would create cycle: new bean both blocks and is blocked by %s", blockerID)
+					return nil, fmt.Errorf("would create cycle: new totem both blocks and is blocked by %s", blockerID)
 				}
 			}
 		}
@@ -90,7 +90,7 @@ func (r *CoreResolver) CreateBean(ctx context.Context, input model.CreateBeanInp
 		}
 		id, err := bean.NewID(*input.Prefix, idLength)
 		if err != nil {
-			return nil, fmt.Errorf("generating bean ID: %w", err)
+			return nil, fmt.Errorf("generating totem ID: %w", err)
 		}
 		b.ID = id
 	}
@@ -291,12 +291,12 @@ func (r *CoreResolver) AddBlocking(ctx context.Context, id string, targetID stri
 	normalizedTargetID, _ := r.Core.NormalizeID(targetID)
 
 	if normalizedTargetID == b.ID {
-		return nil, fmt.Errorf("bean cannot block itself")
+		return nil, fmt.Errorf("totem cannot block itself")
 	}
 
 	// Check target exists
 	if _, err := r.Core.Get(normalizedTargetID); err != nil {
-		return nil, fmt.Errorf("target bean not found: %s", targetID)
+		return nil, fmt.Errorf("target totem not found: %s", targetID)
 	}
 
 	// Check for cycles in both directions
@@ -340,12 +340,12 @@ func (r *CoreResolver) AddBlockedBy(ctx context.Context, id string, targetID str
 	normalizedTargetID, _ := r.Core.NormalizeID(targetID)
 
 	if normalizedTargetID == b.ID {
-		return nil, fmt.Errorf("bean cannot be blocked by itself")
+		return nil, fmt.Errorf("totem cannot be blocked by itself")
 	}
 
 	// Check target exists
 	if _, err := r.Core.Get(normalizedTargetID); err != nil {
-		return nil, fmt.Errorf("blocker bean not found: %s", targetID)
+		return nil, fmt.Errorf("blocker totem not found: %s", targetID)
 	}
 
 	// Check for cycles in both directions

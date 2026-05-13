@@ -166,13 +166,13 @@ func TestSortBeans(t *testing.T) {
 		// No assertion needed, just checking it doesn't panic
 	})
 
-	t.Run("single bean does not panic", func(t *testing.T) {
+	t.Run("single totem does not panic", func(t *testing.T) {
 		beans := []*bean.Bean{
 			{ID: "1", Status: "todo", Type: "task", Title: "A"},
 		}
 		bean.SortByStatusPriorityAndType(beans, statusNames, priorityNames, typeNames)
 		if beans[0].ID != "1" {
-			t.Error("single bean should remain unchanged")
+			t.Error("single totem should remain unchanged")
 		}
 	})
 }
@@ -188,10 +188,10 @@ func TestCompareBeansByStatusPriorityAndType(t *testing.T) {
 
 		// draft < todo, so b should come before a
 		if compareBeansByStatusPriorityAndType(a, b, statusNames, priorityNames, typeNames) {
-			t.Error("draft bean should come before todo bean")
+			t.Error("draft totem should come before todo totem")
 		}
 		if !compareBeansByStatusPriorityAndType(b, a, statusNames, priorityNames, typeNames) {
-			t.Error("draft bean should come before todo bean")
+			t.Error("draft totem should come before todo totem")
 		}
 	})
 
@@ -201,10 +201,10 @@ func TestCompareBeansByStatusPriorityAndType(t *testing.T) {
 
 		// high < low, so b should come before a
 		if compareBeansByStatusPriorityAndType(a, b, statusNames, priorityNames, typeNames) {
-			t.Error("high priority bean should come before low priority bean")
+			t.Error("high priority totem should come before low priority totem")
 		}
 		if !compareBeansByStatusPriorityAndType(b, a, statusNames, priorityNames, typeNames) {
-			t.Error("high priority bean should come before low priority bean")
+			t.Error("high priority totem should come before low priority totem")
 		}
 	})
 
@@ -214,10 +214,10 @@ func TestCompareBeansByStatusPriorityAndType(t *testing.T) {
 
 		// bug < task, so b should come before a
 		if compareBeansByStatusPriorityAndType(a, b, statusNames, priorityNames, typeNames) {
-			t.Error("bug bean should come before task bean")
+			t.Error("bug totem should come before task totem")
 		}
 		if !compareBeansByStatusPriorityAndType(b, a, statusNames, priorityNames, typeNames) {
-			t.Error("bug bean should come before task bean")
+			t.Error("bug totem should come before task totem")
 		}
 	})
 
@@ -227,10 +227,10 @@ func TestCompareBeansByStatusPriorityAndType(t *testing.T) {
 
 		// Apple < Zebra, so b should come before a
 		if compareBeansByStatusPriorityAndType(a, b, statusNames, priorityNames, typeNames) {
-			t.Error("Apple bean should come before Zebra bean")
+			t.Error("Apple totem should come before Zebra totem")
 		}
 		if !compareBeansByStatusPriorityAndType(b, a, statusNames, priorityNames, typeNames) {
-			t.Error("Apple bean should come before Zebra bean")
+			t.Error("Apple totem should come before Zebra totem")
 		}
 	})
 
@@ -240,7 +240,7 @@ func TestCompareBeansByStatusPriorityAndType(t *testing.T) {
 
 		// apple < zebra (case-insensitive), so b should come before a
 		if compareBeansByStatusPriorityAndType(a, b, statusNames, priorityNames, typeNames) {
-			t.Error("APPLE bean should come before zebra bean (case-insensitive)")
+			t.Error("APPLE totem should come before zebra totem (case-insensitive)")
 		}
 	})
 

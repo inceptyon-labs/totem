@@ -38,7 +38,7 @@ func (m previewModel) renderEmpty() string {
 		Align(lipgloss.Center, lipgloss.Center).
 		Foreground(ui.ColorMuted)
 
-	return style.Render("No bean selected")
+	return style.Render("No totem selected")
 }
 
 func (m previewModel) renderBean() string {

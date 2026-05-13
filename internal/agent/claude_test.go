@@ -16,7 +16,7 @@ import (
 func TestSendToProcessImageOnlyNoEmptyTextBlock(t *testing.T) {
 	// Set up a temp store with a fake image file
 	tmpDir := t.TempDir()
-	beanID := "beans-test1"
+	beanID := "totems-test1"
 	attachDir := filepath.Join(tmpDir, "attachments", beanID)
 	if err := os.MkdirAll(attachDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -88,7 +88,7 @@ func TestSendToProcessImageOnlyNoEmptyTextBlock(t *testing.T) {
 // provided, both blocks are included in the correct order.
 func TestSendToProcessImageWithText(t *testing.T) {
 	tmpDir := t.TempDir()
-	beanID := "beans-test2"
+	beanID := "totems-test2"
 	attachDir := filepath.Join(tmpDir, "attachments", beanID)
 	if err := os.MkdirAll(attachDir, 0o755); err != nil {
 		t.Fatal(err)
@@ -179,17 +179,17 @@ func TestReadOutputMessageOrder(t *testing.T) {
 	}
 
 	session := &Session{
-		ID:           "bean-test",
+		ID:           "totem-test",
 		AgentType:    "claude",
 		Status:       StatusRunning,
 		Messages:     []Message{{Role: RoleUser, Content: "hello"}},
 		streamingIdx: -1,
 	}
-	m.sessions["bean-test"] = session
+	m.sessions["totem-test"] = session
 	proc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-test"] = proc
+	m.processes["totem-test"] = proc
 
-	m.readOutput("bean-test", strings.NewReader(lines), "", proc)
+	m.readOutput("totem-test", strings.NewReader(lines), "", proc)
 
 	// Expected message order:
 	// [0] USER: "hello"          (pre-existing)
@@ -241,21 +241,21 @@ func TestReadOutputMultiTurnResetsStatus(t *testing.T) {
 	}
 
 	session := &Session{
-		ID:           "bean-multi-turn",
+		ID:           "totem-multi-turn",
 		AgentType:    "claude",
 		Status:       StatusRunning,
 		Messages:     []Message{{Role: RoleUser, Content: "hello"}},
 		streamingIdx: -1,
 	}
-	m.sessions["bean-multi-turn"] = session
+	m.sessions["totem-multi-turn"] = session
 	proc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-multi-turn"] = proc
+	m.processes["totem-multi-turn"] = proc
 
 	// Run readOutput in a goroutine since it blocks
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		m.readOutput("bean-multi-turn", pr, "", proc)
+		m.readOutput("totem-multi-turn", pr, "", proc)
 	}()
 
 	// Helper to write a line and wait for it to be processed
@@ -267,7 +267,7 @@ func TestReadOutputMultiTurnResetsStatus(t *testing.T) {
 		deadline := time.After(500 * time.Millisecond)
 		for {
 			m.mu.RLock()
-			s := m.sessions["bean-multi-turn"].Status
+			s := m.sessions["totem-multi-turn"].Status
 			m.mu.RUnlock()
 			if s == want {
 				return s
@@ -333,17 +333,17 @@ func TestReadOutputMultipleTools(t *testing.T) {
 	}
 
 	session := &Session{
-		ID:           "bean-multi",
+		ID:           "totem-multi",
 		AgentType:    "claude",
 		Status:       StatusRunning,
 		Messages:     []Message{{Role: RoleUser, Content: "do stuff"}},
 		streamingIdx: -1,
 	}
-	m.sessions["bean-multi"] = session
+	m.sessions["totem-multi"] = session
 	proc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-multi"] = proc
+	m.processes["totem-multi"] = proc
 
-	m.readOutput("bean-multi", strings.NewReader(lines), "", proc)
+	m.readOutput("totem-multi", strings.NewReader(lines), "", proc)
 
 	// Expected: USER, ASSISTANT(Step 1), TOOL(Bash), ASSISTANT(Step 2), TOOL(Read), ASSISTANT(Step 3)
 	msgs := session.Messages
@@ -385,20 +385,20 @@ func TestReadOutputAskUserQuestionStaysIdle(t *testing.T) {
 	}
 
 	session := &Session{
-		ID:           "bean-ask",
+		ID:           "totem-ask",
 		AgentType:    "claude",
 		Status:       StatusRunning,
 		Messages:     []Message{{Role: RoleUser, Content: "hello"}},
 		streamingIdx: -1,
 	}
-	m.sessions["bean-ask"] = session
+	m.sessions["totem-ask"] = session
 	proc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-ask"] = proc
+	m.processes["totem-ask"] = proc
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		m.readOutput("bean-ask", pr, "", proc)
+		m.readOutput("totem-ask", pr, "", proc)
 	}()
 
 	writeLine := func(line string) {
@@ -409,7 +409,7 @@ func TestReadOutputAskUserQuestionStaysIdle(t *testing.T) {
 		deadline := time.After(500 * time.Millisecond)
 		for {
 			m.mu.RLock()
-			s := m.sessions["bean-ask"].Status
+			s := m.sessions["totem-ask"].Status
 			m.mu.RUnlock()
 			if s == want {
 				return s
@@ -437,7 +437,7 @@ func TestReadOutputAskUserQuestionStaysIdle(t *testing.T) {
 
 	// Verify pending interaction was set
 	m.mu.RLock()
-	pending := m.sessions["bean-ask"].PendingInteraction
+	pending := m.sessions["totem-ask"].PendingInteraction
 	m.mu.RUnlock()
 	if pending == nil || pending.Type != InteractionAskUser {
 		t.Fatalf("expected AskUser pending interaction, got %v", pending)
@@ -451,7 +451,7 @@ func TestReadOutputAskUserQuestionStaysIdle(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 
 	m.mu.RLock()
-	finalStatus := m.sessions["bean-ask"].Status
+	finalStatus := m.sessions["totem-ask"].Status
 	m.mu.RUnlock()
 	if finalStatus != StatusIdle {
 		t.Errorf("after trailing events, expected Idle, got %s", finalStatus)
@@ -474,20 +474,20 @@ func TestReadOutputStaleProcessDoesNotResetStatus(t *testing.T) {
 	}
 
 	session := &Session{
-		ID:           "bean-stale",
+		ID:           "totem-stale",
 		AgentType:    "claude",
 		Status:       StatusRunning,
 		Messages:     []Message{{Role: RoleUser, Content: "hello"}},
 		streamingIdx: -1,
 	}
-	m.sessions["bean-stale"] = session
+	m.sessions["totem-stale"] = session
 	oldProc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-stale"] = oldProc
+	m.processes["totem-stale"] = oldProc
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		m.readOutput("bean-stale", pr, "", oldProc)
+		m.readOutput("totem-stale", pr, "", oldProc)
 	}()
 
 	writeLine := func(line string) {
@@ -498,7 +498,7 @@ func TestReadOutputStaleProcessDoesNotResetStatus(t *testing.T) {
 		deadline := time.After(500 * time.Millisecond)
 		for {
 			m.mu.RLock()
-			s := m.sessions["bean-stale"].Status
+			s := m.sessions["totem-stale"].Status
 			m.mu.RUnlock()
 			if s == want {
 				return s
@@ -519,7 +519,7 @@ func TestReadOutputStaleProcessDoesNotResetStatus(t *testing.T) {
 	// (as autoApproveModeSwitch would do)
 	m.mu.Lock()
 	newProc := &runningProcess{done: make(chan struct{})}
-	m.processes["bean-stale"] = newProc
+	m.processes["totem-stale"] = newProc
 	session.Status = StatusRunning // new process sets this
 	m.mu.Unlock()
 

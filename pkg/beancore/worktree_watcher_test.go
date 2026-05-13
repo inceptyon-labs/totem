@@ -8,7 +8,7 @@ import (
 )
 
 func TestWorktreeWatcher(t *testing.T) {
-	t.Run("watches worktree beans dir and merges changes", func(t *testing.T) {
+	t.Run("watches worktree totems dir and merges changes", func(t *testing.T) {
 		core, _ := setupTestCore(t)
 
 		// Create a bean in the main repo first
@@ -48,7 +48,7 @@ Working on this in a worktree.
 `
 		beanPath := filepath.Join(wtBeansDir, "wt-test-1--original.md")
 		if err := os.WriteFile(beanPath, []byte(content), 0644); err != nil {
-			t.Fatalf("failed to write worktree bean: %v", err)
+			t.Fatalf("failed to write worktree totem: %v", err)
 		}
 
 		// Wait for the event to propagate
@@ -70,12 +70,12 @@ Working on this in a worktree.
 				t.Error("expected EventUpdated for wt-test-1")
 			}
 		case <-time.After(2 * time.Second):
-			t.Fatal("timed out waiting for worktree bean change event")
+			t.Fatal("timed out waiting for worktree totem change event")
 		}
 
 		// Bean should be dirty (came from worktree, not persisted to main)
 		if !core.IsDirty("wt-test-1") {
-			t.Error("bean should be dirty after worktree update")
+			t.Error("totem should be dirty after worktree update")
 		}
 
 		// In-memory state should reflect the worktree's version
@@ -162,7 +162,7 @@ Working on this in a worktree.
 		// Bean should still exist and be reverted to main-repo version
 		got, err = core.Get("wt-del-1")
 		if err != nil {
-			t.Fatalf("bean should still exist after worktree delete, got error: %v", err)
+			t.Fatalf("totem should still exist after worktree delete, got error: %v", err)
 		}
 		if got.Title != "Original Title" {
 			t.Errorf("Title = %q, want %q", got.Title, "Original Title")
@@ -170,11 +170,11 @@ Working on this in a worktree.
 
 		// Should no longer be dirty
 		if core.IsDirty("wt-del-1") {
-			t.Error("bean should not be dirty after reverting to main-repo version")
+			t.Error("totem should not be dirty after reverting to main-repo version")
 		}
 	})
 
-	t.Run("delete worktree-only bean removes from runtime", func(t *testing.T) {
+	t.Run("delete worktree-only totem removes from runtime", func(t *testing.T) {
 		core, _ := setupTestCore(t)
 
 		// Create a worktree with a bean that doesn't exist in main
@@ -195,7 +195,7 @@ Working on this in a worktree.
 		// Verify the bean was loaded
 		got, err := core.Get("wt-only-1")
 		if err != nil {
-			t.Fatalf("bean should exist after initial load, got error: %v", err)
+			t.Fatalf("totem should exist after initial load, got error: %v", err)
 		}
 		if got.Title != "Worktree Only" {
 			t.Errorf("Title = %q, want %q", got.Title, "Worktree Only")
@@ -218,7 +218,7 @@ Working on this in a worktree.
 				}
 			}
 			if !found {
-				t.Error("expected EventDeleted for worktree-only bean")
+				t.Error("expected EventDeleted for worktree-only totem")
 			}
 		case <-time.After(2 * time.Second):
 			t.Fatal("timed out waiting for delete event")
@@ -238,8 +238,8 @@ Working on this in a worktree.
 		wtBeansDir := filepath.Join(wtDir, BeansDir)
 		os.MkdirAll(wtBeansDir, 0755)
 
-		content := "---\ntitle: Linked Bean\nstatus: todo\ntype: task\n---\n"
-		beanPath := filepath.Join(wtBeansDir, "wt-link-1--linked-bean.md")
+		content := "---\ntitle: Linked Totem\nstatus: todo\ntype: task\n---\n"
+		beanPath := filepath.Join(wtBeansDir, "wt-link-1--linked-totem.md")
 		os.WriteFile(beanPath, []byte(content), 0644)
 
 		// Watch the worktree — initial load should set the link
@@ -268,8 +268,8 @@ Working on this in a worktree.
 		wtBeansDir := filepath.Join(wtDir, BeansDir)
 		os.MkdirAll(wtBeansDir, 0755)
 
-		content := "---\ntitle: Unlink Bean\nstatus: todo\ntype: task\n---\n"
-		os.WriteFile(filepath.Join(wtBeansDir, "wt-unlink-1--unlink-bean.md"), []byte(content), 0644)
+		content := "---\ntitle: Unlink Totem\nstatus: todo\ntype: task\n---\n"
+		os.WriteFile(filepath.Join(wtBeansDir, "wt-unlink-1--unlink-totem.md"), []byte(content), 0644)
 
 		if err := core.WatchWorktreeBeans(wtDir); err != nil {
 			t.Fatalf("WatchWorktreeBeans() error = %v", err)
@@ -319,7 +319,7 @@ Working on this in a worktree.
 
 		// Bean should still be dirty (written to worktree, not main)
 		if !core.IsDirty("wt-auto-1") {
-			t.Error("bean should be dirty after auto-routed update")
+			t.Error("totem should be dirty after auto-routed update")
 		}
 
 		// Verify the file was written to the worktree
@@ -334,18 +334,18 @@ Working on this in a worktree.
 			}
 		}
 		if !found {
-			t.Error("expected updated bean file in worktree .totem/ dir")
+			t.Error("expected updated totem file in worktree .totem/ dir")
 		}
 	})
 
-	t.Run("rebase with identical beans does not link them", func(t *testing.T) {
+	t.Run("rebase with identical totems does not link them", func(t *testing.T) {
 		core, _ := setupTestCore(t)
 
 		// Create beans in main with explicit content (stable timestamps)
-		bean1Content := "---\ntitle: Bean One\nstatus: todo\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
-		os.WriteFile(filepath.Join(core.Root(), "rebase-1--bean-one.md"), []byte(bean1Content), 0644)
-		bean2Content := "---\ntitle: Bean Two\nstatus: todo\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
-		os.WriteFile(filepath.Join(core.Root(), "rebase-2--bean-two.md"), []byte(bean2Content), 0644)
+		bean1Content := "---\ntitle: Totem One\nstatus: todo\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
+		os.WriteFile(filepath.Join(core.Root(), "rebase-1--totem-one.md"), []byte(bean1Content), 0644)
+		bean2Content := "---\ntitle: Totem Two\nstatus: todo\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
+		os.WriteFile(filepath.Join(core.Root(), "rebase-2--totem-two.md"), []byte(bean2Content), 0644)
 		// Reload so core picks them up
 		core.Load()
 
@@ -361,11 +361,11 @@ Working on this in a worktree.
 		os.MkdirAll(wtBeansDir, 0755)
 
 		// Modified bean — should be linked
-		modifiedContent := "---\ntitle: Bean One Modified\nstatus: in-progress\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
-		os.WriteFile(filepath.Join(wtBeansDir, "rebase-1--bean-one.md"), []byte(modifiedContent), 0644)
+		modifiedContent := "---\ntitle: Totem One Modified\nstatus: in-progress\ntype: task\ncreated_at: 2025-01-01T00:00:00Z\nupdated_at: 2025-01-01T00:00:00Z\n---\n"
+		os.WriteFile(filepath.Join(wtBeansDir, "rebase-1--totem-one.md"), []byte(modifiedContent), 0644)
 
 		// Identical content — should NOT be linked (simulates rebase pulling in main's version)
-		os.WriteFile(filepath.Join(wtBeansDir, "rebase-2--bean-two.md"), []byte(bean2Content), 0644)
+		os.WriteFile(filepath.Join(wtBeansDir, "rebase-2--totem-two.md"), []byte(bean2Content), 0644)
 
 		if err := core.WatchWorktreeBeans(wtDir); err != nil {
 			t.Fatalf("WatchWorktreeBeans() error = %v", err)
@@ -387,7 +387,7 @@ Working on this in a worktree.
 		events, unsub := core.Subscribe()
 		defer unsub()
 
-		os.WriteFile(filepath.Join(wtBeansDir, "rebase-1--bean-one.md"), []byte(bean1Content), 0644)
+		os.WriteFile(filepath.Join(wtBeansDir, "rebase-1--totem-one.md"), []byte(bean1Content), 0644)
 
 		// Wait for the watcher to process the change
 		select {

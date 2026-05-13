@@ -56,12 +56,12 @@ func TestParseFilename(t *testing.T) {
 	}{
 		// New format with double-dash
 		{"new format basic", "abc--my-slug.md", "abc", "my-slug"},
-		{"new format with prefix", "beans-z5r9--add-unit-tests.md", "beans-z5r9", "add-unit-tests"},
+		{"new format with prefix", "totems-z5r9--add-unit-tests.md", "totems-z5r9", "add-unit-tests"},
 		{"new format long slug", "xyz--this-is-a-longer-slug.md", "xyz", "this-is-a-longer-slug"},
 
 		// Dot format
 		{"dot format basic", "abc.my-slug.md", "abc", "my-slug"},
-		{"dot format with prefix", "beans-z5r9.add-unit-tests.md", "beans-z5r9", "add-unit-tests"},
+		{"dot format with prefix", "totems-z5r9.add-unit-tests.md", "totems-z5r9", "add-unit-tests"},
 
 		// Legacy format with single dash
 		{"legacy format basic", "abc-my-slug.md", "abc", "my-slug"},
@@ -69,7 +69,7 @@ func TestParseFilename(t *testing.T) {
 
 		// ID only
 		{"id only with md", "abc.md", "abc", ""},
-		{"id only with prefix", "beans-z5r9.md", "beans", "z5r9"}, // legacy format interpretation
+		{"id only with prefix", "totems-z5r9.md", "totems", "z5r9"}, // legacy format interpretation
 		{"id only no extension", "abc", "abc", ""},
 
 		// Edge cases
@@ -97,7 +97,7 @@ func TestBuildFilename(t *testing.T) {
 	}{
 		{"with slug", "abc", "my-slug", "abc--my-slug.md"},
 		{"empty slug", "abc", "", "abc.md"},
-		{"with prefix id", "beans-z5r9", "add-tests", "beans-z5r9--add-tests.md"},
+		{"with prefix id", "totems-z5r9", "add-tests", "totems-z5r9--add-tests.md"},
 		{"long slug", "xyz", "this-is-a-longer-slug", "xyz--this-is-a-longer-slug.md"},
 	}
 
@@ -124,12 +124,12 @@ func TestNewID(t *testing.T) {
 	})
 
 	t.Run("length with prefix", func(t *testing.T) {
-		id, err := NewID("beans-", 4)
+		id, err := NewID("totems-", 4)
 		if err != nil {
-			t.Fatalf("NewID(\"beans-\", 4) unexpected error: %v", err)
+			t.Fatalf("NewID(\"totems-\", 4) unexpected error: %v", err)
 		}
-		if len(id) != 10 { // "beans-" (6) + 4
-			t.Errorf("NewID(\"beans-\", 4) length = %d, want 10", len(id))
+		if len(id) != 11 { // "totems-" (7) + 4
+			t.Errorf("NewID(\"totems-\", 4) length = %d, want 11", len(id))
 		}
 	})
 
@@ -216,7 +216,7 @@ func TestParseFilenameAndBuildFilenameRoundtrip(t *testing.T) {
 		slug string
 	}{
 		{"basic", "abc", "my-slug"},
-		{"with prefix", "beans-z5r9", "add-tests"},
+		{"with prefix", "totems-z5r9", "add-tests"},
 		{"no slug", "xyz", ""},
 	}
 

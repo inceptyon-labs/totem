@@ -23,7 +23,7 @@ func TestBuildTree(t *testing.T) {
 	// Identity sort function (no sorting)
 	noSort := func(b []*bean.Bean) {}
 
-	t.Run("all beans matched", func(t *testing.T) {
+	t.Run("all totems matched", func(t *testing.T) {
 		tree := BuildTree(allBeans, allBeans, noSort, nil)
 
 		// Should have 2 root nodes: milestone1 and task2
@@ -128,7 +128,7 @@ func TestBuildTree(t *testing.T) {
 		}
 	})
 
-	t.Run("orphan bean", func(t *testing.T) {
+	t.Run("orphan totem", func(t *testing.T) {
 		matchedBeans := []*bean.Bean{task2}
 		tree := BuildTree(matchedBeans, allBeans, noSort, nil)
 
@@ -156,7 +156,7 @@ func TestBuildTree(t *testing.T) {
 			t.Errorf("expected 1 root node, got %d", len(tree))
 		}
 		if tree[0].Bean.ID != "broken" {
-			t.Errorf("expected broken bean as root, got %s", tree[0].Bean.ID)
+			t.Errorf("expected broken totem as root, got %s", tree[0].Bean.ID)
 		}
 	})
 }

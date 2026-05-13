@@ -215,7 +215,7 @@ func (m detailModel) createLinkList() list.Model {
 	listHeight := min(len(m.links), maxHeight) + 2
 
 	l := list.New(items, delegate, m.width-8, listHeight)
-	l.Title = "Linked Beans"
+	l.Title = "Linked Totem"
 	l.SetShowStatusBar(false)
 	l.SetShowHelp(false)
 	l.SetShowPagination(false)

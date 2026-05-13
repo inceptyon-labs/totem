@@ -23,7 +23,7 @@ type promptData struct {
 var primeCmd = &cobra.Command{
 	Use:   "prime",
 	Short: "Output instructions for AI coding agents",
-	Long:  `Outputs a prompt that primes AI coding agents on how to use the beans CLI to manage project issues.`,
+	Long:  `Outputs a prompt that primes AI coding agents on how to use the totems CLI to manage project issues.`,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// If no explicit path given, check if a beans project exists by searching

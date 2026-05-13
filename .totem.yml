@@ -3,7 +3,7 @@
 project:
   # Human-readable project name (displayed in the UI)
   name: totem
-totem:
+totems:
   # Directory where totem files are stored
   path: .totem
   # Prefix for totem IDs (e.g., "myproject-abc1")

@@ -76,7 +76,7 @@
       <FilterInput bind:this={filterInput} />
     </div>
     {#snippet right()}
-      <button class="btn-primary" onclick={() => ui.openCreateForm()}>+ New Bean</button>
+      <button class="btn-primary" onclick={() => ui.openCreateForm()}>+ New Totem</button>
     {/snippet}
   </ViewToolbar>
 
@@ -111,7 +111,7 @@
                     />
                   {:else}
                     {#if !beansStore.loading}
-                      <p class="text-center py-4 text-sm text-text-muted">No beans</p>
+                      <p class="text-center py-4 text-sm text-text-muted">No totems</p>
                     {/if}
                   {/each}
 

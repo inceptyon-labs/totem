@@ -15,14 +15,14 @@ func TestSafeJoin(t *testing.T) {
 		{
 			name:      "simple filename",
 			root:      "/home/user/.totem",
-			untrusted: "bean-abc.md",
-			want:      "/home/user/.totem/bean-abc.md",
+			untrusted: "totem-abc.md",
+			want:      "/home/user/.totem/totem-abc.md",
 		},
 		{
 			name:      "subdirectory path",
 			root:      "/home/user/.totem",
-			untrusted: "archive/bean-abc.md",
-			want:      "/home/user/.totem/archive/bean-abc.md",
+			untrusted: "archive/totem-abc.md",
+			want:      "/home/user/.totem/archive/totem-abc.md",
 		},
 		{
 			name:      "path traversal with ..",
@@ -57,8 +57,8 @@ func TestSafeJoin(t *testing.T) {
 		{
 			name:      "nested safe path",
 			root:      "/home/user/.totem",
-			untrusted: ".conversations/bean-abc.jsonl",
-			want:      "/home/user/.totem/.conversations/bean-abc.jsonl",
+			untrusted: ".conversations/totem-abc.jsonl",
+			want:      "/home/user/.totem/.conversations/totem-abc.jsonl",
 		},
 		{
 			name:      "trailing slash on root",
@@ -94,17 +94,17 @@ func TestValidateBeanID(t *testing.T) {
 		beanID  string
 		wantErr bool
 	}{
-		{name: "valid simple", beanID: "bean-abc1", wantErr: false},
+		{name: "valid simple", beanID: "totem-abc1", wantErr: false},
 		{name: "valid with underscores", beanID: "__central__", wantErr: false},
 		{name: "valid alphanumeric", beanID: "abc123", wantErr: false},
-		{name: "valid with hyphens", beanID: "my-bean-id", wantErr: false},
+		{name: "valid with hyphens", beanID: "my-totem-id", wantErr: false},
 		{name: "empty", beanID: "", wantErr: true},
 		{name: "path traversal", beanID: "../../../etc/passwd", wantErr: true},
-		{name: "contains slash", beanID: "bean/evil", wantErr: true},
-		{name: "contains backslash", beanID: "bean\\evil", wantErr: true},
-		{name: "contains dot-dot", beanID: "bean..evil", wantErr: true},
-		{name: "contains space", beanID: "bean evil", wantErr: true},
-		{name: "contains null byte", beanID: "bean\x00evil", wantErr: true},
+		{name: "contains slash", beanID: "totem/evil", wantErr: true},
+		{name: "contains backslash", beanID: "totem\\evil", wantErr: true},
+		{name: "contains dot-dot", beanID: "totem..evil", wantErr: true},
+		{name: "contains space", beanID: "totem evil", wantErr: true},
+		{name: "contains null byte", beanID: "totem\x00evil", wantErr: true},
 	}
 
 	for _, tt := range tests {

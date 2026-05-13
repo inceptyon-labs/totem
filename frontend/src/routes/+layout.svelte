@@ -66,7 +66,7 @@
 </script>
 
 <svelte:head>
-  <title>{configStore.projectName ? `${configStore.projectName} — Beans UI` : 'Beans UI'}</title>
+  <title>{configStore.projectName ? `${configStore.projectName} — Totem` : 'Totem'}</title>
   <link rel="icon" href={favicon} />
 </svelte:head>
 

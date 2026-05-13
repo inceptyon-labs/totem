@@ -89,7 +89,7 @@ type editorFinishedMsg struct {
 // openParentPickerMsg requests opening the parent picker for bean(s)
 type openParentPickerMsg struct {
 	beanIDs       []string // IDs of beans to update
-	beanTitle     string   // Display title (single title or "N selected beans")
+	beanTitle     string   // Display title (single title or "N selected totems")
 	beanTypes     []string // Types of the beans (to filter eligible parents)
 	currentParent string   // Only meaningful for single bean
 }
@@ -478,7 +478,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		editor := getEditor()
 		fullPath, err := safepath.SafeJoin(a.core.Root(), msg.beanPath)
 		if err != nil {
-			a.list.statusMessage = fmt.Sprintf("unsafe bean path: %v", err)
+			a.list.statusMessage = fmt.Sprintf("unsafe totem path: %v", err)
 			return a, nil
 		}
 
@@ -556,7 +556,7 @@ func (a *App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else if len(msg.ids) == 1 {
 			statusMsg = fmt.Sprintf("Copied %s to clipboard", msg.ids[0])
 		} else {
-			statusMsg = fmt.Sprintf("Copied %d bean IDs to clipboard", len(msg.ids))
+			statusMsg = fmt.Sprintf("Copied %d totem IDs to clipboard", len(msg.ids))
 		}
 
 		// Set status on current view

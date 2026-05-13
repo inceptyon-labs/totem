@@ -42,10 +42,10 @@ func SafeJoin(root, untrusted string) (string, error) {
 // traversal or command injection.
 func ValidateBeanID(beanID string) error {
 	if beanID == "" {
-		return fmt.Errorf("bean ID must not be empty")
+		return fmt.Errorf("totem ID must not be empty")
 	}
 	if !beanIDPattern.MatchString(beanID) {
-		return fmt.Errorf("invalid bean ID %q: must contain only alphanumeric characters, hyphens, and underscores", beanID)
+		return fmt.Errorf("invalid totem ID %q: must contain only alphanumeric characters, hyphens, and underscores", beanID)
 	}
 	return nil
 }

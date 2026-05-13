@@ -23,7 +23,7 @@ type closeTypePickerMsg struct{}
 // openTypePickerMsg requests opening the type picker for bean(s)
 type openTypePickerMsg struct {
 	beanIDs     []string // IDs of beans to update
-	beanTitle   string   // Display title (single title or "N beans")
+	beanTitle   string   // Display title (single title or "N totems")
 	currentType string   // Only meaningful for single bean
 }
 

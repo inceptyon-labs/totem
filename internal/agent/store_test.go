@@ -34,7 +34,7 @@ func TestStoreRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-abc"
+	beanID := "totem-abc"
 
 	// Initially empty
 	msgs, sessionID, err := s.load(beanID)
@@ -82,7 +82,7 @@ func TestStoreSessionIDUpdates(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-xyz"
+	beanID := "totem-xyz"
 
 	// Save two different session IDs — last one wins on load
 	s.saveSessionID(beanID, "old-session")
@@ -101,7 +101,7 @@ func TestStoreSkipsMalformedLines(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-bad"
+	beanID := "totem-bad"
 
 	// Write a valid message, then garbage, then another valid message
 	p, _ := s.path(beanID)
@@ -127,13 +127,13 @@ func TestToolMessagePersistsWithSummary(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-tool"
+	beanID := "totem-tool"
 
 	// Simulate what readOutput now does: persist tool message with summary included
 	s.appendMessage(beanID, Message{Role: RoleUser, Content: "build the project"})
 	s.appendMessage(beanID, Message{Role: RoleAssistant, Content: "I'll build it."})
 	// Tool message persisted AFTER summary was extracted (deferred persistence)
-	s.appendMessage(beanID, Message{Role: RoleTool, Content: "Bash: Build beans binary"})
+	s.appendMessage(beanID, Message{Role: RoleTool, Content: "Bash: Build totems binary"})
 	s.appendMessage(beanID, Message{Role: RoleTool, Content: "Glob: **/main.go"})
 	s.appendMessage(beanID, Message{Role: RoleAssistant, Content: "Done!"})
 
@@ -145,8 +145,8 @@ func TestToolMessagePersistsWithSummary(t *testing.T) {
 	if len(msgs) != 5 {
 		t.Fatalf("expected 5 messages, got %d", len(msgs))
 	}
-	if msgs[2].Content != "Bash: Build beans binary" {
-		t.Errorf("tool msg[2] = %q, want %q", msgs[2].Content, "Bash: Build beans binary")
+	if msgs[2].Content != "Bash: Build totems binary" {
+		t.Errorf("tool msg[2] = %q, want %q", msgs[2].Content, "Bash: Build totems binary")
 	}
 	if msgs[3].Content != "Glob: **/main.go" {
 		t.Errorf("tool msg[3] = %q, want %q", msgs[3].Content, "Glob: **/main.go")
@@ -162,7 +162,7 @@ func TestStoreRejectsPathTraversal(t *testing.T) {
 
 	malicious := []string{
 		"../../../etc/passwd",
-		"bean/evil",
+		"totem/evil",
 		"",
 	}
 	for _, id := range malicious {
@@ -186,7 +186,7 @@ func TestStoreImageSaveAndPath(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-img"
+	beanID := "totem-img"
 	data := []byte("fake-png-data")
 
 	// Save an image
@@ -223,14 +223,14 @@ func TestStoreImageValidation(t *testing.T) {
 	}
 
 	// Reject unsupported type
-	_, err = s.saveImage("bean-1", "image/bmp", []byte("data"))
+	_, err = s.saveImage("totem-1", "image/bmp", []byte("data"))
 	if err == nil {
 		t.Error("expected error for unsupported image type")
 	}
 
 	// Reject oversized image
 	big := make([]byte, 6*1024*1024) // 6MB
-	_, err = s.saveImage("bean-1", "image/png", big)
+	_, err = s.saveImage("totem-1", "image/png", big)
 	if err == nil {
 		t.Error("expected error for oversized image")
 	}
@@ -243,7 +243,7 @@ func TestStoreImageRoundTrip(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-imgrt"
+	beanID := "totem-imgrt"
 	ref, err := s.saveImage(beanID, "image/jpeg", []byte("jpeg-data"))
 	if err != nil {
 		t.Fatal(err)
@@ -285,7 +285,7 @@ func TestStoreClearRemovesAttachments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-clr"
+	beanID := "totem-clr"
 	ref, err := s.saveImage(beanID, "image/png", []byte("img"))
 	if err != nil {
 		t.Fatal(err)
@@ -312,7 +312,7 @@ func TestStorePruneAttachments(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	beanID := "bean-prune"
+	beanID := "totem-prune"
 	keep, _ := s.saveImage(beanID, "image/png", []byte("keep"))
 	orphan, _ := s.saveImage(beanID, "image/png", []byte("orphan"))
 
@@ -343,7 +343,7 @@ func TestStoreAttachmentPathTraversal(t *testing.T) {
 
 	malicious := []string{"../../../etc/passwd", "foo/bar", "", ".."}
 	for _, id := range malicious {
-		_, err := s.attachmentPath("bean-1", id)
+		_, err := s.attachmentPath("totem-1", id)
 		if err == nil {
 			t.Errorf("attachmentPath(%q) should have failed", id)
 		}
@@ -360,8 +360,8 @@ func TestManagerPersistence(t *testing.T) {
 	}
 
 	// Manually add a session with messages
-	m.sessions["bean-1"] = &Session{
-		ID:        "bean-1",
+	m.sessions["totem-1"] = &Session{
+		ID:        "totem-1",
 		AgentType: "claude",
 		Status:    StatusIdle,
 		Messages: []Message{
@@ -370,13 +370,13 @@ func TestManagerPersistence(t *testing.T) {
 	}
 
 	// Persist a message through the store
-	m.store.appendMessage("bean-1", Message{Role: RoleUser, Content: "test"})
-	m.store.appendMessage("bean-1", Message{Role: RoleAssistant, Content: "response"})
-	m.store.saveSessionID("bean-1", "sess-abc")
+	m.store.appendMessage("totem-1", Message{Role: RoleUser, Content: "test"})
+	m.store.appendMessage("totem-1", Message{Role: RoleAssistant, Content: "response"})
+	m.store.saveSessionID("totem-1", "sess-abc")
 
 	// Create a new manager (simulating restart) — should load from disk
 	m2 := NewManager(dir, nil)
-	s := m2.GetSession("bean-1")
+	s := m2.GetSession("totem-1")
 	if s == nil {
 		t.Fatal("expected session to be loaded from disk")
 	}

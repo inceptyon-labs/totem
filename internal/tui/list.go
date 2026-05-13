@@ -131,7 +131,7 @@ func newListModel(resolver *beangraph.CoreResolver, cfg *config.Config) listMode
 	delegate := itemDelegate{cfg: cfg, selectedBeans: &selectedBeans}
 
 	l := list.New([]list.Item{}, delegate, 0, 0)
-	l.Title = "Beans"
+	l.Title = "Totem"
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true)
 	l.SetShowHelp(false)
@@ -319,7 +319,7 @@ func (m listModel) Update(msg tea.Msg) (listModel, tea.Cmd) {
 					return m, func() tea.Msg {
 						return openParentPickerMsg{
 							beanIDs:   ids,
-							beanTitle: fmt.Sprintf("%d selected beans", len(ids)),
+							beanTitle: fmt.Sprintf("%d selected totems", len(ids)),
 							beanTypes: types,
 						}
 					}
@@ -344,7 +344,7 @@ func (m listModel) Update(msg tea.Msg) (listModel, tea.Cmd) {
 					return m, func() tea.Msg {
 						return openStatusPickerMsg{
 							beanIDs:   ids,
-							beanTitle: fmt.Sprintf("%d selected beans", len(ids)),
+							beanTitle: fmt.Sprintf("%d selected totems", len(ids)),
 						}
 					}
 				} else if item, ok := m.list.SelectedItem().(beanItem); ok {
@@ -367,7 +367,7 @@ func (m listModel) Update(msg tea.Msg) (listModel, tea.Cmd) {
 					return m, func() tea.Msg {
 						return openTypePickerMsg{
 							beanIDs:   ids,
-							beanTitle: fmt.Sprintf("%d selected beans", len(ids)),
+							beanTitle: fmt.Sprintf("%d selected totems", len(ids)),
 						}
 					}
 				} else if item, ok := m.list.SelectedItem().(beanItem); ok {
@@ -390,7 +390,7 @@ func (m listModel) Update(msg tea.Msg) (listModel, tea.Cmd) {
 					return m, func() tea.Msg {
 						return openPriorityPickerMsg{
 							beanIDs:   ids,
-							beanTitle: fmt.Sprintf("%d selected beans", len(ids)),
+							beanTitle: fmt.Sprintf("%d selected totems", len(ids)),
 						}
 					}
 				} else if item, ok := m.list.SelectedItem().(beanItem); ok {
@@ -503,9 +503,9 @@ func (m listModel) View() string {
 
 	// Update title based on active filter
 	if m.tagFilter != "" {
-		m.list.Title = fmt.Sprintf("Beans [tag: %s]", m.tagFilter)
+		m.list.Title = fmt.Sprintf("Totem [tag: %s]", m.tagFilter)
 	} else {
-		m.list.Title = "Beans"
+		m.list.Title = "Totem"
 	}
 
 	// Inner height: total height minus border (2) minus footer (1) minus padding (1)
@@ -605,9 +605,9 @@ func (m listModel) ViewConstrained(width, height int) string {
 
 	// Update title based on active filter
 	if m.tagFilter != "" {
-		m.list.Title = fmt.Sprintf("Beans [tag: %s]", m.tagFilter)
+		m.list.Title = fmt.Sprintf("Totem [tag: %s]", m.tagFilter)
 	} else {
-		m.list.Title = "Beans"
+		m.list.Title = "Totem"
 	}
 
 	return m.viewContent(innerHeight)

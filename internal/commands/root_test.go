@@ -17,9 +17,9 @@ func TestResolveBeansPath(t *testing.T) {
 		t.Fatalf("failed to create test .totem dir: %v", err)
 	}
 
-	altBeansDir := filepath.Join(tmpDir, "alt-beans")
+	altBeansDir := filepath.Join(tmpDir, "alt-totems")
 	if err := os.MkdirAll(altBeansDir, 0755); err != nil {
-		t.Fatalf("failed to create alt beans dir: %v", err)
+		t.Fatalf("failed to create alt totems dir: %v", err)
 	}
 
 	// Config that points to the valid beans dir
@@ -27,7 +27,7 @@ func TestResolveBeansPath(t *testing.T) {
 	cfg.SetConfigDir(tmpDir)
 
 	t.Run("flag takes highest precedence", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", altBeansDir)
+		t.Setenv("TOTEM_PATH", altBeansDir)
 
 		got, err := resolveBeansPath(validBeansDir, cfg)
 		if err != nil {
@@ -39,7 +39,7 @@ func TestResolveBeansPath(t *testing.T) {
 	})
 
 	t.Run("flag overrides env var", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", "/nonexistent/should/not/be/used")
+		t.Setenv("TOTEM_PATH", "/nonexistent/should/not/be/used")
 
 		got, err := resolveBeansPath(validBeansDir, cfg)
 		if err != nil {
@@ -51,7 +51,7 @@ func TestResolveBeansPath(t *testing.T) {
 	})
 
 	t.Run("env var used when flag is empty", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", altBeansDir)
+		t.Setenv("TOTEM_PATH", altBeansDir)
 
 		got, err := resolveBeansPath("", cfg)
 		if err != nil {
@@ -63,7 +63,7 @@ func TestResolveBeansPath(t *testing.T) {
 	})
 
 	t.Run("config used when flag and env var are empty", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", "")
+		t.Setenv("TOTEM_PATH", "")
 
 		got, err := resolveBeansPath("", cfg)
 		if err != nil {
@@ -86,7 +86,7 @@ func TestResolveBeansPath(t *testing.T) {
 	})
 
 	t.Run("invalid env var path returns error", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", "/nonexistent/env/path")
+		t.Setenv("TOTEM_PATH", "/nonexistent/env/path")
 
 		_, err := resolveBeansPath("", cfg)
 		if err == nil {
@@ -98,7 +98,7 @@ func TestResolveBeansPath(t *testing.T) {
 	})
 
 	t.Run("invalid config path returns init suggestion", func(t *testing.T) {
-		t.Setenv("BEANS_PATH", "")
+		t.Setenv("TOTEM_PATH", "")
 
 		// Config pointing to a nonexistent directory
 		badCfg := config.Default()
@@ -108,8 +108,8 @@ func TestResolveBeansPath(t *testing.T) {
 		if err == nil {
 			t.Fatal("expected error for invalid config path, got nil")
 		}
-		if !strings.Contains(err.Error(), "beans init") {
-			t.Errorf("expected error to suggest 'beans init', got %q", err.Error())
+		if !strings.Contains(err.Error(), "totem init") {
+			t.Errorf("expected error to suggest 'totem init', got %q", err.Error())
 		}
 	})
 

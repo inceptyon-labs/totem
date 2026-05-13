@@ -54,16 +54,16 @@ func TestGetSession_ReturnsSnapshot(t *testing.T) {
 
 func TestSubscribeUnsubscribe(t *testing.T) {
 	m := NewManager("", nil)
-	ch := m.Subscribe("bean-1")
+	ch := m.Subscribe("totem-1")
 
 	// Should have one subscriber
 	m.subMu.Lock()
-	if len(m.subscribers["bean-1"]) != 1 {
-		t.Errorf("expected 1 subscriber, got %d", len(m.subscribers["bean-1"]))
+	if len(m.subscribers["totem-1"]) != 1 {
+		t.Errorf("expected 1 subscriber, got %d", len(m.subscribers["totem-1"]))
 	}
 	m.subMu.Unlock()
 
-	m.Unsubscribe("bean-1", ch)
+	m.Unsubscribe("totem-1", ch)
 
 	// Channel should be closed
 	_, ok := <-ch
@@ -72,18 +72,18 @@ func TestSubscribeUnsubscribe(t *testing.T) {
 	}
 
 	m.subMu.Lock()
-	if len(m.subscribers["bean-1"]) != 0 {
-		t.Errorf("expected 0 subscribers after unsubscribe, got %d", len(m.subscribers["bean-1"]))
+	if len(m.subscribers["totem-1"]) != 0 {
+		t.Errorf("expected 0 subscribers after unsubscribe, got %d", len(m.subscribers["totem-1"]))
 	}
 	m.subMu.Unlock()
 }
 
 func TestNotify(t *testing.T) {
 	m := NewManager("", nil)
-	ch := m.Subscribe("bean-1")
-	defer m.Unsubscribe("bean-1", ch)
+	ch := m.Subscribe("totem-1")
+	defer m.Unsubscribe("totem-1", ch)
 
-	m.notify("bean-1")
+	m.notify("totem-1")
 
 	select {
 	case <-ch:
@@ -95,13 +95,13 @@ func TestNotify(t *testing.T) {
 
 func TestNotify_NonBlocking(t *testing.T) {
 	m := NewManager("", nil)
-	ch := m.Subscribe("bean-1")
-	defer m.Unsubscribe("bean-1", ch)
+	ch := m.Subscribe("totem-1")
+	defer m.Unsubscribe("totem-1", ch)
 
 	// Fill the channel buffer
-	m.notify("bean-1")
+	m.notify("totem-1")
 	// Second notify should not block
-	m.notify("bean-1")
+	m.notify("totem-1")
 
 	// Drain
 	<-ch
@@ -850,12 +850,12 @@ func TestBuildClaudeArgs_NoEffort(t *testing.T) {
 
 func TestSetEffort_CreatesSession(t *testing.T) {
 	m := NewManager("", nil)
-	err := m.SetEffort("test-bean", "max")
+	err := m.SetEffort("test-totem", "max")
 	if err != nil {
 		t.Fatalf("SetEffort: %v", err)
 	}
 
-	snap := m.GetSession("test-bean")
+	snap := m.GetSession("test-totem")
 	if snap == nil {
 		t.Fatal("expected session to exist")
 	}
@@ -867,19 +867,19 @@ func TestSetEffort_CreatesSession(t *testing.T) {
 func TestSetEffort_UpdatesExisting(t *testing.T) {
 	m := NewManager("", nil)
 	m.mu.Lock()
-	m.sessions["test-bean"] = &Session{
-		ID:           "test-bean",
+	m.sessions["test-totem"] = &Session{
+		ID:           "test-totem",
 		Effort:       "low",
 		streamingIdx: -1,
 	}
 	m.mu.Unlock()
 
-	err := m.SetEffort("test-bean", "max")
+	err := m.SetEffort("test-totem", "max")
 	if err != nil {
 		t.Fatalf("SetEffort: %v", err)
 	}
 
-	snap := m.GetSession("test-bean")
+	snap := m.GetSession("test-totem")
 	if snap.Effort != "max" {
 		t.Errorf("expected effort 'max', got %q", snap.Effort)
 	}
@@ -888,17 +888,17 @@ func TestSetEffort_UpdatesExisting(t *testing.T) {
 func TestSetEffort_NoopWhenSame(t *testing.T) {
 	m := NewManager("", nil)
 	m.mu.Lock()
-	m.sessions["test-bean"] = &Session{
-		ID:           "test-bean",
+	m.sessions["test-totem"] = &Session{
+		ID:           "test-totem",
 		Effort:       "high",
 		streamingIdx: -1,
 	}
 	m.mu.Unlock()
 
-	ch := m.Subscribe("test-bean")
+	ch := m.Subscribe("test-totem")
 
 	// Set the same effort — should be a no-op (no notification)
-	err := m.SetEffort("test-bean", "high")
+	err := m.SetEffort("test-totem", "high")
 	if err != nil {
 		t.Fatalf("SetEffort: %v", err)
 	}
@@ -942,7 +942,7 @@ func TestNotify_GlobalSubscribers(t *testing.T) {
 	defer m.UnsubscribeGlobal(globalCh)
 
 	// Notifying any bean should also notify global subscribers
-	m.notify("some-bean")
+	m.notify("some-totem")
 
 	select {
 	case <-globalCh:
@@ -996,9 +996,9 @@ func TestSetDefaultEffort_AppliedToNewSession(t *testing.T) {
 
 	// loadOrCreateSession is called by SendMessage internally; invoke it directly
 	// via the exported path by checking the session after AddInfoMessage creates one.
-	m.AddInfoMessage("test-bean", "hello")
+	m.AddInfoMessage("test-totem", "hello")
 
-	snap := m.GetSession("test-bean")
+	snap := m.GetSession("test-totem")
 	if snap == nil {
 		t.Fatal("expected session to exist")
 	}
@@ -1011,9 +1011,9 @@ func TestSetDefaultEffort_EmptyMeansNoEffort(t *testing.T) {
 	m := NewManager("", nil)
 	// default is empty — no effort applied
 
-	m.AddInfoMessage("test-bean", "hello")
+	m.AddInfoMessage("test-totem", "hello")
 
-	snap := m.GetSession("test-bean")
+	snap := m.GetSession("test-totem")
 	if snap == nil {
 		t.Fatal("expected session to exist")
 	}

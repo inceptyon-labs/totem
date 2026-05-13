@@ -129,7 +129,7 @@
         {#if col.status === 'completed' && beans.length > 0}
           <button
             class="cursor-pointer text-text-faint transition-colors hover:text-text-muted"
-            title="Archive all completed beans"
+            title="Archive all completed totems"
             onclick={() => (confirmingArchiveAll = true)}
             disabled={archivingAll}
           >
@@ -180,7 +180,7 @@
             <BeanCard {bean} variant="board" onclick={() => onSelect?.(bean)} />
           </div>
         {:else}
-          <div class="text-center text-text-faint text-sm py-8">No beans</div>
+          <div class="text-center text-text-faint text-sm py-8">No totems</div>
         {/each}
 
         <!-- Drop indicator at end (always present) -->

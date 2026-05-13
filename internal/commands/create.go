@@ -30,8 +30,8 @@ var (
 var createCmd = &cobra.Command{
 	Use:     "create [title]",
 	Aliases: []string{"c", "new"},
-	Short:   "Create a new bean",
-	Long:    `Creates a new bean (issue) with a generated ID and optional title.`,
+	Short:   "Create a new totem",
+	Long:    `Creates a new totem (issue) with a generated ID and optional title.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		title := strings.Join(args, " ")
 		if title == "" {
@@ -102,11 +102,11 @@ var createCmd = &cobra.Command{
 		resolver := &beangraph.CoreResolver{Core: core}
 		b, err := resolver.CreateBean(context.Background(), input)
 		if err != nil {
-			return cmdError(createJSON, output.ErrFileError, "failed to create bean: %v", err)
+			return cmdError(createJSON, output.ErrFileError, "failed to create totem: %v", err)
 		}
 
 		if createJSON {
-			return output.Success(b, "Bean created")
+			return output.Success(b, "Totem created")
 		}
 
 		fmt.Println(ui.Success.Render("Created ") + ui.ID.Render(b.ID) + " " + ui.Muted.Render(b.Path))
@@ -130,14 +130,14 @@ func RegisterCreateCmd(root *cobra.Command) {
 	}
 
 	createCmd.Flags().StringVarP(&createStatus, "status", "s", "", "Initial status ("+strings.Join(statusNames, ", ")+")")
-	createCmd.Flags().StringVarP(&createType, "type", "t", "", "Bean type ("+strings.Join(typeNames, ", ")+")")
+	createCmd.Flags().StringVarP(&createType, "type", "t", "", "Totem type ("+strings.Join(typeNames, ", ")+")")
 	createCmd.Flags().StringVarP(&createPriority, "priority", "p", "", "Priority level ("+strings.Join(priorityNames, ", ")+")")
 	createCmd.Flags().StringVarP(&createBody, "body", "d", "", "Body content (use '-' to read from stdin)")
 	createCmd.Flags().StringVar(&createBodyFile, "body-file", "", "Read body from file")
 	createCmd.Flags().StringArrayVar(&createTag, "tag", nil, "Add tag (can be repeated)")
-	createCmd.Flags().StringVar(&createParent, "parent", "", "Parent bean ID")
-	createCmd.Flags().StringArrayVar(&createBlocking, "blocking", nil, "ID of bean this blocks (can be repeated)")
-	createCmd.Flags().StringArrayVar(&createBlockedBy, "blocked-by", nil, "ID of bean that blocks this one (can be repeated)")
+	createCmd.Flags().StringVar(&createParent, "parent", "", "Parent totem ID")
+	createCmd.Flags().StringArrayVar(&createBlocking, "blocking", nil, "ID of totem this blocks (can be repeated)")
+	createCmd.Flags().StringArrayVar(&createBlockedBy, "blocked-by", nil, "ID of totem that blocks this one (can be repeated)")
 	createCmd.Flags().StringVar(&createPrefix, "prefix", "", "Custom ID prefix (overrides config prefix)")
 	createCmd.Flags().BoolVar(&createJSON, "json", false, "Output as JSON")
 	createCmd.MarkFlagsMutuallyExclusive("body", "body-file")

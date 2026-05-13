@@ -60,7 +60,7 @@ func createTestBean(t *testing.T, core *Core, id, title, status string) *bean.Be
 		Status: status,
 	}
 	if err := core.Create(b); err != nil {
-		t.Fatalf("failed to create test bean: %v", err)
+		t.Fatalf("failed to create test totem: %v", err)
 	}
 	return b
 }
@@ -116,8 +116,8 @@ func TestCreate(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:     "abc1",
-		Slug:   "test-bean",
-		Title:  "Test Bean",
+		Slug:   "test-totem",
+		Title:  "Test Totem",
 		Status: "todo",
 		Body:   "Some content here.",
 	}
@@ -128,9 +128,9 @@ func TestCreate(t *testing.T) {
 	}
 
 	// Check file exists
-	expectedPath := filepath.Join(beansDir, "abc1--test-bean.md")
+	expectedPath := filepath.Join(beansDir, "abc1--test-totem.md")
 	if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-		t.Errorf("bean file not created at %s", expectedPath)
+		t.Errorf("totem file not created at %s", expectedPath)
 	}
 
 	// Check timestamps were set
@@ -142,14 +142,14 @@ func TestCreate(t *testing.T) {
 	}
 
 	// Check Path was set
-	if b.Path != "abc1--test-bean.md" {
-		t.Errorf("Path = %q, want %q", b.Path, "abc1--test-bean.md")
+	if b.Path != "abc1--test-totem.md" {
+		t.Errorf("Path = %q, want %q", b.Path, "abc1--test-totem.md")
 	}
 
 	// Check in-memory state
 	all := core.All()
 	if len(all) != 1 {
-		t.Errorf("All() returned %d beans, want 1", len(all))
+		t.Errorf("All() returned %d totems, want 1", len(all))
 	}
 }
 
@@ -157,7 +157,7 @@ func TestCreateGeneratesID(t *testing.T) {
 	core, _ := setupTestCore(t)
 
 	b := &bean.Bean{
-		Title:  "Auto ID Bean",
+		Title:  "Auto ID Totem",
 		Status: "todo",
 	}
 
@@ -177,13 +177,13 @@ func TestCreateGeneratesID(t *testing.T) {
 func TestAll(t *testing.T) {
 	core, _ := setupTestCore(t)
 
-	createTestBean(t, core, "aaa1", "First Bean", "todo")
-	createTestBean(t, core, "bbb2", "Second Bean", "in-progress")
-	createTestBean(t, core, "ccc3", "Third Bean", "completed")
+	createTestBean(t, core, "aaa1", "First Totem", "todo")
+	createTestBean(t, core, "bbb2", "Second Totem", "in-progress")
+	createTestBean(t, core, "ccc3", "Third Totem", "completed")
 
 	beans := core.All()
 	if len(beans) != 3 {
-		t.Errorf("All() returned %d beans, want 3", len(beans))
+		t.Errorf("All() returned %d totems, want 3", len(beans))
 	}
 }
 
@@ -192,7 +192,7 @@ func TestAllEmpty(t *testing.T) {
 
 	beans := core.All()
 	if len(beans) != 0 {
-		t.Errorf("All() returned %d beans, want 0", len(beans))
+		t.Errorf("All() returned %d totems, want 0", len(beans))
 	}
 }
 
@@ -239,7 +239,7 @@ func TestGetShortID(t *testing.T) {
 		t.Fatalf("failed to create test .totem dir: %v", err)
 	}
 
-	cfg := config.DefaultWithPrefix("beans-")
+	cfg := config.DefaultWithPrefix("totems-")
 	core := New(beansDir, cfg)
 	core.SetWarnWriter(nil)
 	if err := core.Load(); err != nil {
@@ -247,26 +247,26 @@ func TestGetShortID(t *testing.T) {
 	}
 
 	// Create beans with the prefix
-	createTestBean(t, core, "beans-abc1", "First", "todo")
-	createTestBean(t, core, "beans-def2", "Second", "todo")
+	createTestBean(t, core, "totems-abc1", "First", "todo")
+	createTestBean(t, core, "totems-def2", "Second", "todo")
 
 	t.Run("short ID exact match", func(t *testing.T) {
 		b, err := core.Get("abc1")
 		if err != nil {
 			t.Fatalf("Get() error = %v", err)
 		}
-		if b.ID != "beans-abc1" {
-			t.Errorf("ID = %q, want %q", b.ID, "beans-abc1")
+		if b.ID != "totems-abc1" {
+			t.Errorf("ID = %q, want %q", b.ID, "totems-abc1")
 		}
 	})
 
 	t.Run("full ID exact match", func(t *testing.T) {
-		b, err := core.Get("beans-abc1")
+		b, err := core.Get("totems-abc1")
 		if err != nil {
 			t.Fatalf("Get() error = %v", err)
 		}
-		if b.ID != "beans-abc1" {
-			t.Errorf("ID = %q, want %q", b.ID, "beans-abc1")
+		if b.ID != "totems-abc1" {
+			t.Errorf("ID = %q, want %q", b.ID, "totems-abc1")
 		}
 	})
 
@@ -278,7 +278,7 @@ func TestGetShortID(t *testing.T) {
 	})
 
 	t.Run("partial full ID not found", func(t *testing.T) {
-		_, err := core.Get("beans-ab")
+		_, err := core.Get("totems-ab")
 		if err != ErrNotFound {
 			t.Errorf("Get() error = %v, want ErrNotFound", err)
 		}
@@ -335,7 +335,7 @@ func TestUpdateNotFound(t *testing.T) {
 
 	b := &bean.Bean{
 		ID:     "nonexistent",
-		Title:  "Ghost Bean",
+		Title:  "Ghost Totem",
 		Status: "todo",
 	}
 
@@ -353,7 +353,7 @@ func TestDelete(t *testing.T) {
 
 	// Verify file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		t.Fatal("bean file should exist before delete")
+		t.Fatal("totem file should exist before delete")
 	}
 
 	// Delete
@@ -364,13 +364,13 @@ func TestDelete(t *testing.T) {
 
 	// Verify file is gone
 	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
-		t.Error("bean file should not exist after delete")
+		t.Error("totem file should not exist after delete")
 	}
 
 	// Verify in-memory state
 	_, err = core.Get("del1")
 	if err != ErrNotFound {
-		t.Error("bean should not be in memory after delete")
+		t.Error("totem should not be in memory after delete")
 	}
 }
 
@@ -391,14 +391,14 @@ func TestDeleteShortID(t *testing.T) {
 		t.Fatalf("failed to create test .totem dir: %v", err)
 	}
 
-	cfg := config.DefaultWithPrefix("beans-")
+	cfg := config.DefaultWithPrefix("totems-")
 	core := New(beansDir, cfg)
 	core.SetWarnWriter(nil)
 	if err := core.Load(); err != nil {
 		t.Fatalf("failed to load core: %v", err)
 	}
 
-	createTestBean(t, core, "beans-xyz1", "Test", "todo")
+	createTestBean(t, core, "totems-xyz1", "Test", "todo")
 
 	// Delete by short ID (without prefix)
 	err := core.Delete("xyz1")
@@ -407,9 +407,9 @@ func TestDeleteShortID(t *testing.T) {
 	}
 
 	// Verify it's gone
-	_, err = core.Get("beans-xyz1")
+	_, err = core.Get("totems-xyz1")
 	if err != ErrNotFound {
-		t.Error("bean should be deleted")
+		t.Error("totem should be deleted")
 	}
 }
 
@@ -427,7 +427,7 @@ func TestDeletePartialIDNotFound(t *testing.T) {
 	// Verify bean still exists
 	_, err = core.Get("unique123")
 	if err != nil {
-		t.Errorf("bean should still exist, got error: %v", err)
+		t.Errorf("totem should still exist, got error: %v", err)
 	}
 }
 
@@ -452,7 +452,7 @@ func TestLoad(t *testing.T) {
 
 	// Create a bean file manually
 	content := `---
-title: Manual Bean
+title: Manual Totem
 status: open
 ---
 
@@ -472,15 +472,15 @@ Manual content.
 		t.Fatalf("Get() error = %v", err)
 	}
 
-	if b.Title != "Manual Bean" {
-		t.Errorf("Title = %q, want %q", b.Title, "Manual Bean")
+	if b.Title != "Manual Totem" {
+		t.Errorf("Title = %q, want %q", b.Title, "Manual Totem")
 	}
 }
 
 func TestLoadIgnoresNonMdFiles(t *testing.T) {
 	core, beansDir := setupTestCore(t)
 
-	createTestBean(t, core, "abc1", "Real Bean", "todo")
+	createTestBean(t, core, "abc1", "Real Totem", "todo")
 
 	// Create non-.md files that should be ignored
 	os.WriteFile(filepath.Join(beansDir, "config.yaml"), []byte("config"), 0644)
@@ -494,7 +494,7 @@ func TestLoadIgnoresNonMdFiles(t *testing.T) {
 
 	beans := core.All()
 	if len(beans) != 1 {
-		t.Errorf("All() returned %d beans, want 1 (should ignore non-.md files)", len(beans))
+		t.Errorf("All() returned %d totems, want 1 (should ignore non-.md files)", len(beans))
 	}
 }
 
@@ -505,7 +505,7 @@ func TestBlocksPreserved(t *testing.T) {
 	beanA := &bean.Bean{
 		ID:       "aaa1",
 		Slug:     "blocker",
-		Title:    "Blocker Bean",
+		Title:    "Blocker Totem",
 		Status:   "todo",
 		Blocking: []string{"bbb2"},
 	}
@@ -517,7 +517,7 @@ func TestBlocksPreserved(t *testing.T) {
 	beanB := &bean.Bean{
 		ID:     "bbb2",
 		Slug:   "blocked",
-		Title:  "Blocked Bean",
+		Title:  "Blocked Totem",
 		Status: "todo",
 	}
 	if err := core.Create(beanB); err != nil {
@@ -541,12 +541,12 @@ func TestBlocksPreserved(t *testing.T) {
 
 	// Bean A should have direct blocks link
 	if !loadedA.IsBlocking("bbb2") {
-		t.Errorf("Bean A Blocks = %v, want [bbb2]", loadedA.Blocking)
+		t.Errorf("Totem A Blocks = %v, want [bbb2]", loadedA.Blocking)
 	}
 
 	// Bean B should have no blocks
 	if len(loadedB.Blocking) != 0 {
-		t.Errorf("Bean B Blocks = %v, want empty", loadedB.Blocking)
+		t.Errorf("Totem B Blocks = %v, want empty", loadedB.Blocking)
 	}
 }
 
@@ -559,7 +559,7 @@ func TestConcurrentAccess(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewID error: %v", err)
 		}
-		createTestBean(t, core, id, "Initial Bean", "todo")
+		createTestBean(t, core, id, "Initial Totem", "todo")
 	}
 
 	// Run concurrent operations
@@ -584,7 +584,7 @@ func TestConcurrentAccess(t *testing.T) {
 			defer wg.Done()
 			for j := 0; j < 10; j++ {
 				b := &bean.Bean{
-					Title:  "Concurrent Bean",
+					Title:  "Concurrent Totem",
 					Status: "todo",
 				}
 				if err := core.Create(b); err != nil {
@@ -605,7 +605,7 @@ func TestConcurrentAccess(t *testing.T) {
 func TestWatch(t *testing.T) {
 	core, beansDir := setupTestCore(t)
 
-	createTestBean(t, core, "wat1", "Initial Bean", "todo")
+	createTestBean(t, core, "wat1", "Initial Totem", "todo")
 
 	// Start watching
 	changeCount := 0
@@ -625,7 +625,7 @@ func TestWatch(t *testing.T) {
 
 	// Create a new bean file manually (simulating external change)
 	content := `---
-title: External Bean
+title: External Totem
 status: open
 ---
 `
@@ -647,7 +647,7 @@ status: open
 	// Verify the new bean is in memory
 	_, err = core.Get("ext1")
 	if err != nil {
-		t.Errorf("external bean not loaded: %v", err)
+		t.Errorf("external totem not loaded: %v", err)
 	}
 
 	// Stop watching
@@ -692,7 +692,7 @@ func TestWatchDeletedBean(t *testing.T) {
 	// Verify the bean is gone from memory
 	_, err = core.Get("del1")
 	if err != ErrNotFound {
-		t.Errorf("deleted bean still in memory: %v", err)
+		t.Errorf("deleted totem still in memory: %v", err)
 	}
 
 	if err := core.Unwatch(); err != nil {
@@ -754,7 +754,7 @@ func TestSubscribe(t *testing.T) {
 
 	// Create a bean file (should trigger EventCreated)
 	content := `---
-title: New Bean
+title: New Totem
 status: todo
 ---
 `
@@ -773,7 +773,7 @@ status: todo
 			if e.Type == EventCreated && e.BeanID == "new1" {
 				found = true
 				if e.Bean == nil {
-					t.Error("EventCreated should include Bean")
+					t.Error("EventCreated should include Totem")
 				}
 			}
 		}
@@ -881,7 +881,7 @@ status: in-progress
 				if e.Type == EventUpdated && e.BeanID == "evt1" {
 					found = true
 					if e.Bean == nil {
-						t.Error("EventUpdated should include Bean")
+						t.Error("EventUpdated should include Totem")
 					}
 					if e.Bean.Title != "Updated Title" {
 						t.Errorf("expected updated title, got %q", e.Bean.Title)
@@ -909,7 +909,7 @@ status: in-progress
 				if e.Type == EventDeleted && e.BeanID == "evt1" {
 					found = true
 					if e.Bean != nil {
-						t.Error("EventDeleted should have nil Bean")
+						t.Error("EventDeleted should have nil Totem")
 					}
 				}
 			}
@@ -962,7 +962,7 @@ func TestMultipleChangesInDebounceWindow(t *testing.T) {
 	// Make multiple changes rapidly (within debounce window)
 	// 1. Create a new bean
 	content1 := `---
-title: New Bean
+title: New Totem
 status: todo
 ---
 `
@@ -970,7 +970,7 @@ status: todo
 
 	// 2. Update existing bean
 	content2 := `---
-title: Updated Bean
+title: Updated Totem
 status: in-progress
 ---
 `
@@ -1015,8 +1015,8 @@ status: in-progress
 	if err != nil {
 		t.Fatalf("upd1 should exist: %v", err)
 	}
-	if upd.Title != "Updated Bean" {
-		t.Errorf("upd1 title = %q, want %q", upd.Title, "Updated Bean")
+	if upd.Title != "Updated Totem" {
+		t.Errorf("upd1 title = %q, want %q", upd.Title, "Updated Totem")
 	}
 
 	// tmp1 should not exist
@@ -1030,7 +1030,7 @@ func TestInvalidFileIgnored(t *testing.T) {
 	core, beansDir := setupTestCore(t)
 
 	// Create a valid bean first
-	createTestBean(t, core, "val1", "Valid Bean", "todo")
+	createTestBean(t, core, "val1", "Valid Totem", "todo")
 
 	if err := core.StartWatching(); err != nil {
 		t.Fatalf("StartWatching() error = %v", err)
@@ -1148,7 +1148,7 @@ status: todo
 	// Verify the core's state has the final value
 	b, err := core.Get("rap1")
 	if err != nil || b == nil {
-		t.Fatal("expected bean rap1 to exist")
+		t.Fatal("expected totem rap1 to exist")
 	}
 	if b.Title != "Update 5" {
 		t.Errorf("expected title 'Update 5', got %q", b.Title)
@@ -1191,7 +1191,7 @@ status: in-progress
 	// Bean should be updated (not deleted!)
 	b, err := core.Get("rw1")
 	if err != nil {
-		t.Fatalf("bean rw1 should still exist after Remove+Write, got error: %v", err)
+		t.Fatalf("totem rw1 should still exist after Remove+Write, got error: %v", err)
 	}
 	if b.Title != "Updated After Remove" {
 		t.Errorf("title = %q, want %q", b.Title, "Updated After Remove")
@@ -1276,13 +1276,13 @@ func TestArchive(t *testing.T) {
 	// Verify file moved to archive directory
 	archivePath := filepath.Join(beansDir, ArchiveDir, originalFilename)
 	if _, err := os.Stat(archivePath); os.IsNotExist(err) {
-		t.Error("bean file should exist in archive directory")
+		t.Error("totem file should exist in archive directory")
 	}
 
 	// Verify file no longer in main directory
 	mainPath := filepath.Join(beansDir, "arc1--to-archive.md")
 	if _, err := os.Stat(mainPath); !os.IsNotExist(err) {
-		t.Error("bean file should not exist in main directory")
+		t.Error("totem file should not exist in main directory")
 	}
 
 	// Verify bean is still accessible in memory
@@ -1340,13 +1340,13 @@ func TestUnarchive(t *testing.T) {
 	// Verify file moved back to main directory
 	mainPath := filepath.Join(beansDir, originalFilename)
 	if _, err := os.Stat(mainPath); os.IsNotExist(err) {
-		t.Error("bean file should exist in main directory")
+		t.Error("totem file should exist in main directory")
 	}
 
 	// Verify file no longer in archive
 	archivePath := filepath.Join(beansDir, ArchiveDir, originalFilename)
 	if _, err := os.Stat(archivePath); !os.IsNotExist(err) {
-		t.Error("bean file should not exist in archive directory")
+		t.Error("totem file should not exist in archive directory")
 	}
 
 	// Verify path is updated
@@ -1366,7 +1366,7 @@ func TestUnarchiveIdempotent(t *testing.T) {
 
 	// Unarchive non-archived bean should not error
 	if err := core.Unarchive("una1"); err != nil {
-		t.Fatalf("Unarchive() on non-archived bean error = %v", err)
+		t.Fatalf("Unarchive() on non-archived totem error = %v", err)
 	}
 }
 
@@ -1377,7 +1377,7 @@ func TestIsArchived(t *testing.T) {
 
 	t.Run("not archived", func(t *testing.T) {
 		if core.IsArchived("isa1") {
-			t.Error("IsArchived() should return false for non-archived bean")
+			t.Error("IsArchived() should return false for non-archived totem")
 		}
 	})
 
@@ -1388,13 +1388,13 @@ func TestIsArchived(t *testing.T) {
 
 	t.Run("archived", func(t *testing.T) {
 		if !core.IsArchived("isa1") {
-			t.Error("IsArchived() should return true for archived bean")
+			t.Error("IsArchived() should return true for archived totem")
 		}
 	})
 
 	t.Run("nonexistent", func(t *testing.T) {
 		if core.IsArchived("nonexistent") {
-			t.Error("IsArchived() should return false for nonexistent bean")
+			t.Error("IsArchived() should return false for nonexistent totem")
 		}
 	})
 }
@@ -1403,8 +1403,8 @@ func TestArchivedBeansAlwaysLoaded(t *testing.T) {
 	core, beansDir := setupTestCore(t)
 
 	// Create beans and archive one
-	createTestBean(t, core, "act1", "Active Bean", "todo")
-	createTestBean(t, core, "arc1", "Archived Bean", "completed")
+	createTestBean(t, core, "act1", "Active Totem", "todo")
+	createTestBean(t, core, "arc1", "Archived Totem", "completed")
 	if err := core.Archive("arc1"); err != nil {
 		t.Fatalf("Archive() error = %v", err)
 	}
@@ -1416,32 +1416,32 @@ func TestArchivedBeansAlwaysLoaded(t *testing.T) {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	t.Run("all beans loaded including archived", func(t *testing.T) {
+	t.Run("all totems loaded including archived", func(t *testing.T) {
 		beans := core2.All()
 		if len(beans) != 2 {
-			t.Errorf("All() returned %d beans, want 2 (active + archived)", len(beans))
+			t.Errorf("All() returned %d totems, want 2 (active + archived)", len(beans))
 		}
 	})
 
-	t.Run("active bean accessible", func(t *testing.T) {
+	t.Run("active totem accessible", func(t *testing.T) {
 		if _, err := core2.Get("act1"); err != nil {
-			t.Errorf("active bean should be found: %v", err)
+			t.Errorf("active totem should be found: %v", err)
 		}
 	})
 
-	t.Run("archived bean accessible", func(t *testing.T) {
+	t.Run("archived totem accessible", func(t *testing.T) {
 		if _, err := core2.Get("arc1"); err != nil {
-			t.Errorf("archived bean should be found: %v", err)
+			t.Errorf("archived totem should be found: %v", err)
 		}
 	})
 
-	t.Run("archived bean has correct path", func(t *testing.T) {
+	t.Run("archived totem has correct path", func(t *testing.T) {
 		b, _ := core2.Get("arc1")
 		if !core2.IsArchived("arc1") {
-			t.Error("archived bean should be identified as archived")
+			t.Error("archived totem should be identified as archived")
 		}
-		if b.Path != "archive/arc1--archived-bean.md" {
-			t.Errorf("archived bean path = %q, want %q", b.Path, "archive/arc1--archived-bean.md")
+		if b.Path != "archive/arc1--archived-totem.md" {
+			t.Errorf("archived totem path = %q, want %q", b.Path, "archive/arc1--archived-totem.md")
 		}
 	})
 }
@@ -1469,10 +1469,10 @@ func TestLoadFromSubdirectories(t *testing.T) {
 	}
 
 	// Create beans in different locations
-	writeTestBeanFile(t, filepath.Join(beansDir, "root1--root-bean.md"), "root1", "Root Bean", "todo")
-	writeTestBeanFile(t, filepath.Join(milestone1Dir, "m1b1--milestone-one-bean.md"), "m1b1", "Milestone One Bean", "todo")
-	writeTestBeanFile(t, filepath.Join(milestone2Dir, "m2b1--milestone-two-bean.md"), "m2b1", "Milestone Two Bean", "in-progress")
-	writeTestBeanFile(t, filepath.Join(nestedDir, "auth1--auth-bean.md"), "auth1", "Auth Bean", "todo")
+	writeTestBeanFile(t, filepath.Join(beansDir, "root1--root-totem.md"), "root1", "Root Totem", "todo")
+	writeTestBeanFile(t, filepath.Join(milestone1Dir, "m1b1--milestone-one-totem.md"), "m1b1", "Milestone One Totem", "todo")
+	writeTestBeanFile(t, filepath.Join(milestone2Dir, "m2b1--milestone-two-totem.md"), "m2b1", "Milestone Two Totem", "in-progress")
+	writeTestBeanFile(t, filepath.Join(nestedDir, "auth1--auth-totem.md"), "auth1", "Auth Totem", "todo")
 
 	// Load and verify all beans are found
 	core := New(beansDir, config.Default())
@@ -1483,7 +1483,7 @@ func TestLoadFromSubdirectories(t *testing.T) {
 
 	beans := core.All()
 	if len(beans) != 4 {
-		t.Errorf("All() returned %d beans, want 4", len(beans))
+		t.Errorf("All() returned %d totems, want 4", len(beans))
 	}
 
 	// Verify each bean is accessible and has correct path
@@ -1491,10 +1491,10 @@ func TestLoadFromSubdirectories(t *testing.T) {
 		id           string
 		expectedPath string
 	}{
-		{"root1", "root1--root-bean.md"},
-		{"m1b1", "milestone-1/m1b1--milestone-one-bean.md"},
-		{"m2b1", "milestone-2/m2b1--milestone-two-bean.md"},
-		{"auth1", "epics/auth/auth1--auth-bean.md"},
+		{"root1", "root1--root-totem.md"},
+		{"m1b1", "milestone-1/m1b1--milestone-one-totem.md"},
+		{"m2b1", "milestone-2/m2b1--milestone-two-totem.md"},
+		{"auth1", "epics/auth/auth1--auth-totem.md"},
 	}
 
 	for _, tc := range testCases {
@@ -1519,10 +1519,10 @@ status: %s
 type: task
 ---
 
-Test bean content.
+Test totem content.
 `, title, status)
 	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-		t.Fatalf("failed to write test bean file: %v", err)
+		t.Fatalf("failed to write test totem file: %v", err)
 	}
 }
 
@@ -1541,7 +1541,7 @@ func TestGetFromArchive(t *testing.T) {
 		t.Fatalf("Load() error = %v", err)
 	}
 
-	t.Run("bean in archive", func(t *testing.T) {
+	t.Run("totem in archive", func(t *testing.T) {
 		b, err := core2.GetFromArchive("gfa1")
 		if err != nil {
 			t.Fatalf("GetFromArchive() error = %v", err)
@@ -1554,13 +1554,13 @@ func TestGetFromArchive(t *testing.T) {
 		}
 	})
 
-	t.Run("bean not in archive", func(t *testing.T) {
+	t.Run("totem not in archive", func(t *testing.T) {
 		b, err := core2.GetFromArchive("nonexistent")
 		if err != nil {
 			t.Fatalf("GetFromArchive() error = %v", err)
 		}
 		if b != nil {
-			t.Error("GetFromArchive() should return nil for nonexistent bean")
+			t.Error("GetFromArchive() should return nil for nonexistent totem")
 		}
 	})
 
@@ -1608,7 +1608,7 @@ func TestLoadAndUnarchive(t *testing.T) {
 		t.Fatalf("Get() error = %v", err)
 	}
 	if !core2.IsArchived("lau1") {
-		t.Error("bean should be identified as archived before LoadAndUnarchive")
+		t.Error("totem should be identified as archived before LoadAndUnarchive")
 	}
 
 	// Load and unarchive should move the file
@@ -1620,24 +1620,24 @@ func TestLoadAndUnarchive(t *testing.T) {
 		t.Fatal("LoadAndUnarchive() returned nil")
 	}
 	if unarchived.ID != b.ID {
-		t.Errorf("LoadAndUnarchive returned different bean: got %q, want %q", unarchived.ID, b.ID)
+		t.Errorf("LoadAndUnarchive returned different totem: got %q, want %q", unarchived.ID, b.ID)
 	}
 
 	// Bean should no longer be archived
 	if core2.IsArchived("lau1") {
-		t.Error("bean should not be archived after LoadAndUnarchive")
+		t.Error("totem should not be archived after LoadAndUnarchive")
 	}
 
 	// File should be in main directory, not archive
 	mainPath := filepath.Join(beansDir, "lau1--load-and-unarchive.md")
 	if _, err := os.Stat(mainPath); os.IsNotExist(err) {
-		t.Error("bean file should exist in main directory after LoadAndUnarchive")
+		t.Error("totem file should exist in main directory after LoadAndUnarchive")
 	}
 
 	// File should NOT be in archive directory
 	archivePath := filepath.Join(beansDir, "archive", "lau1--load-and-unarchive.md")
 	if _, err := os.Stat(archivePath); !os.IsNotExist(err) {
-		t.Error("bean file should not exist in archive directory after LoadAndUnarchive")
+		t.Error("totem file should not exist in archive directory after LoadAndUnarchive")
 	}
 }
 
@@ -1658,14 +1658,14 @@ func TestArchiveShortID(t *testing.T) {
 		t.Fatalf("failed to create test .totem dir: %v", err)
 	}
 
-	cfg := config.DefaultWithPrefix("beans-")
+	cfg := config.DefaultWithPrefix("totems-")
 	core := New(beansDir, cfg)
 	core.SetWarnWriter(nil)
 	if err := core.Load(); err != nil {
 		t.Fatalf("failed to load core: %v", err)
 	}
 
-	createTestBean(t, core, "beans-xyz1", "Test", "completed")
+	createTestBean(t, core, "totems-xyz1", "Test", "completed")
 
 	// Archive by short ID (without prefix)
 	err := core.Archive("xyz1")
@@ -1674,8 +1674,8 @@ func TestArchiveShortID(t *testing.T) {
 	}
 
 	// Verify it's archived
-	if !core.IsArchived("beans-xyz1") {
-		t.Error("bean should be archived")
+	if !core.IsArchived("totems-xyz1") {
+		t.Error("totem should be archived")
 	}
 }
 
@@ -1684,22 +1684,22 @@ func TestNormalizeID(t *testing.T) {
 	beansDir := filepath.Join(tmpDir, BeansDir)
 	os.MkdirAll(beansDir, 0755)
 
-	cfg := config.DefaultWithPrefix("beans-")
+	cfg := config.DefaultWithPrefix("totems-")
 	core := New(beansDir, cfg)
 	core.SetWarnWriter(nil)
 	if err := core.Load(); err != nil {
 		t.Fatalf("failed to load core: %v", err)
 	}
 
-	createTestBean(t, core, "beans-abc1", "Test Bean", "todo")
+	createTestBean(t, core, "totems-abc1", "Test Totem", "todo")
 
 	t.Run("exact match returns same ID", func(t *testing.T) {
-		normalized, found := core.NormalizeID("beans-abc1")
+		normalized, found := core.NormalizeID("totems-abc1")
 		if !found {
 			t.Error("NormalizeID() should find exact match")
 		}
-		if normalized != "beans-abc1" {
-			t.Errorf("NormalizeID() = %q, want %q", normalized, "beans-abc1")
+		if normalized != "totems-abc1" {
+			t.Errorf("NormalizeID() = %q, want %q", normalized, "totems-abc1")
 		}
 	})
 
@@ -1708,8 +1708,8 @@ func TestNormalizeID(t *testing.T) {
 		if !found {
 			t.Error("NormalizeID() should find short ID match")
 		}
-		if normalized != "beans-abc1" {
-			t.Errorf("NormalizeID() = %q, want %q", normalized, "beans-abc1")
+		if normalized != "totems-abc1" {
+			t.Errorf("NormalizeID() = %q, want %q", normalized, "totems-abc1")
 		}
 	})
 
@@ -1864,12 +1864,12 @@ func TestUpdateWithETagDebug(t *testing.T) {
 	// Get from core to see what's stored
 	stored, _ := core.Get("etag-debug")
 	storedEtag := stored.ETag()
-	t.Logf("ETag of stored bean: %s", storedEtag)
+	t.Logf("ETag of stored totem: %s", storedEtag)
 
 	// Modify our local copy
 	b.Title = "Updated"
 	modifiedEtag := b.ETag()
-	t.Logf("ETag of modified local bean: %s", modifiedEtag)
+	t.Logf("ETag of modified local totem: %s", modifiedEtag)
 
 	// What will Update see?
 	err := core.Update(b, &etagAfterCreate)
@@ -1888,13 +1888,13 @@ func TestDirtyTracking(t *testing.T) {
 		}
 
 		if core.IsDirty("d1") {
-			t.Error("bean should not be dirty after persisted create")
+			t.Error("totem should not be dirty after persisted create")
 		}
 
 		// File should exist on disk
 		path := filepath.Join(beansDir, b.Path)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			t.Error("bean file should exist on disk")
+			t.Error("totem file should exist on disk")
 		}
 	})
 
@@ -1907,7 +1907,7 @@ func TestDirtyTracking(t *testing.T) {
 		}
 
 		if !core.IsDirty("d2") {
-			t.Error("bean should be dirty after non-persisted create")
+			t.Error("totem should be dirty after non-persisted create")
 		}
 
 		// Bean should be in memory
@@ -1923,7 +1923,7 @@ func TestDirtyTracking(t *testing.T) {
 		entries, _ := os.ReadDir(beansDir)
 		for _, e := range entries {
 			if e.Name() == "d2--dirty.md" {
-				t.Error("bean file should not exist on disk for non-persisted create")
+				t.Error("totem file should not exist on disk for non-persisted create")
 			}
 		}
 	})
@@ -1987,7 +1987,7 @@ func TestDirtyTracking(t *testing.T) {
 		core, _ := setupTestCore(t)
 
 		if core.HasDirty() {
-			t.Error("should not have dirty beans initially")
+			t.Error("should not have dirty totems initially")
 		}
 
 		b1 := &bean.Bean{ID: "d5", Title: "One", Status: "todo"}
@@ -1997,7 +1997,7 @@ func TestDirtyTracking(t *testing.T) {
 		core.Create(b2, WithPersist(false))
 
 		if !core.HasDirty() {
-			t.Error("should have dirty beans")
+			t.Error("should have dirty totems")
 		}
 
 		ids := core.DirtyIDs()
@@ -2006,7 +2006,7 @@ func TestDirtyTracking(t *testing.T) {
 		}
 	})
 
-	t.Run("SaveDirty persists all dirty beans", func(t *testing.T) {
+	t.Run("SaveDirty persists all dirty totems", func(t *testing.T) {
 		core, beansDir := setupTestCore(t)
 
 		b1 := &bean.Bean{ID: "d7", Slug: "save-one", Title: "Save One", Status: "todo"}
@@ -2024,7 +2024,7 @@ func TestDirtyTracking(t *testing.T) {
 		}
 
 		if core.HasDirty() {
-			t.Error("should not have dirty beans after SaveDirty")
+			t.Error("should not have dirty totems after SaveDirty")
 		}
 
 		// Files should now exist on disk
@@ -2032,12 +2032,12 @@ func TestDirtyTracking(t *testing.T) {
 			b, _ := core.Get(id)
 			path := filepath.Join(beansDir, b.Path)
 			if _, err := os.Stat(path); os.IsNotExist(err) {
-				t.Errorf("bean %s file should exist on disk after SaveDirty", id)
+				t.Errorf("totem %s file should exist on disk after SaveDirty", id)
 			}
 		}
 	})
 
-	t.Run("SaveBean persists a single bean", func(t *testing.T) {
+	t.Run("SaveBean persists a single totem", func(t *testing.T) {
 		core, beansDir := setupTestCore(t)
 
 		b := &bean.Bean{ID: "d9", Slug: "single-save", Title: "Single", Status: "todo"}
@@ -2054,7 +2054,7 @@ func TestDirtyTracking(t *testing.T) {
 		got, _ := core.Get("d9")
 		path := filepath.Join(beansDir, got.Path)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
-			t.Error("bean file should exist on disk after SaveBean")
+			t.Error("totem file should exist on disk after SaveBean")
 		}
 	})
 
@@ -2077,7 +2077,7 @@ func TestDirtyTracking(t *testing.T) {
 		}
 
 		if core.HasDirty() {
-			t.Error("should not have dirty beans after Load")
+			t.Error("should not have dirty totems after Load")
 		}
 
 		// Should have reverted to disk state
@@ -2092,7 +2092,7 @@ func TestLoadSkipsDotPrefixedSubdirectories(t *testing.T) {
 	core, beansDir := setupTestCore(t)
 
 	// Create a real bean
-	createTestBean(t, core, "test-real", "Real Bean", "todo")
+	createTestBean(t, core, "test-real", "Real Totem", "todo")
 
 	// Create .md files inside dot-prefixed subdirs that should be ignored
 	for _, subdir := range []string{".worktrees/some-branch", ".conversations", ".other"} {
@@ -2117,9 +2117,9 @@ func TestLoadSkipsDotPrefixedSubdirectories(t *testing.T) {
 		for i, b := range all {
 			names[i] = fmt.Sprintf("%s (path=%s)", b.ID, b.Path)
 		}
-		t.Fatalf("expected 1 bean, got %d: %v", len(all), names)
+		t.Fatalf("expected 1 totem, got %d: %v", len(all), names)
 	}
 	if all[0].ID != "test-real" {
-		t.Fatalf("expected bean id test-real, got %s", all[0].ID)
+		t.Fatalf("expected totem id test-real, got %s", all[0].ID)
 	}
 }

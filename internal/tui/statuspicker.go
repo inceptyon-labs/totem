@@ -23,7 +23,7 @@ type closeStatusPickerMsg struct{}
 // openStatusPickerMsg requests opening the status picker for bean(s)
 type openStatusPickerMsg struct {
 	beanIDs       []string // IDs of beans to update
-	beanTitle     string   // Display title (single title or "N beans")
+	beanTitle     string   // Display title (single title or "N totems")
 	currentStatus string   // Only meaningful for single bean
 }
 

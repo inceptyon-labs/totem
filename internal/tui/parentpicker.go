@@ -85,7 +85,7 @@ func (d parentItemDelegate) Render(w io.Writer, m list.Model, index int, listIte
 type parentPickerModel struct {
 	list          list.Model
 	beanIDs       []string // the beans we're setting the parent for
-	beanTitle     string   // display title (single title or "N selected beans")
+	beanTitle     string   // display title (single title or "N selected totems")
 	beanTypes     []string // types of the beans (to filter eligible parents)
 	currentParent string   // current parent ID (to highlight, only for single bean)
 	width         int

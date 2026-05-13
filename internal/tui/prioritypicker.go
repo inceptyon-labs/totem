@@ -23,7 +23,7 @@ type closePriorityPickerMsg struct{}
 // openPriorityPickerMsg requests opening the priority picker for bean(s)
 type openPriorityPickerMsg struct {
 	beanIDs         []string // IDs of beans to update
-	beanTitle       string   // Display title (single title or "N beans")
+	beanTitle       string   // Display title (single title or "N totems")
 	currentPriority string   // Only meaningful for single bean
 }
 

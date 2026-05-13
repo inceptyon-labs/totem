@@ -12,12 +12,12 @@ var archiveJSON bool
 
 var archiveCmd = &cobra.Command{
 	Use:   "archive",
-	Short: "Move completed/scrapped beans to the archive",
-	Long: `Moves all beans with status "completed" or "scrapped" to the archive directory (.totem/archive/).
-Archived beans are preserved for project memory and remain visible in all queries.
+	Short: "Move completed/scrapped totems to the archive",
+	Long: `Moves all totems with status "completed" or "scrapped" to the archive directory (.totem/archive/).
+Archived totems are preserved for project memory and remain visible in all queries.
 The archive keeps the main .totem directory tidy while preserving project history.
 
-Relationships (parent, blocking) are preserved in archived beans.`,
+Relationships (parent, blocking) are preserved in archived totems.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		allBeans := core.All()
 
@@ -33,9 +33,9 @@ Relationships (parent, blocking) are preserved in archived beans.`,
 
 		if len(archiveBeans) == 0 {
 			if archiveJSON {
-				return output.SuccessMessage("No beans to archive")
+				return output.SuccessMessage("No totems to archive")
 			}
-			fmt.Println("No beans with archive status to archive.")
+			fmt.Println("No totems with archive status to archive.")
 			return nil
 		}
 
@@ -47,18 +47,18 @@ Relationships (parent, blocking) are preserved in archived beans.`,
 		for _, b := range archiveBeans {
 			if err := core.Archive(b.ID); err != nil {
 				if archiveJSON {
-					return output.Error(output.ErrFileError, fmt.Sprintf("failed to archive bean %s: %s", b.ID, err.Error()))
+					return output.Error(output.ErrFileError, fmt.Sprintf("failed to archive totem %s: %s", b.ID, err.Error()))
 				}
-				return fmt.Errorf("failed to archive bean %s: %w", b.ID, err)
+				return fmt.Errorf("failed to archive totem %s: %w", b.ID, err)
 			}
 			archived = append(archived, b.ID)
 		}
 
 		if archiveJSON {
-			return output.SuccessMessage(fmt.Sprintf("Archived %d bean(s) to .totem/archive/", len(archived)))
+			return output.SuccessMessage(fmt.Sprintf("Archived %d totem(s) to .totem/archive/", len(archived)))
 		}
 
-		fmt.Printf("Archived %d bean(s) to .totem/archive/\n", len(archived))
+		fmt.Printf("Archived %d totem(s) to .totem/archive/\n", len(archived))
 		return nil
 	},
 }

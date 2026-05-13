@@ -41,7 +41,7 @@ func TestBuildRoadmap(t *testing.T) {
 		wantUnscheduledOther  int
 	}{
 		{
-			name:           "empty beans",
+			name:           "empty totems",
 			beans:          []*bean.Bean{},
 			wantMilestones: 0,
 		},
@@ -90,7 +90,7 @@ func TestBuildRoadmap(t *testing.T) {
 			wantMilestones: 1,
 		},
 		{
-			name: "orphan bean appears in unscheduled other",
+			name: "orphan totem appears in unscheduled other",
 			beans: []*bean.Bean{
 				{ID: "m1", Type: "milestone", Title: "v1.0", Status: "todo", CreatedAt: &now},
 				{ID: "t1", Type: "task", Title: "Orphan", Status: "todo"}, // no parent link
@@ -197,8 +197,8 @@ func TestRenderBeanRef(t *testing.T) {
 			name:       "link with prefix",
 			bean:       &bean.Bean{ID: "abc", Path: "abc--milestone.md"},
 			asLink:     true,
-			linkPrefix: "https://example.com/beans/",
-			want:       "([abc](https://example.com/beans/abc--milestone.md))",
+			linkPrefix: "https://example.com/totems/",
+			want:       "([abc](https://example.com/totems/abc--milestone.md))",
 		},
 		{
 			name:       "link with prefix without trailing slash",

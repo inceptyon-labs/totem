@@ -17,14 +17,14 @@ func TestParse(t *testing.T) {
 		wantErr        bool
 	}{
 		{
-			name: "basic bean",
+			name: "basic totem",
 			input: `---
-title: Test Bean
+title: Test Totem
 status: todo
 ---
 
 This is the body.`,
-			expectedTitle:  "Test Bean",
+			expectedTitle:  "Test Totem",
 			expectedStatus: "todo",
 			expectedBody:   "\nThis is the body.",
 		},
@@ -136,7 +136,7 @@ No type specified.`,
 			// should still be readable without error
 			name: "with unknown type (backwards compatibility)",
 			input: `---
-title: Legacy Bean
+title: Legacy Totem
 status: todo
 type: deprecated-type-no-longer-in-config
 ---`,
@@ -280,7 +280,7 @@ func TestPriorityRoundtrip(t *testing.T) {
 	for _, priority := range priorities {
 		t.Run(priority, func(t *testing.T) {
 			original := &Bean{
-				Title:    "Test Bean",
+				Title:    "Test Totem",
 				Status:   "todo",
 				Priority: priority,
 			}
@@ -311,14 +311,14 @@ func TestRender(t *testing.T) {
 		contains []string
 	}{
 		{
-			name: "basic bean",
+			name: "basic totem",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 			contains: []string{
 				"---",
-				"title: Test Bean",
+				"title: Test Totem",
 				"status: todo",
 			},
 		},
@@ -352,12 +352,12 @@ func TestRender(t *testing.T) {
 		{
 			name: "with type",
 			bean: &Bean{
-				Title:  "Typed Bean",
+				Title:  "Typed Totem",
 				Status: "todo",
 				Type:   "bug",
 			},
 			contains: []string{
-				"title: Typed Bean",
+				"title: Typed Totem",
 				"status: todo",
 				"type: bug",
 			},
@@ -392,14 +392,14 @@ func TestParseRenderRoundtrip(t *testing.T) {
 		{
 			name: "basic",
 			bean: &Bean{
-				Title:  "Basic Bean",
+				Title:  "Basic Totem",
 				Status: "todo",
 			},
 		},
 		{
 			name: "with body",
 			bean: &Bean{
-				Title:  "Bean With Body",
+				Title:  "Totem With Body",
 				Status: "in-progress",
 				Body:   "This is the body content.\n\nWith multiple paragraphs.",
 			},
@@ -407,7 +407,7 @@ func TestParseRenderRoundtrip(t *testing.T) {
 		{
 			name: "with timestamps",
 			bean: &Bean{
-				Title:     "Timestamped Bean",
+				Title:     "Timestamped Totem",
 				Status:    "completed",
 				CreatedAt: &now,
 				UpdatedAt: &later,
@@ -417,7 +417,7 @@ func TestParseRenderRoundtrip(t *testing.T) {
 		{
 			name: "with type",
 			bean: &Bean{
-				Title:  "Typed Bean",
+				Title:  "Typed Totem",
 				Status: "todo",
 				Type:   "bug",
 				Body:   "Bug description.",
@@ -482,7 +482,7 @@ func TestBeanJSONSerialization(t *testing.T) {
 	t.Run("body omitted when empty", func(t *testing.T) {
 		bean := &Bean{
 			ID:     "test-123",
-			Title:  "Test Bean",
+			Title:  "Test Totem",
 			Status: "todo",
 			Body:   "",
 		}
@@ -501,7 +501,7 @@ func TestBeanJSONSerialization(t *testing.T) {
 	t.Run("body included when non-empty", func(t *testing.T) {
 		bean := &Bean{
 			ID:     "test-123",
-			Title:  "Test Bean",
+			Title:  "Test Totem",
 			Status: "todo",
 			Body:   "This is the body content.",
 		}
@@ -608,7 +608,7 @@ func TestRenderWithParentAndBlocking(t *testing.T) {
 		{
 			name: "with parent only",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 				Parent: "xyz789",
 			},
@@ -619,7 +619,7 @@ func TestRenderWithParentAndBlocking(t *testing.T) {
 		{
 			name: "with blocking only",
 			bean: &Bean{
-				Title:    "Test Bean",
+				Title:    "Test Totem",
 				Status:   "todo",
 				Blocking: []string{"abc123", "def456"},
 			},
@@ -632,7 +632,7 @@ func TestRenderWithParentAndBlocking(t *testing.T) {
 		{
 			name: "with parent and blocking",
 			bean: &Bean{
-				Title:    "Test Bean",
+				Title:    "Test Totem",
 				Status:   "todo",
 				Parent:   "xyz789",
 				Blocking: []string{"abc123"},
@@ -646,11 +646,11 @@ func TestRenderWithParentAndBlocking(t *testing.T) {
 		{
 			name: "without relationships",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 			contains: []string{
-				"title: Test Bean",
+				"title: Test Totem",
 			},
 		},
 	}
@@ -818,7 +818,7 @@ func TestRenderWithBlockedBy(t *testing.T) {
 		{
 			name: "with blocked_by only",
 			bean: &Bean{
-				Title:     "Test Bean",
+				Title:     "Test Totem",
 				Status:    "todo",
 				BlockedBy: []string{"abc123", "def456"},
 			},
@@ -831,7 +831,7 @@ func TestRenderWithBlockedBy(t *testing.T) {
 		{
 			name: "with blocking and blocked_by",
 			bean: &Bean{
-				Title:     "Test Bean",
+				Title:     "Test Totem",
 				Status:    "todo",
 				Blocking:  []string{"xyz789"},
 				BlockedBy: []string{"abc123"},
@@ -846,11 +846,11 @@ func TestRenderWithBlockedBy(t *testing.T) {
 		{
 			name: "without blocked_by",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 			contains: []string{
-				"title: Test Bean",
+				"title: Test Totem",
 			},
 		},
 	}
@@ -1260,7 +1260,7 @@ func TestRenderWithTags(t *testing.T) {
 		{
 			name: "with single tag",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 				Tags:   []string{"frontend"},
 			},
@@ -1272,7 +1272,7 @@ func TestRenderWithTags(t *testing.T) {
 		{
 			name: "with multiple tags",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 				Tags:   []string{"frontend", "urgent", "tech-debt"},
 			},
@@ -1286,11 +1286,11 @@ func TestRenderWithTags(t *testing.T) {
 		{
 			name: "without tags",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 			contains: []string{
-				"title: Test Bean",
+				"title: Test Totem",
 			},
 		},
 	}
@@ -1377,16 +1377,16 @@ func TestRenderWithIDComment(t *testing.T) {
 		{
 			name: "with ID",
 			bean: &Bean{
-				ID:     "beans-abc123",
-				Title:  "Test Bean",
+				ID:     "totems-abc123",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
-			expectComment: "# beans-abc123",
+			expectComment: "# totems-abc123",
 		},
 		{
 			name: "without ID",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 			expectComment: "",
@@ -1422,8 +1422,8 @@ func TestRenderWithIDComment(t *testing.T) {
 func TestRenderWithIDCommentRoundtrip(t *testing.T) {
 	// Verify that the ID comment doesn't interfere with parsing
 	original := &Bean{
-		ID:     "beans-xyz789",
-		Title:  "Test Bean",
+		ID:     "totems-xyz789",
+		Title:  "Test Totem",
 		Status: "in-progress",
 		Body:   "Some body content.",
 	}
@@ -1434,7 +1434,7 @@ func TestRenderWithIDCommentRoundtrip(t *testing.T) {
 	}
 
 	// Verify the comment is present
-	if !strings.Contains(string(rendered), "# beans-xyz789") {
+	if !strings.Contains(string(rendered), "# totems-xyz789") {
 		t.Errorf("rendered output should contain ID comment\ngot:\n%s", rendered)
 	}
 
@@ -1460,7 +1460,7 @@ func TestRenderTrailingNewline(t *testing.T) {
 		{
 			name: "with body",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 				Body:   "Some content without trailing newline",
 			},
@@ -1468,7 +1468,7 @@ func TestRenderTrailingNewline(t *testing.T) {
 		{
 			name: "with body ending in newline",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 				Body:   "Some content with trailing newline\n",
 			},
@@ -1476,7 +1476,7 @@ func TestRenderTrailingNewline(t *testing.T) {
 		{
 			name: "without body",
 			bean: &Bean{
-				Title:  "Test Bean",
+				Title:  "Test Totem",
 				Status: "todo",
 			},
 		},
@@ -1632,7 +1632,7 @@ func TestETag(t *testing.T) {
 		}
 		etag := b.ETag()
 		if etag == "" {
-			t.Error("ETag should not be empty for valid bean")
+			t.Error("ETag should not be empty for valid totem")
 		}
 	})
 }
@@ -1640,7 +1640,7 @@ func TestETag(t *testing.T) {
 func TestMarshalJSONIncludesETag(t *testing.T) {
 	b := &Bean{
 		ID:     "test-123",
-		Title:  "Test Bean",
+		Title:  "Test Totem",
 		Status: "todo",
 		Body:   "Some content",
 	}

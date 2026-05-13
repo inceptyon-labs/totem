@@ -165,7 +165,7 @@ func (s *store) clear(beanID string) error {
 // Returns an error if the beanID would cause path traversal.
 func (s *store) path(beanID string) (string, error) {
 	if err := safepath.ValidateBeanID(beanID); err != nil {
-		return "", fmt.Errorf("invalid bean ID for conversation path: %w", err)
+		return "", fmt.Errorf("invalid totem ID for conversation path: %w", err)
 	}
 	return safepath.SafeJoin(s.dir, beanID+".jsonl")
 }
@@ -173,7 +173,7 @@ func (s *store) path(beanID string) (string, error) {
 // attachmentDir returns the directory for a bean's image attachments, creating it if needed.
 func (s *store) attachmentDir(beanID string) (string, error) {
 	if err := safepath.ValidateBeanID(beanID); err != nil {
-		return "", fmt.Errorf("invalid bean ID for attachment dir: %w", err)
+		return "", fmt.Errorf("invalid totem ID for attachment dir: %w", err)
 	}
 	dir, err := safepath.SafeJoin(s.dir, filepath.Join("attachments", beanID))
 	if err != nil {
@@ -214,7 +214,7 @@ func (s *store) saveImage(beanID, mediaType string, data []byte) (ImageRef, erro
 // Validates both beanID and imageID to prevent path traversal.
 func (s *store) attachmentPath(beanID, imageID string) (string, error) {
 	if err := safepath.ValidateBeanID(beanID); err != nil {
-		return "", fmt.Errorf("invalid bean ID for attachment: %w", err)
+		return "", fmt.Errorf("invalid totem ID for attachment: %w", err)
 	}
 	// Validate imageID: must not contain path separators or traversal sequences
 	if strings.ContainsAny(imageID, "/\\") || strings.Contains(imageID, "..") || imageID == "" {
@@ -227,7 +227,7 @@ func (s *store) attachmentPath(beanID, imageID string) (string, error) {
 // clearAttachments removes all stored images for a bean.
 func (s *store) clearAttachments(beanID string) error {
 	if err := safepath.ValidateBeanID(beanID); err != nil {
-		return fmt.Errorf("invalid bean ID for attachment cleanup: %w", err)
+		return fmt.Errorf("invalid totem ID for attachment cleanup: %w", err)
 	}
 	dir := filepath.Join(s.dir, "attachments", beanID)
 	err := os.RemoveAll(dir)
@@ -240,7 +240,7 @@ func (s *store) clearAttachments(beanID string) error {
 // pruneAttachments deletes any attachment files for a bean that are NOT in keepIDs.
 func (s *store) pruneAttachments(beanID string, keepIDs []string) error {
 	if err := safepath.ValidateBeanID(beanID); err != nil {
-		return fmt.Errorf("invalid bean ID for attachment prune: %w", err)
+		return fmt.Errorf("invalid totem ID for attachment prune: %w", err)
 	}
 	dir := filepath.Join(s.dir, "attachments", beanID)
 	entries, err := os.ReadDir(dir)
