@@ -9,9 +9,9 @@
 [![Go Version](https://img.shields.io/github/go-mod/go-version/inceptyon-labs/totem?style=for-the-badge)](https://go.dev/)
 [![CI](https://img.shields.io/github/actions/workflow/status/inceptyon-labs/totem/test.yml?style=for-the-badge&label=ci)](https://github.com/inceptyon-labs/totem/actions/workflows/test.yml)
 
-**Totem is a lightweight, flat-file issue tracker built for teams that need an audit trail but don't want Jira.**
+**Totem is a lightweight, flat-file issue tracker built for AI-agent workflows.**
 
-Each issue is a markdown file — a *totem* — checked into the repo alongside the code it describes. Every change is a git commit: attributed, signed, immutable, diffable. The audit trail comes for free.
+Each issue is a markdown file — a *totem* — checked into the repo alongside the code it describes. Agents create and update totems at the speed of code edits, without the overhead of a heavyweight tracker. When you need portfolio-level visibility, many totems roll up to Jira for project, portfolio, and initiative tracking.
 
 Use it through:
 - **`totem`** — CLI for create, list, update, show, query
@@ -20,14 +20,14 @@ Use it through:
 
 ## Why Totem
 
-- **Audit-trail-first.** Markdown in git = signed, attributed, immutable history. No separate audit log to manage.
-- **Lightweight.** No database, no SaaS account, no JQL. A `.totem/` directory and you're done.
-- **Agent-native.** Your coding agents can read the totems, propose new ones, and update status from CLI or GraphQL.
-- **Pluggable rollup.** Tag totems with external IDs (Jira, Linear, GitHub Issues). Companion tools like [PASIV](https://github.com/inceptyon-labs/pasiv) push completions back to your PM stack — Totem itself stays stack-agnostic.
+- **Agent-native.** Coding agents read, create, and update totems from CLI or GraphQL at edit speed. No web forms, no SaaS round-trips, no JQL.
+- **Lightweight.** No database, no SaaS account. A `.totem/` directory and you're done.
+- **Git-native.** Markdown in git means every change is attributed, diffable, and version-controlled alongside the code it describes.
+- **Rolls up to your PM stack.** Tag totems with external IDs (Jira, Linear, GitHub Issues). Companion tools like [PASIV](https://github.com/inceptyon-labs/pasiv) push completions to your tracker for project, portfolio, and initiative visibility — Totem itself stays stack-agnostic.
 
 ## Status
 
-Totem is an early-stage fork of the excellent [hmans/beans](https://github.com/hmans/beans), rebranded and aimed at corporate/audit use cases. Schema and APIs may change as we iterate.
+Totem is early-stage. Schema and APIs may change as we iterate.
 
 ## Installation
 
@@ -67,10 +67,6 @@ totem-serve                         # web UI at http://localhost:8080
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please review our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md) before opening issues or PRs.
 
-## Credits
-
-Totem is a fork of [hmans/beans](https://github.com/hmans/beans) by Hendrik Mans. The original project is licensed under Apache-2.0; this fork retains the same license. Branding, scope, and direction differ — see [NOTICE](NOTICE) for attribution details.
-
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for attribution.

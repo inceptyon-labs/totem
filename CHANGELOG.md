@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release as Totem — fork of [hmans/beans](https://github.com/hmans/beans)
-- Rebranded CLI (`totem`, `totem-tui`, `totem-serve`)
+- Initial release as Totem
+- CLI binaries: `totem`, `totem-tui`, `totem-serve`
 - GraphQL API with subscriptions for real-time updates
 - Bubbletea TUI (`totem-tui`)
 - SvelteKit web UI embedded in the Go binary (`totem-serve`)
