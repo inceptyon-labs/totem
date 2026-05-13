@@ -9,3 +9,10 @@ dist/
 # Embedded frontend (generated from frontend/build)
 /internal/web/dist/*
 !/internal/web/dist/.gitkeep
+
+# Added by repo-ready
+.DS_Store
+.env
+*.test
+*.out
+/tmp/

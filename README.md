@@ -1,8 +1,13 @@
 # Totem
 
+<p align="center">
+  <img src="assets/logo.png" alt="Totem logo" height="120" />
+</p>
+
 [![License](https://img.shields.io/github/license/inceptyon-labs/totem?style=for-the-badge)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/inceptyon-labs/totem?style=for-the-badge)](https://github.com/inceptyon-labs/totem/releases)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/inceptyon-labs/totem?style=for-the-badge)](https://go.dev/)
+[![CI](https://img.shields.io/github/actions/workflow/status/inceptyon-labs/totem/test.yml?style=for-the-badge&label=ci)](https://github.com/inceptyon-labs/totem/actions/workflows/test.yml)
 
 **Totem is a lightweight, flat-file issue tracker built for teams that need an audit trail but don't want Jira.**
 
@@ -57,6 +62,10 @@ totem-serve                         # web UI at http://localhost:8080
 ## Configuration
 
 `totem init` creates a `.totem.yml` at the project root. See the file for inline comments on each setting.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please review our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md) before opening issues or PRs.
 
 ## Credits
 
