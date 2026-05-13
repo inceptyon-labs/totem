@@ -1,0 +1,162 @@
+<script lang="ts">
+  import { beansStore } from '$lib/beans.svelte';
+  import { ui } from '$lib/uiState.svelte';
+
+  let { planningView }: { planningView: 'backlog' | 'board' } = $props();
+  import { backlogDrag } from '$lib/backlogDrag.svelte';
+  import { matchesFilter } from '$lib/filter';
+  import BeanItem from '$lib/components/BeanItem.svelte';
+  import BoardView from '$lib/components/BoardView.svelte';
+  import BeanPane from '$lib/components/BeanPane.svelte';
+  import SplitPane from '$lib/components/SplitPane.svelte';
+  import FilterInput from '$lib/components/FilterInput.svelte';
+  import ViewToolbar from '$lib/components/ViewToolbar.svelte';
+
+  let filterInput = $state<FilterInput | null>(null);
+
+  const topLevelBeans = $derived(beansStore.all.filter((b) => !b.parentId));
+
+  function filterBeans(beans: typeof topLevelBeans) {
+    const text = ui.filterText;
+    if (!text) return beans;
+    return beans.filter((bean) => {
+      if (matchesFilter(bean, text)) return true;
+      return beansStore.children(bean.id).some((child) => matchesFilter(child, text));
+    });
+  }
+
+  const filteredTodoBeans = $derived(filterBeans(topLevelBeans.filter((b) => b.status === 'todo')));
+  const filteredDraftBeans = $derived(
+    filterBeans(topLevelBeans.filter((b) => b.status === 'draft'))
+  );
+
+  function handleKeydown(e: KeyboardEvent) {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'f' || e.key === '/')) {
+      e.preventDefault();
+      filterInput?.focus();
+      return;
+    }
+    if (e.key === 'Escape' && ui.currentBean && !ui.showForm) {
+      ui.clearSelection();
+    }
+  }
+
+  function handlePlanningClick(e: MouseEvent) {
+    if (e.target === e.currentTarget) {
+      ui.clearSelection();
+    }
+  }
+</script>
+
+<svelte:window onkeydown={handleKeydown} />
+
+<div class="flex h-full flex-col">
+  <ViewToolbar showPanelToggles={false}>
+    <div class="flex">
+      <button
+        onclick={() => ui.navigateToPlanningView('backlog')}
+        class={[
+          'btn-tab rounded-l-md',
+          planningView === 'backlog' ? 'btn-tab-active' : 'btn-tab-inactive'
+        ]}
+      >
+        Backlog
+      </button>
+      <button
+        onclick={() => ui.navigateToPlanningView('board')}
+        class={[
+          'btn-tab rounded-r-md border-l-0',
+          planningView === 'board' ? 'btn-tab-active' : 'btn-tab-inactive'
+        ]}
+      >
+        Board
+      </button>
+    </div>
+    <div class="mx-3 w-60">
+      <FilterInput bind:this={filterInput} />
+    </div>
+    {#snippet right()}
+      <button class="btn-primary" onclick={() => ui.openCreateForm()}>+ New Bean</button>
+    {/snippet}
+  </ViewToolbar>
+
+  <div class="flex min-h-0 flex-1 overflow-hidden">
+    {#snippet backlogBoard()}
+        <div class="flex h-full flex-col bg-surface">
+          {#if planningView === 'backlog'}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div class="min-h-0 flex-1 overflow-auto bg-surface-alt" onclick={handlePlanningClick}>
+              {#snippet backlogSection(beans: typeof filteredTodoBeans, status: string, label: string)}
+                <div
+                  class="p-3"
+                  ondragover={(e) => backlogDrag.hoverList(e, null, beans.length, status)}
+                  ondragleave={(e) => backlogDrag.leaveList(e, e.currentTarget, null)}
+                  ondrop={(e) => backlogDrag.drop(e, null, beans)}
+                  role="list"
+                >
+                  <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-text-faint">
+                    {label}
+                    <span class="font-normal">{beans.length}</span>
+                  </h3>
+                  {#each beans as bean, i (bean.id)}
+                    <BeanItem
+                      {bean}
+                      parentId={null}
+                      index={i}
+                      selectedId={ui.currentBean?.id}
+                      onSelect={(b) => ui.selectBean(b)}
+                      filterText={ui.filterText}
+                      sectionStatus={status}
+                    />
+                  {:else}
+                    {#if !beansStore.loading}
+                      <p class="text-center py-4 text-sm text-text-muted">No beans</p>
+                    {/if}
+                  {/each}
+
+                  <div
+                    class={[
+                      'mx-1 rounded-full transition-colors',
+                      backlogDrag.showEndIndicator(null, beans.length, status)
+                        ? 'h-0.5 bg-accent'
+                        : 'h-0'
+                    ]}
+                  ></div>
+                </div>
+              {/snippet}
+
+              {@render backlogSection(filteredTodoBeans, 'todo', 'Todo')}
+              {@render backlogSection(filteredDraftBeans, 'draft', 'Draft')}
+            </div>
+          {:else}
+            <BoardView onSelect={(b) => ui.selectBean(b)} selectedId={ui.currentBean?.id} />
+          {/if}
+        </div>
+      {/snippet}
+
+      {#snippet detailPanel()}
+        {#if ui.currentBean}
+          <BeanPane
+            bean={ui.currentBean}
+            onSelect={(b) => ui.selectBean(b)}
+            onEdit={(b) => ui.openEditForm(b)}
+            onClose={() => ui.clearSelection()}
+          />
+        {/if}
+      {/snippet}
+
+      <SplitPane
+        direction="horizontal"
+        panels={[
+          { content: backlogBoard },
+          {
+            content: detailPanel,
+            size: 480,
+            collapsed: !ui.currentBean,
+            persistKey: 'detail-width'
+          }
+        ]}
+      />
+  </div>
+</div>

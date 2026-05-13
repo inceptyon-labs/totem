@@ -1,0 +1,1619 @@
+package config
+
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestDefault(t *testing.T) {
+	cfg := Default()
+
+	if cfg.Beans.IDLength != 4 {
+		t.Errorf("IDLength = %d, want 4", cfg.Beans.IDLength)
+	}
+	if cfg.Beans.Prefix != "" {
+		t.Errorf("Prefix = %q, want empty", cfg.Beans.Prefix)
+	}
+	if cfg.Beans.DefaultStatus != "todo" {
+		t.Errorf("DefaultStatus = %q, want \"todo\"", cfg.Beans.DefaultStatus)
+	}
+	if cfg.Beans.DefaultType != "task" {
+		t.Errorf("DefaultType = %q, want \"task\"", cfg.Beans.DefaultType)
+	}
+	// Both types and statuses are hardcoded
+	if len(DefaultTypes) != 5 {
+		t.Errorf("len(DefaultTypes) = %d, want 5", len(DefaultTypes))
+	}
+	if len(DefaultStatuses) != 5 {
+		t.Errorf("len(DefaultStatuses) = %d, want 5", len(DefaultStatuses))
+	}
+}
+
+func TestDefaultWithPrefix(t *testing.T) {
+	cfg := DefaultWithPrefix("myapp-")
+
+	if cfg.Beans.Prefix != "myapp-" {
+		t.Errorf("Prefix = %q, want \"myapp-\"", cfg.Beans.Prefix)
+	}
+	// Other defaults should still apply
+	if cfg.Beans.IDLength != 4 {
+		t.Errorf("IDLength = %d, want 4", cfg.Beans.IDLength)
+	}
+}
+
+func TestIsValidStatus(t *testing.T) {
+	cfg := Default()
+
+	tests := []struct {
+		status string
+		want   bool
+	}{
+		{"draft", true},
+		{"todo", true},
+		{"in-progress", true},
+		{"completed", true},
+		{"scrapped", true},
+		{"invalid", false},
+		{"", false},
+		{"TODO", false}, // case sensitive
+		// Old status names should no longer be valid
+		{"open", false},
+		{"done", false},
+		{"ready", false},
+		{"not-ready", false},
+		{"backlog", false}, // renamed to draft
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.status, func(t *testing.T) {
+			got := cfg.IsValidStatus(tt.status)
+			if got != tt.want {
+				t.Errorf("IsValidStatus(%q) = %v, want %v", tt.status, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStatusList(t *testing.T) {
+	cfg := Default()
+	got := cfg.StatusList()
+	want := "in-progress, todo, draft, completed, scrapped"
+
+	if got != want {
+		t.Errorf("StatusList() = %q, want %q", got, want)
+	}
+}
+
+func TestStatusNames(t *testing.T) {
+	cfg := Default()
+	got := cfg.StatusNames()
+
+	if len(got) != 5 {
+		t.Fatalf("len(StatusNames()) = %d, want 5", len(got))
+	}
+	expected := []string{"in-progress", "todo", "draft", "completed", "scrapped"}
+	for i, name := range expected {
+		if got[i] != name {
+			t.Errorf("StatusNames()[%d] = %q, want %q", i, got[i], name)
+		}
+	}
+}
+
+func TestGetStatus(t *testing.T) {
+	cfg := Default()
+
+	t.Run("existing status", func(t *testing.T) {
+		s := cfg.GetStatus("todo")
+		if s == nil {
+			t.Fatal("GetStatus(\"todo\") = nil, want non-nil")
+		}
+		if s.Name != "todo" {
+			t.Errorf("Name = %q, want \"todo\"", s.Name)
+		}
+		if s.Color != "green" {
+			t.Errorf("Color = %q, want \"green\"", s.Color)
+		}
+	})
+
+	t.Run("non-existing status", func(t *testing.T) {
+		s := cfg.GetStatus("invalid")
+		if s != nil {
+			t.Errorf("GetStatus(\"invalid\") = %v, want nil", s)
+		}
+	})
+
+	t.Run("old status names not valid", func(t *testing.T) {
+		s := cfg.GetStatus("open")
+		if s != nil {
+			t.Errorf("GetStatus(\"open\") = %v, want nil (old status name)", s)
+		}
+		s = cfg.GetStatus("done")
+		if s != nil {
+			t.Errorf("GetStatus(\"done\") = %v, want nil (old status name)", s)
+		}
+		s = cfg.GetStatus("ready")
+		if s != nil {
+			t.Errorf("GetStatus(\"ready\") = %v, want nil (old status name)", s)
+		}
+	})
+}
+
+func TestGetDefaultStatus(t *testing.T) {
+	cfg := Default()
+	got := cfg.GetDefaultStatus()
+
+	if got != "todo" {
+		t.Errorf("GetDefaultStatus() = %q, want \"todo\"", got)
+	}
+}
+
+func TestGetDefaultType(t *testing.T) {
+	cfg := Default()
+	got := cfg.GetDefaultType()
+
+	if got != "task" {
+		t.Errorf("GetDefaultType() = %q, want \"task\"", got)
+	}
+}
+
+func TestIsArchiveStatus(t *testing.T) {
+	cfg := Default()
+
+	tests := []struct {
+		status string
+		want   bool
+	}{
+		{"completed", true},
+		{"scrapped", true},
+		{"draft", false},
+		{"todo", false},
+		{"in-progress", false},
+		{"invalid", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.status, func(t *testing.T) {
+			got := cfg.IsArchiveStatus(tt.status)
+			if got != tt.want {
+				t.Errorf("IsArchiveStatus(%q) = %v, want %v", tt.status, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLoadNonExistent(t *testing.T) {
+	// Load from non-existent directory should return defaults
+	cfg, err := Load("/nonexistent/path/that/does/not/exist")
+	if err != nil {
+		t.Fatalf("Load() error = %v, want nil", err)
+	}
+
+	// Should have default values
+	if cfg.Beans.IDLength != 4 {
+		t.Errorf("IDLength = %d, want 4", cfg.Beans.IDLength)
+	}
+}
+
+func TestLoadAndSave(t *testing.T) {
+	// Create temp directory
+	tmpDir := t.TempDir()
+
+	// Create a config (statuses are no longer stored in config)
+	cfg := &Config{
+		Beans: BeansConfig{
+			Path:        ".totem",
+			Prefix:      "test-",
+			IDLength:    6,
+			DefaultType: "bug",
+		},
+	}
+	cfg.SetConfigDir(tmpDir)
+
+	// Save it
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	// Verify file exists
+	configPath := filepath.Join(tmpDir, ConfigFileName)
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		t.Fatal("config file was not created")
+	}
+
+	// Load it back
+	loaded, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Verify values
+	if loaded.Beans.Prefix != "test-" {
+		t.Errorf("Prefix = %q, want \"test-\"", loaded.Beans.Prefix)
+	}
+	if loaded.Beans.IDLength != 6 {
+		t.Errorf("IDLength = %d, want 6", loaded.Beans.IDLength)
+	}
+	if loaded.Beans.DefaultType != "bug" {
+		t.Errorf("DefaultType = %q, want \"bug\"", loaded.Beans.DefaultType)
+	}
+	// Statuses are hardcoded, not stored in config
+	if len(loaded.StatusNames()) != 5 {
+		t.Errorf("len(StatusNames()) = %d, want 5", len(loaded.StatusNames()))
+	}
+}
+
+func TestLoadAppliesDefaults(t *testing.T) {
+	// Create temp directory with minimal config
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, ConfigFileName)
+
+	// Write minimal config (missing id_length and default_type)
+	minimalConfig := `beans:
+  prefix: "my-"
+`
+	if err := os.WriteFile(configPath, []byte(minimalConfig), 0644); err != nil {
+		t.Fatalf("WriteFile error = %v", err)
+	}
+
+	// Load it
+	cfg, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Verify defaults were applied
+	if cfg.Beans.IDLength != 4 {
+		t.Errorf("IDLength default not applied: got %d, want 4", cfg.Beans.IDLength)
+	}
+	// Statuses are hardcoded, always 5
+	if len(cfg.StatusNames()) != 5 {
+		t.Errorf("Hardcoded statuses: got %d, want 5", len(cfg.StatusNames()))
+	}
+	// DefaultStatus is always "todo"
+	if cfg.GetDefaultStatus() != "todo" {
+		t.Errorf("DefaultStatus: got %q, want \"todo\"", cfg.GetDefaultStatus())
+	}
+	// DefaultType should be first type name when not specified
+	if cfg.Beans.DefaultType != "milestone" {
+		t.Errorf("DefaultType default not applied: got %q, want \"milestone\"", cfg.Beans.DefaultType)
+	}
+}
+
+func TestStatusesAreHardcoded(t *testing.T) {
+	// Statuses are hardcoded and not configurable (like types)
+	// Verify that any config only uses hardcoded statuses
+	cfg := Default()
+
+	// All hardcoded statuses should be valid
+	hardcodedStatuses := []string{"draft", "todo", "in-progress", "completed", "scrapped"}
+	for _, status := range hardcodedStatuses {
+		if !cfg.IsValidStatus(status) {
+			t.Errorf("IsValidStatus(%q) = false, want true", status)
+		}
+	}
+
+	// Archive statuses should be completed and scrapped
+	if !cfg.IsArchiveStatus("completed") {
+		t.Error("IsArchiveStatus(\"completed\") = false, want true")
+	}
+	if !cfg.IsArchiveStatus("scrapped") {
+		t.Error("IsArchiveStatus(\"scrapped\") = false, want true")
+	}
+	if cfg.IsArchiveStatus("todo") {
+		t.Error("IsArchiveStatus(\"todo\") = true, want false")
+	}
+}
+
+func TestIsValidType(t *testing.T) {
+	cfg := Default()
+
+	tests := []struct {
+		typeName string
+		want     bool
+	}{
+		{"epic", true},
+		{"milestone", true},
+		{"feature", true},
+		{"bug", true},
+		{"task", true},
+		{"invalid", false},
+		{"", false},
+		{"TASK", false}, // case sensitive
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.typeName, func(t *testing.T) {
+			got := cfg.IsValidType(tt.typeName)
+			if got != tt.want {
+				t.Errorf("IsValidType(%q) = %v, want %v", tt.typeName, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTypeList(t *testing.T) {
+	cfg := Default()
+	got := cfg.TypeList()
+	want := "milestone, epic, bug, feature, task"
+
+	if got != want {
+		t.Errorf("TypeList() = %q, want %q", got, want)
+	}
+}
+
+func TestGetType(t *testing.T) {
+	cfg := Default()
+
+	t.Run("existing type", func(t *testing.T) {
+		typ := cfg.GetType("bug")
+		if typ == nil {
+			t.Fatal("GetType(\"bug\") = nil, want non-nil")
+		}
+		if typ.Name != "bug" {
+			t.Errorf("Name = %q, want \"bug\"", typ.Name)
+		}
+		if typ.Color != "red" {
+			t.Errorf("Color = %q, want \"red\"", typ.Color)
+		}
+	})
+
+	t.Run("non-existing type", func(t *testing.T) {
+		// GetType returns nil for unknown types
+		typ := cfg.GetType("invalid-type")
+		if typ != nil {
+			t.Errorf("GetType(\"invalid-type\") = %v, want nil", typ)
+		}
+	})
+
+	t.Run("all hardcoded types exist", func(t *testing.T) {
+		expectedTypes := []string{"milestone", "epic", "bug", "feature", "task"}
+		for _, typeName := range expectedTypes {
+			typ := cfg.GetType(typeName)
+			if typ == nil {
+				t.Errorf("GetType(%q) = nil, want non-nil", typeName)
+			}
+		}
+	})
+}
+
+func TestTypesAreHardcoded(t *testing.T) {
+	// Types are hardcoded and not stored in config
+	// Verify that saving and loading a config doesn't affect types
+
+	tmpDir := t.TempDir()
+
+	cfg := &Config{
+		Beans: BeansConfig{
+			Path:        ".totem",
+			Prefix:      "test-",
+			IDLength:    4,
+			DefaultType: "task",
+		},
+	}
+	cfg.SetConfigDir(tmpDir)
+
+	// Save it
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	// Load it back
+	configPath := filepath.Join(tmpDir, ConfigFileName)
+	loaded, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Types should always come from DefaultTypes, not config
+	if len(loaded.TypeNames()) != 5 {
+		t.Errorf("len(TypeNames()) = %d, want 5", len(loaded.TypeNames()))
+	}
+
+	// All default types should be accessible
+	for _, typeName := range []string{"milestone", "epic", "bug", "feature", "task"} {
+		if !loaded.IsValidType(typeName) {
+			t.Errorf("IsValidType(%q) = false, want true", typeName)
+		}
+	}
+
+	// Statuses should also be hardcoded
+	if len(loaded.StatusNames()) != 5 {
+		t.Errorf("len(StatusNames()) = %d, want 5", len(loaded.StatusNames()))
+	}
+}
+
+func TestTypeDescriptions(t *testing.T) {
+	t.Run("hardcoded types have descriptions", func(t *testing.T) {
+		cfg := Default()
+
+		expectedDescriptions := map[string]string{
+			"epic":      "A thematic container for related work; should have child beans, not be worked on directly",
+			"milestone": "A target release or checkpoint; group work that should ship together",
+			"feature":   "A user-facing capability or enhancement",
+			"bug":       "Something that is broken and needs fixing",
+			"task":      "A concrete piece of work to complete (eg. a chore, or a sub-task for a feature)",
+		}
+
+		for typeName, expectedDesc := range expectedDescriptions {
+			typ := cfg.GetType(typeName)
+			if typ == nil {
+				t.Errorf("GetType(%q) = nil, want non-nil", typeName)
+				continue
+			}
+			if typ.Description != expectedDesc {
+				t.Errorf("Type %q description = %q, want %q", typeName, typ.Description, expectedDesc)
+			}
+		}
+	})
+
+	t.Run("types in config file are ignored", func(t *testing.T) {
+		// Even if a config file has custom types, they should be ignored
+		// and hardcoded types should be used instead
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		// Config with custom types (should be ignored)
+		configYAML := `beans:
+  prefix: "test-"
+  id_length: 4
+  default_status: open
+statuses:
+  - name: open
+    color: green
+types:
+  - name: custom-type
+    color: pink
+    description: "This should be ignored"
+`
+		if err := os.WriteFile(configPath, []byte(configYAML), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		loaded, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		// Custom type should not be valid
+		if loaded.IsValidType("custom-type") {
+			t.Error("IsValidType(\"custom-type\") = true, want false (custom types should be ignored)")
+		}
+
+		// Hardcoded types should still work
+		if !loaded.IsValidType("bug") {
+			t.Error("IsValidType(\"bug\") = false, want true")
+		}
+	})
+}
+
+func TestStatusDescriptions(t *testing.T) {
+	t.Run("hardcoded statuses have descriptions", func(t *testing.T) {
+		cfg := Default()
+
+		expectedDescriptions := map[string]string{
+			"draft":       "Needs refinement before it can be worked on",
+			"todo":        "Ready to be worked on",
+			"in-progress": "Currently being worked on",
+			"completed":   "Finished successfully",
+			"scrapped":    "Will not be done",
+		}
+
+		for statusName, expectedDesc := range expectedDescriptions {
+			status := cfg.GetStatus(statusName)
+			if status == nil {
+				t.Errorf("GetStatus(%q) = nil, want non-nil", statusName)
+				continue
+			}
+			if status.Description != expectedDesc {
+				t.Errorf("Status %q description = %q, want %q", statusName, status.Description, expectedDesc)
+			}
+		}
+	})
+
+	t.Run("statuses in config file are ignored", func(t *testing.T) {
+		// Even if a config file has custom statuses, they should be ignored
+		// and hardcoded statuses should be used instead
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		// Config with custom statuses (should be ignored)
+		configYAML := `beans:
+  prefix: "test-"
+  id_length: 4
+statuses:
+  - name: custom-status
+    color: pink
+    description: "This should be ignored"
+`
+		if err := os.WriteFile(configPath, []byte(configYAML), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		loaded, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		// Custom status should not be valid
+		if loaded.IsValidStatus("custom-status") {
+			t.Error("IsValidStatus(\"custom-status\") = true, want false (custom statuses should be ignored)")
+		}
+
+		// Hardcoded statuses should still work
+		if !loaded.IsValidStatus("todo") {
+			t.Error("IsValidStatus(\"todo\") = false, want true")
+		}
+	})
+}
+
+func TestFindConfig(t *testing.T) {
+	t.Run("finds config in current directory", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+		if err := os.WriteFile(configPath, []byte("beans:\n  prefix: test-\n"), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		found, err := FindConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("FindConfig() error = %v", err)
+		}
+		if found != configPath {
+			t.Errorf("FindConfig() = %q, want %q", found, configPath)
+		}
+	})
+
+	t.Run("finds config in parent directory", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		subDir := filepath.Join(tmpDir, "sub", "dir")
+		if err := os.MkdirAll(subDir, 0755); err != nil {
+			t.Fatalf("MkdirAll error = %v", err)
+		}
+
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+		if err := os.WriteFile(configPath, []byte("beans:\n  prefix: test-\n"), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		found, err := FindConfig(subDir)
+		if err != nil {
+			t.Fatalf("FindConfig() error = %v", err)
+		}
+		if found != configPath {
+			t.Errorf("FindConfig() = %q, want %q", found, configPath)
+		}
+	})
+
+	t.Run("returns empty string when no config found", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		found, err := FindConfigWithin(tmpDir, tmpDir)
+		if err != nil {
+			t.Fatalf("FindConfigWithin() error = %v", err)
+		}
+		if found != "" {
+			t.Errorf("FindConfigWithin() = %q, want empty string", found)
+		}
+	})
+}
+
+func TestLoadFromDirectory(t *testing.T) {
+	t.Run("loads config from directory with .totem.yml", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+		configYAML := `beans:
+  path: custom-beans
+  prefix: test-
+  id_length: 6
+`
+		if err := os.WriteFile(configPath, []byte(configYAML), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := LoadFromDirectory(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadFromDirectory() error = %v", err)
+		}
+		if cfg.Beans.Path != "custom-beans" {
+			t.Errorf("Beans.Path = %q, want \"custom-beans\"", cfg.Beans.Path)
+		}
+		if cfg.Beans.Prefix != "test-" {
+			t.Errorf("Prefix = %q, want \"test-\"", cfg.Beans.Prefix)
+		}
+		if cfg.Beans.IDLength != 6 {
+			t.Errorf("IDLength = %d, want 6", cfg.Beans.IDLength)
+		}
+	})
+
+	t.Run("returns default config when no config file exists", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cfg, err := LoadFromDirectoryWithin(tmpDir, tmpDir)
+		if err != nil {
+			t.Fatalf("LoadFromDirectoryWithin() error = %v", err)
+		}
+		if cfg.Beans.Path != DefaultBeansPath {
+			t.Errorf("Beans.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
+		}
+		if cfg.ConfigDir() != tmpDir {
+			t.Errorf("ConfigDir() = %q, want %q", cfg.ConfigDir(), tmpDir)
+		}
+	})
+}
+
+func TestResolveBeansPath(t *testing.T) {
+	t.Run("resolves relative path from config directory", func(t *testing.T) {
+		cfg := &Config{
+			Beans: BeansConfig{Path: "custom-beans"},
+		}
+		cfg.SetConfigDir("/project/root")
+
+		got := cfg.ResolveBeansPath()
+		want := "/project/root/custom-beans"
+		if got != want {
+			t.Errorf("ResolveBeansPath() = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("returns absolute path unchanged", func(t *testing.T) {
+		cfg := &Config{
+			Beans: BeansConfig{Path: "/absolute/path/to/beans"},
+		}
+		cfg.SetConfigDir("/project/root")
+
+		got := cfg.ResolveBeansPath()
+		want := "/absolute/path/to/beans"
+		if got != want {
+			t.Errorf("ResolveBeansPath() = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("uses default .totem path", func(t *testing.T) {
+		cfg := Default()
+		cfg.SetConfigDir("/project/root")
+
+		got := cfg.ResolveBeansPath()
+		want := "/project/root/.totem"
+		if got != want {
+			t.Errorf("ResolveBeansPath() = %q, want %q", got, want)
+		}
+	})
+}
+
+func TestDefaultHasBeansPath(t *testing.T) {
+	cfg := Default()
+	if cfg.Beans.Path != DefaultBeansPath {
+		t.Errorf("Default().Beans.Path = %q, want %q", cfg.Beans.Path, DefaultBeansPath)
+	}
+}
+
+func TestIsValidPriority(t *testing.T) {
+	cfg := Default()
+
+	tests := []struct {
+		priority string
+		want     bool
+	}{
+		{"critical", true},
+		{"high", true},
+		{"normal", true},
+		{"low", true},
+		{"deferred", true},
+		{"", true}, // empty is valid (means no priority)
+		{"invalid", false},
+		{"CRITICAL", false}, // case sensitive
+		{"medium", false},   // not a valid priority
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.priority, func(t *testing.T) {
+			got := cfg.IsValidPriority(tt.priority)
+			if got != tt.want {
+				t.Errorf("IsValidPriority(%q) = %v, want %v", tt.priority, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPriorityList(t *testing.T) {
+	cfg := Default()
+	got := cfg.PriorityList()
+	want := "critical, high, normal, low, deferred"
+
+	if got != want {
+		t.Errorf("PriorityList() = %q, want %q", got, want)
+	}
+}
+
+func TestPriorityNames(t *testing.T) {
+	cfg := Default()
+	got := cfg.PriorityNames()
+
+	if len(got) != 5 {
+		t.Fatalf("len(PriorityNames()) = %d, want 5", len(got))
+	}
+	expected := []string{"critical", "high", "normal", "low", "deferred"}
+	for i, name := range expected {
+		if got[i] != name {
+			t.Errorf("PriorityNames()[%d] = %q, want %q", i, got[i], name)
+		}
+	}
+}
+
+func TestGetPriority(t *testing.T) {
+	cfg := Default()
+
+	t.Run("existing priority", func(t *testing.T) {
+		p := cfg.GetPriority("high")
+		if p == nil {
+			t.Fatal("GetPriority(\"high\") = nil, want non-nil")
+		}
+		if p.Name != "high" {
+			t.Errorf("Name = %q, want \"high\"", p.Name)
+		}
+		if p.Color != "yellow" {
+			t.Errorf("Color = %q, want \"yellow\"", p.Color)
+		}
+	})
+
+	t.Run("non-existing priority", func(t *testing.T) {
+		p := cfg.GetPriority("invalid")
+		if p != nil {
+			t.Errorf("GetPriority(\"invalid\") = %v, want nil", p)
+		}
+	})
+
+	t.Run("empty priority returns nil", func(t *testing.T) {
+		p := cfg.GetPriority("")
+		if p != nil {
+			t.Errorf("GetPriority(\"\") = %v, want nil", p)
+		}
+	})
+}
+
+func TestPriorityDescriptions(t *testing.T) {
+	cfg := Default()
+
+	expectedDescriptions := map[string]string{
+		"critical": "Urgent, blocking work. When possible, address immediately",
+		"high":     "Important, should be done before normal work",
+		"normal":   "Standard priority",
+		"low":      "Less important, can be delayed",
+		"deferred": "Explicitly pushed back, avoid doing unless necessary",
+	}
+
+	for priorityName, expectedDesc := range expectedDescriptions {
+		p := cfg.GetPriority(priorityName)
+		if p == nil {
+			t.Errorf("GetPriority(%q) = nil, want non-nil", priorityName)
+			continue
+		}
+		if p.Description != expectedDesc {
+			t.Errorf("Priority %q description = %q, want %q", priorityName, p.Description, expectedDesc)
+		}
+	}
+}
+
+func TestDefaultPrioritiesCount(t *testing.T) {
+	if len(DefaultPriorities) != 5 {
+		t.Errorf("len(DefaultPriorities) = %d, want 5", len(DefaultPriorities))
+	}
+}
+
+func TestSaveIncludesComments(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("myapp-")
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	configPath := filepath.Join(tmpDir, ConfigFileName)
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+	content := string(data)
+
+	// Verify header comment
+	if !strings.Contains(content, "# Beans configuration") {
+		t.Error("missing header comment 'Beans configuration'")
+	}
+	if !strings.Contains(content, "# See: https://github.com/inceptyon-labs/totem") {
+		t.Error("missing header comment with URL")
+	}
+
+	// Verify field comments
+	expectedComments := []string{
+		"# Directory where bean files are stored",
+		"# Prefix for bean IDs",
+		"# Length of the random ID suffix",
+		"# Default status for new beans",
+		"# Default type for new beans",
+		"# Port for the web UI",
+	}
+	for _, comment := range expectedComments {
+		if !strings.Contains(content, comment) {
+			t.Errorf("missing comment: %s", comment)
+		}
+	}
+
+	// Verify values are still correct by loading back
+	loaded, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if loaded.Beans.Prefix != "myapp-" {
+		t.Errorf("Prefix = %q, want \"myapp-\"", loaded.Beans.Prefix)
+	}
+	if loaded.Beans.IDLength != 4 {
+		t.Errorf("IDLength = %d, want 4", loaded.Beans.IDLength)
+	}
+	if loaded.Beans.DefaultStatus != "todo" {
+		t.Errorf("DefaultStatus = %q, want \"todo\"", loaded.Beans.DefaultStatus)
+	}
+	if loaded.Beans.DefaultType != "task" {
+		t.Errorf("DefaultType = %q, want \"task\"", loaded.Beans.DefaultType)
+	}
+	if loaded.GetServerPort() != DefaultServerPort {
+		t.Errorf("ServerPort = %d, want %d", loaded.GetServerPort(), DefaultServerPort)
+	}
+}
+
+func TestGetDefaultMode(t *testing.T) {
+	tests := []struct {
+		name     string
+		mode     PermissionMode
+		expected PermissionMode
+	}{
+		{"empty defaults to act", "", PermissionModeAct},
+		{"act", PermissionModeAct, PermissionModeAct},
+		{"plan", PermissionModePlan, PermissionModePlan},
+		{"invalid defaults to act", PermissionMode("invalid"), PermissionModeAct},
+		{"yolo is backwards-compat alias for act", PermissionMode("yolo"), PermissionModeAct},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := Default()
+			cfg.Agent.DefaultMode = tt.mode
+			got := cfg.GetDefaultMode()
+			if got != tt.expected {
+				t.Errorf("GetDefaultMode() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsValidPermissionMode(t *testing.T) {
+	tests := []struct {
+		mode string
+		want bool
+	}{
+		{"act", true},
+		{"yolo", true},
+		{"plan", true},
+		{"", false},
+		{"invalid", false},
+		{"ACT", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.mode, func(t *testing.T) {
+			got := IsValidPermissionMode(tt.mode)
+			if got != tt.want {
+				t.Errorf("IsValidPermissionMode(%q) = %v, want %v", tt.mode, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetDefaultEffort(t *testing.T) {
+	tests := []struct {
+		effort   string
+		expected string
+	}{
+		{"", ""},
+		{"low", "low"},
+		{"medium", "medium"},
+		{"high", "high"},
+		{"max", "max"},
+		{"ultra", "ultra"}, // raw value returned; validation is caller's responsibility
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.effort, func(t *testing.T) {
+			cfg := Default()
+			cfg.Agent.DefaultEffort = tt.effort
+			got := cfg.GetDefaultEffort()
+			if got != tt.expected {
+				t.Errorf("GetDefaultEffort() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestIsValidEffortLevel(t *testing.T) {
+	tests := []struct {
+		effort string
+		want   bool
+	}{
+		{"low", true},
+		{"medium", true},
+		{"high", true},
+		{"max", true},
+		{"", false},
+		{"ultra", false},
+		{"High", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.effort, func(t *testing.T) {
+			if got := IsValidEffortLevel(tt.effort); got != tt.want {
+				t.Errorf("IsValidEffortLevel(%q) = %v, want %v", tt.effort, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestLoadAgentPermissionMode(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, ConfigFileName)
+
+	configYAML := `beans:
+  prefix: test-
+agent:
+  default_mode: plan
+`
+	if err := os.WriteFile(configPath, []byte(configYAML), 0644); err != nil {
+		t.Fatalf("WriteFile error = %v", err)
+	}
+
+	cfg, err := Load(configPath)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.GetDefaultMode() != PermissionModePlan {
+		t.Errorf("GetDefaultMode() = %q, want %q", cfg.GetDefaultMode(), PermissionModePlan)
+	}
+}
+
+func TestSaveIncludesAgentSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Agent.DefaultMode = PermissionModePlan
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "agent:") {
+		t.Error("expected agent section in saved config")
+	}
+	if !strings.Contains(content, "default_mode: plan") {
+		t.Error("expected default_mode: plan in saved config")
+	}
+}
+
+func TestSaveOmitsEmptyAgentSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Agent.Enabled = nil    // explicitly clear
+	cfg.Agent.DefaultMode = "" // explicitly clear
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	if strings.Contains(string(data), "agent:") {
+		t.Error("expected agent section to be omitted when not configured")
+	}
+}
+
+func TestDefaultIncludesAgentSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "agent:") {
+		t.Error("expected default config to include agent section")
+	}
+	if !strings.Contains(content, "default_mode: act") {
+		t.Error("expected default config to include default_mode: act")
+	}
+	if !strings.Contains(content, "enabled: true") {
+		t.Error("expected default config to include enabled: true")
+	}
+}
+
+func TestIsAgentEnabled(t *testing.T) {
+	// Default config should have agent enabled
+	cfg := Default()
+	if !cfg.IsAgentEnabled() {
+		t.Error("expected default config to have agent enabled")
+	}
+
+	// Explicitly disabled
+	f := false
+	cfg.Agent.Enabled = &f
+	if cfg.IsAgentEnabled() {
+		t.Error("expected agent to be disabled when set to false")
+	}
+
+	// Nil (unset) should default to true
+	cfg.Agent.Enabled = nil
+	if !cfg.IsAgentEnabled() {
+		t.Error("expected agent to be enabled when Enabled is nil")
+	}
+}
+
+func TestLoadAgentEnabled(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Write config with agent.enabled: false
+	configContent := `
+beans:
+    prefix: "test-"
+    id_length: 4
+agent:
+    enabled: false
+`
+	if err := os.WriteFile(filepath.Join(tmpDir, ConfigFileName), []byte(configContent), 0644); err != nil {
+		t.Fatalf("WriteFile error = %v", err)
+	}
+
+	cfg, err := Load(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.IsAgentEnabled() {
+		t.Error("expected agent to be disabled when config has enabled: false")
+	}
+}
+
+func TestSaveOmitsEmptyServerSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Server.Port = 0 // zero value = omitted
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	if strings.Contains(string(data), "server:") {
+		t.Error("expected server section to be omitted when port is 0")
+	}
+}
+
+func TestGetWorktreeBaseRef(t *testing.T) {
+	t.Run("returns default when not configured", func(t *testing.T) {
+		cfg := Default()
+		if cfg.GetWorktreeBaseRef() != DefaultWorktreeBaseRef {
+			t.Errorf("GetWorktreeBaseRef() = %q, want %q", cfg.GetWorktreeBaseRef(), DefaultWorktreeBaseRef)
+		}
+	})
+
+	t.Run("returns configured base ref", func(t *testing.T) {
+		cfg := Default()
+		cfg.Worktree.BaseRef = "origin/develop"
+		if cfg.GetWorktreeBaseRef() != "origin/develop" {
+			t.Errorf("GetWorktreeBaseRef() = %q, want \"origin/develop\"", cfg.GetWorktreeBaseRef())
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `beans:
+  prefix: test-
+worktree:
+  base_ref: origin/develop
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if cfg.GetWorktreeBaseRef() != "origin/develop" {
+			t.Errorf("GetWorktreeBaseRef() = %q, want \"origin/develop\"", cfg.GetWorktreeBaseRef())
+		}
+	})
+}
+
+func TestSaveIncludesWorktreeSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Worktree.BaseRef = "origin/develop"
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "worktree:") {
+		t.Error("expected worktree section in saved config")
+	}
+	if !strings.Contains(content, "base_ref: origin/develop") {
+		t.Error("expected base_ref: origin/develop in saved config")
+	}
+}
+
+func TestWorktreeSetupAndRun(t *testing.T) {
+	t.Run("returns empty strings by default", func(t *testing.T) {
+		cfg := Default()
+		if cfg.GetWorktreeSetup() != "" {
+			t.Errorf("GetWorktreeSetup() = %q, want empty string", cfg.GetWorktreeSetup())
+		}
+		if cfg.GetWorktreeRun() != "" {
+			t.Errorf("GetWorktreeRun() = %q, want empty string", cfg.GetWorktreeRun())
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `beans:
+  prefix: test-
+worktree:
+  setup: pnpm install
+  run: mise dev
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if cfg.GetWorktreeSetup() != "pnpm install" {
+			t.Errorf("GetWorktreeSetup() = %q, want \"pnpm install\"", cfg.GetWorktreeSetup())
+		}
+		if cfg.GetWorktreeRun() != "mise dev" {
+			t.Errorf("GetWorktreeRun() = %q, want \"mise dev\"", cfg.GetWorktreeRun())
+		}
+	})
+
+	t.Run("saves to config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cfg := DefaultWithPrefix("test-")
+		cfg.Worktree.Setup = "npm install"
+		cfg.Worktree.Run = "npm run dev"
+		cfg.SetConfigDir(tmpDir)
+
+		if err := cfg.Save(tmpDir); err != nil {
+			t.Fatalf("Save() error = %v", err)
+		}
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+		if err != nil {
+			t.Fatalf("ReadFile error = %v", err)
+		}
+
+		content := string(data)
+		if !strings.Contains(content, "setup: npm install") {
+			t.Error("expected setup: npm install in saved config")
+		}
+		if !strings.Contains(content, "run: npm run dev") {
+			t.Error("expected run: npm run dev in saved config")
+		}
+	})
+}
+
+func TestSaveAlwaysIncludesWorktreeStubs(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Worktree.BaseRef = "" // explicitly clear
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	content := string(data)
+	// setup and run are always emitted as stubs so users discover them
+	if !strings.Contains(content, "worktree:") {
+		t.Error("expected worktree section to always be present")
+	}
+	if !strings.Contains(content, "setup:") {
+		t.Error("expected setup stub in worktree section")
+	}
+	if !strings.Contains(content, "run:") {
+		t.Error("expected run stub in worktree section")
+	}
+}
+
+func TestGetWorktreeIntegrate(t *testing.T) {
+	tests := []struct {
+		name     string
+		value    IntegrateMode
+		expected IntegrateMode
+	}{
+		{"default (empty)", "", IntegrateModeLocal},
+		{"local", IntegrateModeLocal, IntegrateModeLocal},
+		{"pr", IntegrateModePR, IntegrateModePR},
+		{"invalid value", "garbage", IntegrateModeLocal},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := Default()
+			cfg.Worktree.Integrate = tt.value
+			if got := cfg.GetWorktreeIntegrate(); got != tt.expected {
+				t.Errorf("GetWorktreeIntegrate() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestWorktreeIntegrateLoadAndSave(t *testing.T) {
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `beans:
+  prefix: test-
+worktree:
+  integrate: pr
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if cfg.GetWorktreeIntegrate() != IntegrateModePR {
+			t.Errorf("GetWorktreeIntegrate() = %q, want %q", cfg.GetWorktreeIntegrate(), IntegrateModePR)
+		}
+	})
+
+	t.Run("saves to config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cfg := DefaultWithPrefix("test-")
+		cfg.Worktree.Integrate = IntegrateModePR
+		cfg.SetConfigDir(tmpDir)
+
+		if err := cfg.Save(tmpDir); err != nil {
+			t.Fatalf("Save() error = %v", err)
+		}
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+		if err != nil {
+			t.Fatalf("ReadFile error = %v", err)
+		}
+
+		content := string(data)
+		if !strings.Contains(content, "integrate: pr") {
+			t.Errorf("expected integrate: pr in saved config, got:\n%s", content)
+		}
+	})
+
+	t.Run("default saves as local", func(t *testing.T) {
+		tmpDir := t.TempDir()
+
+		cfg := DefaultWithPrefix("test-")
+		cfg.SetConfigDir(tmpDir)
+
+		if err := cfg.Save(tmpDir); err != nil {
+			t.Fatalf("Save() error = %v", err)
+		}
+
+		data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+		if err != nil {
+			t.Fatalf("ReadFile error = %v", err)
+		}
+
+		content := string(data)
+		if !strings.Contains(content, "integrate: local") {
+			t.Errorf("expected integrate: local in saved config, got:\n%s", content)
+		}
+	})
+}
+
+func TestGetWorktreeFetchTimeout(t *testing.T) {
+	t.Run("default is 10s", func(t *testing.T) {
+		cfg := Default()
+		if got := cfg.GetWorktreeFetchTimeout(); got != 10*time.Second {
+			t.Errorf("GetWorktreeFetchTimeout() = %v, want 10s", got)
+		}
+	})
+
+	t.Run("explicit zero disables fetch", func(t *testing.T) {
+		cfg := Default()
+		zero := 0
+		cfg.Worktree.FetchTimeout = &zero
+		if got := cfg.GetWorktreeFetchTimeout(); got != 0 {
+			t.Errorf("GetWorktreeFetchTimeout() = %v, want 0", got)
+		}
+	})
+
+	t.Run("custom value", func(t *testing.T) {
+		cfg := Default()
+		thirty := 30
+		cfg.Worktree.FetchTimeout = &thirty
+		if got := cfg.GetWorktreeFetchTimeout(); got != 30*time.Second {
+			t.Errorf("GetWorktreeFetchTimeout() = %v, want 30s", got)
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := "beans:\n  prefix: test-\nworktree:\n  fetch_timeout: 5\n"
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if got := cfg.GetWorktreeFetchTimeout(); got != 5*time.Second {
+			t.Errorf("GetWorktreeFetchTimeout() = %v, want 5s", got)
+		}
+	})
+
+	t.Run("loads zero from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := "beans:\n  prefix: test-\nworktree:\n  fetch_timeout: 0\n"
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if got := cfg.GetWorktreeFetchTimeout(); got != 0 {
+			t.Errorf("GetWorktreeFetchTimeout() = %v, want 0", got)
+		}
+	})
+}
+
+func TestGetServerPort(t *testing.T) {
+	t.Run("returns default when not configured", func(t *testing.T) {
+		cfg := Default()
+		if cfg.GetServerPort() != DefaultServerPort {
+			t.Errorf("GetServerPort() = %d, want %d", cfg.GetServerPort(), DefaultServerPort)
+		}
+	})
+
+	t.Run("returns configured port", func(t *testing.T) {
+		cfg := Default()
+		cfg.Server.Port = 9000
+		if cfg.GetServerPort() != 9000 {
+			t.Errorf("GetServerPort() = %d, want 9000", cfg.GetServerPort())
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `beans:
+  prefix: test-
+server:
+  port: 3000
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if cfg.GetServerPort() != 3000 {
+			t.Errorf("GetServerPort() = %d, want 3000", cfg.GetServerPort())
+		}
+	})
+}
+
+func TestGetProjectName(t *testing.T) {
+	t.Run("returns empty string by default", func(t *testing.T) {
+		cfg := Default()
+		if cfg.GetProjectName() != "" {
+			t.Errorf("GetProjectName() = %q, want empty string", cfg.GetProjectName())
+		}
+	})
+
+	t.Run("returns configured name", func(t *testing.T) {
+		cfg := Default()
+		cfg.Project.Name = "my-project"
+		if cfg.GetProjectName() != "my-project" {
+			t.Errorf("GetProjectName() = %q, want \"my-project\"", cfg.GetProjectName())
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `project:
+  name: my-project
+beans:
+  prefix: test-
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		if cfg.GetProjectName() != "my-project" {
+			t.Errorf("GetProjectName() = %q, want \"my-project\"", cfg.GetProjectName())
+		}
+	})
+}
+
+func TestSaveIncludesProjectSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.Project.Name = "my-app"
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	content := string(data)
+	if !strings.Contains(content, "project:") {
+		t.Error("expected project section in saved config")
+	}
+	if !strings.Contains(content, "name: my-app") {
+		t.Error("expected name: my-app in saved config")
+	}
+}
+
+func TestSaveOmitsEmptyProjectSection(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := DefaultWithPrefix("test-")
+	cfg.SetConfigDir(tmpDir)
+
+	if err := cfg.Save(tmpDir); err != nil {
+		t.Fatalf("Save() error = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(tmpDir, ConfigFileName))
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+
+	if strings.Contains(string(data), "project:") {
+		t.Error("expected project section to be omitted when not configured")
+	}
+}
+
+func TestGetCORSOrigins(t *testing.T) {
+	t.Run("returns defaults when not configured", func(t *testing.T) {
+		cfg := Default()
+		origins := cfg.GetCORSOrigins()
+		if len(origins) != 2 {
+			t.Fatalf("GetCORSOrigins() returned %d origins, want 2", len(origins))
+		}
+		if origins[0] != "http://localhost:*" {
+			t.Errorf("origins[0] = %q, want %q", origins[0], "http://localhost:*")
+		}
+		if origins[1] != "http://127.0.0.1:*" {
+			t.Errorf("origins[1] = %q, want %q", origins[1], "http://127.0.0.1:*")
+		}
+	})
+
+	t.Run("returns configured origins", func(t *testing.T) {
+		cfg := Default()
+		cfg.Server.CORSOrigins = []string{"https://example.com"}
+		origins := cfg.GetCORSOrigins()
+		if len(origins) != 1 || origins[0] != "https://example.com" {
+			t.Errorf("GetCORSOrigins() = %v, want [https://example.com]", origins)
+		}
+	})
+
+	t.Run("loads from config file", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		configPath := filepath.Join(tmpDir, ConfigFileName)
+
+		configContent := `beans:
+  prefix: test-
+server:
+  cors_origins:
+    - "https://app.example.com"
+    - "http://localhost:*"
+`
+		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
+			t.Fatalf("WriteFile error = %v", err)
+		}
+
+		cfg, err := Load(configPath)
+		if err != nil {
+			t.Fatalf("Load() error = %v", err)
+		}
+
+		origins := cfg.GetCORSOrigins()
+		if len(origins) != 2 {
+			t.Fatalf("GetCORSOrigins() returned %d origins, want 2", len(origins))
+		}
+		if origins[0] != "https://app.example.com" {
+			t.Errorf("origins[0] = %q, want %q", origins[0], "https://app.example.com")
+		}
+	})
+}

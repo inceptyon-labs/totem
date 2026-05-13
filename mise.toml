@@ -1,0 +1,137 @@
+[tools]
+go = "latest"
+node = "latest"
+pnpm = "latest"
+watchexec = "latest"
+
+[hooks]
+postinstall = "npx corepack enable"
+
+[tasks.setup]
+description = "Set up the project (install all dependencies, generate code)"
+depends = ["deps", "codegen"]
+
+[tasks.deps]
+description = "Install all dependencies"
+run = { tasks = ["deps:backend", "deps:frontend"] }
+
+[tasks."deps:backend"]
+description = "Install backend dependencies"
+run = "go mod download"
+sources = ["go.mod", "go.sum"]
+
+[tasks."deps:frontend"]
+description = "Install frontend dependencies"
+dir = "frontend"
+run = "pnpm install"
+sources = ["frontend/package.json", "frontend/pnpm-lock.yaml"]
+
+[tasks.codegen]
+run = ["go generate ./...", "cd frontend && pnpm codegen"]
+
+[tasks.test]
+depends = ["codegen", "test:e2e"]
+run = "go test ./..."
+
+[tasks."build:frontend"]
+description = "Build the SvelteKit frontend"
+dir = "frontend"
+run = "pnpm build"
+
+[tasks."build:embed"]
+description = "Copy frontend build to embed directory"
+depends = "build:frontend"
+run = """
+rm -rf internal/web/dist
+mkdir -p internal/web/dist
+cp -r frontend/build/* internal/web/dist/
+touch internal/web/dist/.gitkeep
+"""
+
+[tasks.build]
+depends = ["codegen", "build:embed"]
+run = """
+LDFLAGS="\
+  -X github.com/inceptyon-labs/totem/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo dev) \
+  -X github.com/inceptyon-labs/totem/internal/version.Commit=$(git rev-parse --short HEAD 2>/dev/null || echo unknown) \
+  -X github.com/inceptyon-labs/totem/internal/version.Date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+go build -ldflags "$LDFLAGS" -o totem ./cmd/totem
+go build -ldflags "$LDFLAGS" -o totem-serve ./cmd/totem-serve
+go build -ldflags "$LDFLAGS" -o totem-tui ./cmd/totem-tui
+"""
+
+[tasks.totem]
+description = "Build and run the totem CLI"
+run = "go run ./cmd/totem"
+
+[tasks.totem-serve]
+description = "Build and run the totem-serve server"
+run = "go build -o /tmp/totem-serve-dev ./cmd/totem-serve && /tmp/totem-serve-dev --port ${TOTEM_PORT:-22880}"
+sources = ["**/*.go"]
+
+[tasks.totem-tui]
+description = "Build and run the totem-tui terminal UI"
+run = "go run ./cmd/totem-tui"
+
+[tasks.install]
+depends = "build"
+run = """
+cp totem ~/.local/bin/totem
+cp totem-serve ~/.local/bin/totem-serve
+cp totem-tui ~/.local/bin/totem-tui
+"""
+
+[tasks."release:patch"]
+description = "Create a patch version tag (e.g., v0.1.4 → v0.1.5)"
+run = """
+set -e
+NEW_VERSION=$(svu patch)
+git tag "$NEW_VERSION"
+echo "Created tag: $NEW_VERSION"
+echo "To release, run: git push && git push --tags"
+"""
+
+[tasks."release:minor"]
+description = "Create a minor version tag (e.g., v0.1.4 → v0.2.0)"
+run = """
+set -e
+NEW_VERSION=$(svu minor)
+git tag "$NEW_VERSION"
+echo "Created tag: $NEW_VERSION"
+echo "To release, run: git push && git push --tags"
+"""
+
+[tasks."release:major"]
+description = "Create a major version tag (e.g., v0.1.4 → v1.0.0)"
+run = """
+set -e
+NEW_VERSION=$(svu major)
+git tag "$NEW_VERSION"
+echo "Created tag: $NEW_VERSION"
+echo "To release, run: git push && git push --tags"
+"""
+
+[tasks."test:e2e"]
+description = "Run Playwright e2e tests"
+depends = "build:embed"
+dir = "frontend"
+run = "pnpm test:e2e"
+
+[tasks."dev:serve"]
+run = "mise watch totem-serve --restart"
+
+[tasks."dev:frontend"]
+dir = "frontend"
+run = "pnpm dev --port ${VITE_PORT:-5173}"
+
+[tasks.dev]
+description = "Run the development server"
+depends = "setup"
+run = { tasks = ["dev:serve", "dev:frontend"] }
+
+[tasks."dev:kill"]
+description = "Kill any lingering dev processes"
+run = """
+pkill -9 -f "totem-serve" 2>/dev/null && echo "Killed totem-serve processes" || echo "No totem-serve processes"
+pkill -9 -f "wgo.*totem" 2>/dev/null && echo "Killed wgo processes" || echo "No wgo processes"
+"""

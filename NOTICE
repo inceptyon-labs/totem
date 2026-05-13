@@ -1,0 +1,14 @@
+Totem
+Copyright 2026 Inceptyon Labs LLC
+
+This product is a fork of "beans" by Hendrik Mans:
+  https://github.com/hmans/beans
+  Copyright (c) Hendrik Mans
+  Licensed under the Apache License, Version 2.0
+
+The original project's code is included here in modified form.
+Modifications include: renaming, rebranding to "Totem", and
+forthcoming changes for audit-trail and corporate use cases.
+
+This product is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full license text.

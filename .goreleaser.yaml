@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: totem
+    main: ./cmd/totem
+    binary: totem
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w
+      - -X github.com/inceptyon-labs/totem/internal/version.Version={{.Version}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Date={{.Date}}
+
+  - id: totem-serve
+    main: ./cmd/totem-serve
+    binary: totem-serve
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w
+      - -X github.com/inceptyon-labs/totem/internal/version.Version={{.Version}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Date={{.Date}}
+
+  - id: totem-tui
+    main: ./cmd/totem-tui
+    binary: totem-tui
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w
+      - -X github.com/inceptyon-labs/totem/internal/version.Version={{.Version}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Commit={{.ShortCommit}}
+      - -X github.com/inceptyon-labs/totem/internal/version.Date={{.Date}}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    include:
+      - "^feat"
+      - "^fix"
+      - "^perf"
+      - "^refactor"
+  groups:
+    - title: "⚠️ Breaking Changes"
+      regexp: "!:"
+      order: 0
+    - title: Features
+      regexp: "^feat"
+      order: 1
+    - title: Bug Fixes
+      regexp: "^fix"
+      order: 2
+    - title: Performance
+      regexp: "^perf"
+      order: 3
+    - title: Other
+      order: 999
+
+homebrew_casks:
+  - repository:
+      owner: inceptyon-labs
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://github.com/inceptyon-labs/totem"
+    description: "Lightweight flat-file issue tracker with audit-trail-friendly markdown storage"
+    license: "Apache-2.0"
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/totem"]
+          end
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).

@@ -1,0 +1,189 @@
+// Package agent manages AI coding agent sessions within worktrees.
+package agent
+
+// MessageRole identifies who sent a message.
+type MessageRole string
+
+const (
+	RoleUser      MessageRole = "user"
+	RoleAssistant MessageRole = "assistant"
+	RoleTool      MessageRole = "tool"
+	RoleInfo      MessageRole = "info" // system info messages (not sent to Claude)
+)
+
+// SessionStatus represents the current state of an agent session.
+type SessionStatus string
+
+const (
+	StatusIdle    SessionStatus = "idle"
+	StatusRunning SessionStatus = "running"
+	StatusError   SessionStatus = "error"
+)
+
+// ActiveAgent is a lightweight struct for reporting which beans have active agents.
+type ActiveAgent struct {
+	BeanID string
+	Status SessionStatus
+}
+
+// ImageRef references a stored image attachment by its filename and media type.
+type ImageRef struct {
+	ID        string // filename on disk: <uuid>.<ext>
+	MediaType string // e.g. "image/png"
+}
+
+// ImageUpload carries raw image data from a GraphQL mutation into the agent layer.
+type ImageUpload struct {
+	Data      []byte // decoded image bytes
+	MediaType string // e.g. "image/png"
+}
+
+// Message represents a single chat message in an agent conversation.
+type Message struct {
+	Role        MessageRole
+	Content     string
+	Images      []ImageRef // optional attached images (typically only on user messages)
+	Diff        string     // unified diff output (only on tool messages for Write/Edit)
+	Attachments []string   // file/directory paths attached via @-mention
+
+	// ContextPrefix is prepended to Content when sending to Claude but is NOT
+	// persisted to disk or displayed in the UI. Used for @-mention file context.
+	ContextPrefix string `json:"-"`
+}
+
+// ToolInvocation records a tool call with its name and input summary.
+type ToolInvocation struct {
+	Tool  string
+	Input string // summary of tool input (e.g. file path, command)
+}
+
+// SubagentActivity tracks the current state of a running subagent (Agent tool).
+// This is transient — set while a subagent is active, cleared when it completes.
+type SubagentActivity struct {
+	TaskID      string // unique task ID from task_progress events
+	Index       int    // sequential index (1-based) for display
+	Description string // what the subagent is currently doing (from task_progress)
+	CurrentTool string // tool currently being used by the subagent (empty when none)
+}
+
+// InteractionType identifies the kind of blocking interaction the agent is requesting.
+type InteractionType string
+
+const (
+	InteractionExitPlan  InteractionType = "exit_plan"
+	InteractionEnterPlan InteractionType = "enter_plan"
+	InteractionAskUser   InteractionType = "ask_user"
+)
+
+// AskUserOption represents a single selectable option in an AskUserQuestion.
+type AskUserOption struct {
+	Label       string
+	Description string
+}
+
+// AskUserQuestion represents a structured question with selectable options.
+type AskUserQuestion struct {
+	Header      string
+	Question    string
+	MultiSelect bool
+	Options     []AskUserOption
+}
+
+// PendingInteraction represents a blocking tool call that requires user input.
+// For plan/mode interactions, the process has been killed and will resume with --resume.
+type PendingInteraction struct {
+	Type        InteractionType
+	PlanContent string             // plan file content (for exit_plan only)
+	Questions   []AskUserQuestion  // structured questions (for ask_user only)
+}
+
+// Session represents an active or idle agent conversation for a worktree.
+type Session struct {
+	ID        string        // beanID — one session per worktree
+	AgentType string        // "claude" for now
+	SessionID string        // CLI session ID for --resume
+	Status    SessionStatus // idle, running, error
+	Messages  []Message
+	Error     string // last error message, if status == error
+	WorkDir      string // worktree filesystem path
+	Effort       string // thinking effort level (e.g. "low", "medium", "high", "max"); empty = CLI default
+	PlanMode     bool   // when true, agent uses --permission-mode plan (read-only)
+	ActMode      bool   // when true, agent uses --dangerously-skip-permissions (fully autonomous)
+	SystemStatus string // transient system status (e.g. "compacting"), empty when idle
+	SystemPrompt string // appended to the default system prompt via --append-system-prompt
+
+	// ToolInvocations tracks structured tool calls in the current turn.
+	// Reset on each new user message. Used to find plan files, etc.
+	ToolInvocations []ToolInvocation
+
+	// PendingInteraction is set when the agent calls a blocking tool
+	// (ExitPlanMode, EnterPlanMode) and is waiting for user approval.
+	PendingInteraction *PendingInteraction
+
+	// SubagentActivities tracks what running subagents are doing.
+	// Non-empty only while Agent tool calls are actively running.
+	// Keyed by task_id from task_progress events.
+	SubagentActivities []*SubagentActivity
+
+	// QuickReplies holds suggested follow-up messages generated by Haiku
+	// after an agent turn completes. Cleared when the user sends a new message.
+	QuickReplies []string
+
+	// streamingIdx tracks the message index currently being streamed to.
+	// This ensures deltas from an ongoing turn go to the correct assistant
+	// message even if user messages are interleaved mid-turn. -1 means
+	// no active streaming target.
+	streamingIdx int
+}
+
+// snapshot returns a deep copy of the session for safe concurrent reads.
+func (s *Session) snapshot() Session {
+	snap := Session{
+		ID:                 s.ID,
+		AgentType:          s.AgentType,
+		SessionID:          s.SessionID,
+		Status:             s.Status,
+		Messages:           make([]Message, len(s.Messages)),
+		Error:              s.Error,
+		WorkDir:            s.WorkDir,
+		Effort:             s.Effort,
+		PlanMode:           s.PlanMode,
+		ActMode:           s.ActMode,
+		SystemStatus:       s.SystemStatus,
+	}
+	// Deep copy PendingInteraction if it has Questions
+	if s.PendingInteraction != nil {
+		pi := *s.PendingInteraction
+		if len(pi.Questions) > 0 {
+			pi.Questions = make([]AskUserQuestion, len(s.PendingInteraction.Questions))
+			for i, q := range s.PendingInteraction.Questions {
+				pi.Questions[i] = q
+				if len(q.Options) > 0 {
+					pi.Questions[i].Options = make([]AskUserOption, len(q.Options))
+					copy(pi.Questions[i].Options, q.Options)
+				}
+			}
+		}
+		snap.PendingInteraction = &pi
+	}
+	copy(snap.Messages, s.Messages)
+	// Deep copy image refs in each message
+	for i, m := range snap.Messages {
+		if len(m.Images) > 0 {
+			snap.Messages[i].Images = make([]ImageRef, len(m.Images))
+			copy(snap.Messages[i].Images, m.Images)
+		}
+	}
+	if len(s.SubagentActivities) > 0 {
+		snap.SubagentActivities = make([]*SubagentActivity, len(s.SubagentActivities))
+		for i, sa := range s.SubagentActivities {
+			copy := *sa
+			snap.SubagentActivities[i] = &copy
+		}
+	}
+	if len(s.QuickReplies) > 0 {
+		snap.QuickReplies = make([]string, len(s.QuickReplies))
+		copy(snap.QuickReplies, s.QuickReplies)
+	}
+	return snap
+}
