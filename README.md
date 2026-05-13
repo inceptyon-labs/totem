@@ -18,7 +18,7 @@ Use it through:
 - **Audit-trail-first.** Markdown in git = signed, attributed, immutable history. No separate audit log to manage.
 - **Lightweight.** No database, no SaaS account, no JQL. A `.totem/` directory and you're done.
 - **Agent-native.** Your coding agents can read the totems, propose new ones, and update status from CLI or GraphQL.
-- **Optional rollup.** Configure a Jira connector to summarize many totems into a single Jira epic — bridge to your existing PM stack without dragging it into the codebase.
+- **Pluggable rollup.** Tag totems with external IDs (Jira, Linear, GitHub Issues). Companion tools like [PASIV](https://github.com/inceptyon-labs/pasiv) push completions back to your PM stack — Totem itself stays stack-agnostic.
 
 ## Status
 
